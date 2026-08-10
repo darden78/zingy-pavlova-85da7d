@@ -158,7 +158,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v47";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v471";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -167,6 +167,23 @@ const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
 const serverNow=()=>Date.now()+serverOffset;
+let historyOffset=0;
+function currentAuctionBidHistory(){
+ const ordered=[...bids].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+ const out=[];
+ for(const b of ordered){
+   out.push(b);
+   if(Number(b.amount)===1)break;
+ }
+ return out;
+}
+function syncHistoryOffset(){
+ const h=currentAuctionBidHistory();
+ const i=h.findIndex(b=>Number(b.amount)===Number(auction?.current_bid)&&Number(b.slot)===Number(auction?.highest_slot));
+ historyOffset=i>=0?i:0;
+ return h;
+}
+
 async function syncServerClock(){try{const t0=Date.now();const {data}=await db.rpc("fa_server_time");const t1=Date.now();if(data?.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2)}catch{}}
 setInterval(syncServerClock,30000);
 
@@ -344,9 +361,14 @@ function render(){
  $("leagueName").textContent=league.name;
  const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
  $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
- const cp=currentPlayer();
- $("currentPlayer").innerHTML=cp?`<div class="pn">${cp.name}${cp.modified?' <span class="modifiedMark">*</span>':''}</div><div class="meta">${cp.role} · ${cp.team||"—"} · Quotazione ${cp.value??"—"}${cp.assigned_slot?` · AGGIUDICATO A ${slotName(cp.assigned_slot)} (${cp.assigned_price})`:""}</div>`:`<div class="pn">Seleziona un giocatore dal listone</div>`;
- $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ const cp=currentPlayer(),assignedDone=auction.status==="SOLD"||!!cp?.assigned_slot;
+ if(assignedDone){
+   $("currentPlayer").innerHTML=`<div class="pn">Seleziona il prossimo giocatore</div>`;
+   $("amount").textContent="—";$("who").textContent="—";
+ }else{
+   $("currentPlayer").innerHTML=cp?`<div class="pn">${cp.name}${cp.modified?' <span class="modifiedMark">*</span>':''}</div><div class="meta">${cp.role} · ${cp.team||"—"} · Quotazione ${cp.value??"—"}</div>`:`<div class="pn">Seleziona un giocatore dal listone</div>`;
+   $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ }
  $("closed").textContent=auction.status==="SOLD"?"✓ AGGIUDICATO":"";
  $("pauseTimer").textContent=auction.paused?"▶ RIPRENDI TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
@@ -354,13 +376,17 @@ function render(){
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"} · ${online(s)?"ONLINE":"OFFLINE"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=()=>{selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
- const max=events.length?Math.max(...events.map(x=>x.seq)):0;$("eventPos").textContent=`Evento ${auction.event_cursor||0} di ${max}`;$("prevEvent").disabled=(auction.event_cursor||0)<=0;$("nextEvent").disabled=(auction.event_cursor||0)>=max;
+ const hist=syncHistoryOffset(),histTotal=hist.length;
+ $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
+ $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
+ $("nextEvent").disabled=historyOffset<=0;
  renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
 }
 function timer(){
+ if(auction?.status==="SOLD"){$("timer").textContent="—";return}
  if(!auction?.highest_slot){$("timer").textContent="—";return}
  if(auction.paused){$("timer").textContent="⏸ "+((auction.paused_remaining_ms||league.duration_seconds*1000)/1000).toFixed(1)+" s";return}
- if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent=auction.status==="SOLD"?"0.0 s":"—";return}
+ if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent="—";return}
  const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1)+" s";
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
 }
@@ -442,21 +468,33 @@ $("newAuction").onclick=async()=>{
 $("pauseTimer").onclick=async()=>{await db.rpc("fa_pause",{p_league_id:league.id,p_pause:!auction.paused});await load()};
 $("prevEvent").onclick=async()=>{
  if(auction.status==="SOLD"||auction.assignment_confirmed){
-  const {data,error}=await db.rpc("fa_undo_assignment_v46",{p_league_id:league.id});
-  if(error||!data?.ok){alert(error?.message||data?.error);return}
-  msg($("status"),`↩ Aggiudicazione annullata — ${slotName(data.slot)} resta a ${data.amount}. Timer pieno e in PAUSA.`,"warn");
-  await load(false);return;
+   const {data,error}=await db.rpc("fa_undo_assignment_v46",{p_league_id:league.id});
+   if(error||!data?.ok){alert(error?.message||data?.error);return}
+   await load(false);
+   historyOffset=0;
+   msg($("status"),`↩ Aggiudicazione annullata — ${slotName(data.slot)} resta a ${data.amount}. Timer pieno e in PAUSA.`,"warn");
+   return;
  }
- const {data,error}=await db.rpc("fa_restore_event_v47",{p_league_id:league.id,p_direction:-1});
+ const h=syncHistoryOffset();
+ if(!h.length||historyOffset>=h.length-1){msg($("status"),"Sei già alla prima offerta di questa asta.","warn");return}
+ const target=h[historyOffset+1];
+ const {data,error}=await db.rpc("fa_set_bid_history_v471",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
  if(error||!data?.ok){alert(error?.message||data?.error);return}
- msg($("status"),`↩ Evento precedente — ${data.slot?slotName(data.slot):"nessun offerente"} ${data.amount??0}`,"warn");
- await load(false);
+ historyOffset++;
+ auction={...auction,highest_slot:target.slot,current_bid:target.amount,status:"OPEN",paused:true,paused_remaining_ms:league.duration_seconds*1000,timer_deadline:null,assignment_confirmed:false};
+ render();
+ msg($("status"),`↩ Offerta precedente — ${slotName(target.slot)} a ${target.amount}`,"warn");
 };
 $("nextEvent").onclick=async()=>{
- const {data,error}=await db.rpc("fa_restore_event_v47",{p_league_id:league.id,p_direction:1});
+ const h=syncHistoryOffset();
+ if(!h.length||historyOffset<=0){msg($("status"),"Sei già all'ultima offerta.","warn");return}
+ const target=h[historyOffset-1];
+ const {data,error}=await db.rpc("fa_set_bid_history_v471",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
  if(error||!data?.ok){alert(error?.message||data?.error);return}
- msg($("status"),`↪ Evento successivo — ${data.slot?slotName(data.slot):"nessun offerente"} ${data.amount??0}`,"warn");
- await load(false);
+ historyOffset--;
+ auction={...auction,highest_slot:target.slot,current_bid:target.amount,status:"OPEN",paused:true,paused_remaining_ms:league.duration_seconds*1000,timer_deadline:null,assignment_confirmed:false};
+ render();
+ msg($("status"),`↪ Offerta successiva — ${slotName(target.slot)} a ${target.amount}`,"warn");
 };
 
 let loadTimer=null;

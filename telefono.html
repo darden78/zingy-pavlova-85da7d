@@ -58,10 +58,24 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v47";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v471";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
+let wakeLock=null;
+async function requestWakeLock(){
+ if(!("wakeLock" in navigator)||document.hidden)return;
+ try{
+   if(wakeLock)return;
+   wakeLock=await navigator.wakeLock.request("screen");
+   wakeLock.addEventListener("release",()=>{wakeLock=null});
+ }catch(e){console.log("Wake Lock non disponibile:",e?.message||e)}
+}
+async function releaseWakeLock(){
+ try{if(wakeLock)await wakeLock.release()}catch{}
+ wakeLock=null;
+}
+
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
 const serverNow=()=>Date.now()+serverOffset;
 async function syncServerClock(){try{const t0=Date.now();const {data}=await db.rpc("fa_server_time");const t1=Date.now();if(data?.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2)}catch{}}
@@ -96,7 +110,7 @@ function showLogin(){
  $("pages").classList.add("hidden");$("nameScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
  $("loginPassword").value="";m($("loginMsg"),"");
 }
-$("exitBtn").onclick=()=>{localStorage.removeItem("fantastica-last-league");showLogin()};
+$("exitBtn").onclick=()=>{releaseWakeLock();localStorage.removeItem("fantastica-last-league");showLogin()};
 
 $("loginBtn").onclick=async()=>{
  try{
@@ -126,7 +140,7 @@ async function enterGame(){
  const {data:l,error}=await db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle();
  if(error||!l){localStorage.removeItem("fantastica-last-league");showLogin();return}
  league=l;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
- await heartbeat();await load();connect();
+ await heartbeat();await load();connect();requestWakeLock();
 }
 async function heartbeat(){
  if(!leagueId||!slot)return;
@@ -245,7 +259,7 @@ $("leave").onclick=async()=>{
  scheduleLoad(25);
 };
 const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";modal.classList.add("show")};document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){heartbeat();load();connect()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){requestWakeLock();heartbeat();load();connect()}else{wakeLock=null}});
 
 (async()=>{try{await ensureAuth();await syncServerClock();if(!await tryLastLeague())showLogin()}catch(e){m($("loginMsg"),"Errore autenticazione: "+e.message,"bad")}})();
 </script>
