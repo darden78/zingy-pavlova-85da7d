@@ -158,7 +158,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v473";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v474";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -459,9 +459,9 @@ $("importList").onclick=async()=>{
 
 $("newAuction").onclick=async()=>{
  msg($("status"),"Avvio asta...","warn");
- const {data,error}=await db.rpc("fa_start_auction_v4",{p_league_id:league.id});
+ const {data,error}=await db.rpc("fa_start_auction_v474",{p_league_id:league.id});
  if(error)msg($("status"),error.message,"bad");
- else if(!data?.ok)msg($("status"),data.error==="SELEZIONA_GIOCATORE"?"Seleziona prima un giocatore dal listone.":data.error,"bad");
+ else if(!data?.ok){const em=data.error==="SELEZIONA_GIOCATORE"?"Seleziona prima un giocatore dal listone.":data.error==="PARTECIPANTI_OFFLINE"?`Impossibile avviare: online ${data.online} su ${data.required} partecipanti richiesti.`:data.error;msg($("status"),em,"bad");}
  else msg($("status"),"🟢 ASTA PRONTA — partenza da 1 credito","ok");
  scheduleLoad(35);
 };

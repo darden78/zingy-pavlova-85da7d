@@ -35,9 +35,10 @@
 </div></div>
 
 <div id="nameScreen" class="entry hidden"><div class="entryBox">
- <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p>
- <input id="participantName" maxlength="30" placeholder="Il tuo nome">
- <button id="nameBtn">CONFERMA</button><div id="nameMsg"></div>
+ <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2>
+ <div id="reclaimBox" class="hidden"><p>Se eri già presente, scegli il tuo nome:</p><div id="reclaimCandidates"></div><button id="newParticipantBtn" style="background:#555">SONO UN NUOVO PARTECIPANTE</button></div>
+ <div id="newNameBox"><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p><input id="participantName" maxlength="30" placeholder="Il tuo nome"><button id="nameBtn">CONFERMA</button></div>
+ <div id="nameMsg"></div>
 </div></div>
 
 <div id="pages" class="pages hidden">
@@ -58,10 +59,18 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v473";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v474";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
+let deviceId=null,pendingLogin=null;
+async function getDeviceId(){
+ if(deviceId)return deviceId;
+ let f=localStorage.getItem("fantastica-device-id-v474");
+ if(!f){f="web:"+crypto.randomUUID();localStorage.setItem("fantastica-device-id-v474",f)}
+ deviceId=f;return deviceId;
+}
+
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
 const serverNow=()=>Date.now()+serverOffset;
 async function syncServerClock(){
@@ -127,14 +136,13 @@ async function ensureAuth(){
  if(error)throw error;
  return data.session;
 }
-async function tryLastLeague(){
- const id=localStorage.getItem("fantastica-last-league");
- if(!id)return false;
- const {data,error}=await db.rpc("fa_my_participant",{p_league_id:id});
- if(error||!data?.ok){localStorage.removeItem("fantastica-last-league");return false}
- leagueId=id;slot=data.slot;
- await enterGame();
- return true;
+async function tryDeviceRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_participant_by_device",{p_device_id:await getDeviceId()});
+  if(error||!data?.ok)return false;
+  leagueId=data.league_id;slot=data.slot;localStorage.setItem("fantastica-last-league",leagueId);
+  await enterGame();return true;
+ }catch(e){return false}
 }
 function showLogin(){
  $("startupScreen").classList.add("hidden");
@@ -145,20 +153,36 @@ function showLogin(){
 }
 $("exitBtn").onclick=()=>{stopKeepAwake();localStorage.removeItem("fantastica-last-league");showLogin()};
 
+async function finishDeviceJoin(data){
+ leagueId=data.league_id;slot=data.slot;localStorage.setItem("fantastica-last-league",leagueId);
+ $("loginScreen").classList.add("hidden");$("loginPassword").value="";
+ if(data.needs_name){$("nameLeague").textContent=data.league_name;$("reclaimBox").classList.add("hidden");$("newNameBox").classList.remove("hidden");$("nameScreen").classList.remove("hidden");return}
+ await enterGame();
+}
+function showReclaim(data){
+ leagueId=data.league_id;$("loginScreen").classList.add("hidden");$("nameLeague").textContent=data.league_name;
+ $("newNameBox").classList.add("hidden");$("reclaimBox").classList.remove("hidden");
+ $("reclaimCandidates").innerHTML=(data.candidates||[]).map(c=>`<button class="reclaimBtn" data-slot="${c.slot}">${c.name}</button>`).join("");
+ $("nameScreen").classList.remove("hidden");
+ document.querySelectorAll(".reclaimBtn").forEach(b=>b.onclick=async()=>{
+  const {data:r,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:+b.dataset.slot});
+  if(error||!r?.ok){m($("nameMsg"),"Errore: "+(error?.message||r?.error),"bad");return}
+  await finishDeviceJoin(r);
+ });
+}
+$("newParticipantBtn").onclick=async()=>{
+ const {data,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:0});
+ if(error||!data?.ok){m($("nameMsg"),"Errore: "+(error?.message||data?.error),"bad");return}
+ await finishDeviceJoin(data);
+};
 $("loginBtn").onclick=async()=>{
  try{
   await ensureAuth();m($("loginMsg"),"Accesso...");
-  const {data,error}=await db.rpc("fa_join_participant",{p_name:$("loginLeague").value.trim(),p_password:$("loginPassword").value});
-  if(error||!data?.ok){
-   const e=data?.error;
-   m($("loginMsg"),e==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return
-  }
-  leagueId=data.league_id;slot=data.slot;localStorage.setItem("fantastica-last-league",leagueId);
-  $("loginScreen").classList.add("hidden");$("loginPassword").value="";
-  if(data.needs_name){
-   $("nameLeague").textContent=data.league_name;$("nameScreen").classList.remove("hidden");return
-  }
-  await enterGame();
+  pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
+  const {data,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
+  if(error||!data?.ok){m($("loginMsg"),data?.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
+  if(data.needs_reclaim){showReclaim(data);return}
+  await finishDeviceJoin(data);
  }catch(e){m($("loginMsg"),"Errore: "+e.message,"bad")}
 };
 $("nameBtn").onclick=async()=>{
@@ -177,10 +201,8 @@ async function enterGame(){
 }
 async function heartbeat(){
  if(!leagueId||!slot)return;
- const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:"",p_allow_legacy:false});
- if(error||!data?.ok){
-   if(leagueId){localStorage.removeItem("fantastica-last-league");showLogin()}
- }
+ const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
+ if(error||!data?.ok){m($("status"),"Riconnessione...","warn")}
 }
 setInterval(()=>{if(!document.hidden)heartbeat()},10000);
 
@@ -292,7 +314,7 @@ async function bid(kind,exact=null){
  if(auction){auction.current_bid=optimistic;auction.highest_slot=slot}
  $("info").textContent=`Offerta: ${optimistic} · ${slotName(slot)}`;
  m($("msg"),"Invio offerta...","warn");
- const {data,error}=await db.rpc("fa_place_bid",{p_league_id:leagueId,p_slot:slot,p_device_token:"",p_allow_legacy:false,p_kind:kind,p_exact:exact});
+ const {data,error}=await db.rpc("fa_place_bid",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
  busy=false;
  if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
  else if(data?.ok){if(auction){auction.current_bid=data.amount;auction.highest_slot=slot}m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");scheduleLoad(25)}
@@ -306,7 +328,7 @@ $("leave").onclick=async()=>{
  slotData.abandoned=!wasAbandoned;
  m($("msg"),wasAbandoned?"Rientro...":"Abbandono asta...","warn");
  render();
- const {data,error}=await db.rpc("fa_leave_v46",{p_league_id:leagueId,p_slot:slot,p_device_token:"",p_allow_legacy:false,p_rejoin:wasAbandoned});
+ const {data,error}=await db.rpc("fa_leave_v46",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_rejoin:wasAbandoned});
  if(error)m($("msg"),error.message,"bad");
  else if(data?.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
  else if(data?.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
@@ -320,7 +342,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(wakeWa
  try{
   await ensureAuth();
   await syncServerClock();
-  if(!await tryLastLeague())showLogin();
+  if(!await tryDeviceRestore())showLogin();
  }catch(e){
   $("startupScreen").classList.add("hidden");
   $("loginScreen").classList.remove("hidden");
