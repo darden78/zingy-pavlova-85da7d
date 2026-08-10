@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FANTASTICA - Regia</title>
+<meta name="theme-color" content="#101010"><link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest-pc.webmanifest">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0e0e0e;color:#fff;font-family:Arial,sans-serif}button,input,select{font:inherit}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
+.wrap{max-width:1900px;margin:auto;padding:14px}.brand{text-align:center;font-size:42px;margin:6vh 0 25px}
+#leagueHome{max-width:820px;margin:auto}.authTabs{display:flex;gap:8px;margin-bottom:12px}.authTabs button{flex:1;border:0;border-radius:10px;padding:12px;background:#333;color:#fff;font-weight:900;cursor:pointer}.authTabs button.active{background:#2f8f57}.authForm label{display:block;font-size:12px;color:#aaa;margin-top:9px}.authForm input{width:100%;padding:11px;border:0;border-radius:9px;margin-top:4px}.authAction{width:100%;border:0;border-radius:11px;padding:13px;background:#2f8f57;color:#fff;font-weight:900;margin-top:13px;cursor:pointer}.homeCard,.card{background:#202020;border-radius:16px;padding:18px;margin:14px 0}
+.leagueBtn{width:100%;text-align:left;border:0;background:#303030;color:#fff;border-radius:12px;padding:15px;margin:6px 0;font-size:19px;font-weight:800;cursor:pointer}
+.createGrid{display:grid;grid-template-columns:2fr repeat(2,1fr);gap:10px}.createGrid label{font-size:12px;color:#aaa}.createGrid input{width:100%;padding:10px;border:0;border-radius:9px}.createFull{grid-column:1/-1}.createBtn{grid-column:1/-1;border:0;border-radius:11px;padding:13px;background:#2f8f57;color:#fff;font-weight:900;cursor:pointer}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.top h1{margin:0;flex:1}.top button{border:0;border-radius:9px;padding:9px 12px;background:#333;color:#fff;font-weight:800;cursor:pointer}
+.status{background:#202020;padding:9px 12px;border-radius:9px;margin-bottom:10px}
+.workspace{display:grid;grid-template-columns:minmax(245px,.85fr) minmax(630px,2.2fr) minmax(310px,1.05fr);gap:12px;align-items:start}
+.side{height:calc(100vh - 90px);background:#181818;border-radius:14px;padding:10px;overflow:hidden;position:sticky;top:8px}.side h2{font-size:17px;margin:3px 0 7px}
+.center{min-width:0}.hero{background:#202020;border-radius:16px;padding:12px;text-align:center}.currentPlayer{background:#171717;border-radius:12px;padding:10px;margin-bottom:9px;min-height:68px}.currentPlayer .pn{font-size:25px;font-weight:900}.currentPlayer .meta{color:#bbb;font-size:14px}
+.amount{font-size:72px;line-height:.95;font-weight:900}.who{font-size:25px}.timer{font-size:38px;font-weight:900;margin-top:5px}.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}.controls button{border:0;border-radius:10px;padding:9px 13px;color:#fff;font-weight:800;cursor:pointer}.pause{background:#9b6b20}.undo{background:#315f8a}.newAuction{background:#2f8f57}.confirmBuy{background:#8b5fc5}.controls button:disabled{opacity:.35;cursor:default}.eventPos{font-size:12px;color:#999;margin-top:6px}
+.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.p{background:#202020;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #555}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.ps{font-size:11px;margin-top:4px;color:#aaa}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}
+table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;overflow:hidden;font-size:12px}th,td{padding:7px;border-bottom:1px solid #333;text-align:left}
+.rosterHead{font-size:12px;color:#bbb;line-height:1.25;margin-bottom:5px}.rosterName{font-size:19px;font-weight:900}.rosterStats{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;margin:5px 0;font-size:11px}
+.roleBlock{margin-top:3px}.roleTitle{font-size:11px;font-weight:900;color:#ddd;border-bottom:1px solid #333}.rosterRow{display:grid;grid-template-columns:1fr auto;gap:5px;font-size:clamp(8px,1.05vh,11px);line-height:1.22;white-space:nowrap}.rosterRow span:first-child{overflow:hidden;text-overflow:ellipsis}.emptyLine{color:#555}
+.rightTop{display:flex;gap:6px;align-items:center;margin-bottom:6px}.rightTop button{border:0;border-radius:8px;padding:7px 9px;background:#333;color:#fff;font-weight:800;cursor:pointer}.listControls{display:grid;grid-template-columns:1fr auto;gap:5px;margin-bottom:6px}.listControls input,.listControls select{min-width:0;padding:7px;border:0;border-radius:8px;background:#2a2a2a;color:#fff}
+.roleFilters{display:flex;gap:4px;margin-bottom:6px}.roleFilters button{flex:1;border:0;border-radius:7px;padding:6px;background:#2c2c2c;color:#fff;font-weight:800;cursor:pointer}.roleFilters button.active{background:#2f8f57}
+.playerList{height:calc(100vh - 300px);overflow:auto}.listRow{display:grid;grid-template-columns:1fr 30px 30px;gap:4px;align-items:center;border-bottom:1px solid #292929;padding:5px 2px;cursor:pointer}.listRow:hover{background:#242424}.listName{font-size:12px;font-weight:800}.listMeta{font-size:10px;color:#aaa}.editBtn{border:0;border-radius:6px;background:#444;color:#fff;height:27px;cursor:pointer}.assigned{opacity:.45}.modifiedMark{color:#ffc857}
+.importBox{background:#202020;border-radius:10px;padding:8px;margin-bottom:7px}.importBox input[type=file]{width:100%;font-size:11px}.importActions{display:flex;gap:5px;margin-top:5px}.importActions input{min-width:0;flex:1;padding:6px;background:#2b2b2b;color:#fff;border:0;border-radius:7px}.importActions button{border:0;border-radius:7px;background:#315f8a;color:#fff;font-weight:800;padding:6px 8px}
+.settingsPanel{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50}.settingsPanel.show{display:flex}.settingsBox{width:min(590px,94vw);max-height:92vh;overflow:auto;background:#202020;border-radius:15px;padding:18px}.settingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.settingsGrid label{font-size:12px;color:#bbb}.settingsGrid input{width:100%;padding:9px;border:0;border-radius:8px}.full{grid-column:1/-1}.settingsActions{display:flex;gap:8px;margin-top:12px}.settingsActions button{flex:1;padding:11px;border:0;border-radius:9px;font-weight:900}.saveSettings{background:#2f8f57;color:#fff}.closeSettings{background:#444;color:#fff}.danger{background:#8b3030!important;color:#fff}
+.linkBox{background:#202020;border-radius:12px;padding:10px;margin-top:12px}.linkRow{display:grid;grid-template-columns:90px 1fr 72px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.linkRow code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bbb;font-size:11px}.copyLink{border:0;border-radius:7px;padding:7px;background:#315f8a;color:#fff;font-weight:800;cursor:pointer}.manageRow{display:grid;grid-template-columns:1fr 80px 70px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.manageRow button{border:0;border-radius:7px;padding:6px;color:#fff}.rename{background:#315f8a}.release{background:#8b3030}
+@media(max-width:1250px){.workspace{grid-template-columns:240px 1fr}.rightSide{grid-column:1/-1;position:static;height:70vh}.players{grid-template-columns:repeat(3,1fr)}}
+
+.roleModeBox{grid-column:1/-1;background:#171717;border-radius:10px;padding:10px;margin-top:4px}
+.roleOrder{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.roleOrder select{min-width:65px;padding:8px;border:0;border-radius:8px}
+.listRow.roleActive{background:#364b38;border:1px solid #57d67d}.listRow.roleActive .listName{font-weight:900;color:#fff}.listRow.roleInactive{opacity:.38;cursor:not-allowed}.phaseBadge{display:inline-block;padding:5px 10px;border-radius:999px;background:#375b42;font-weight:900;margin-left:8px}
+.celebrate{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;text-align:center;overflow:hidden}.celebrate.show{display:flex}.celebrateBox{position:relative;z-index:2}.celebrate h1{font-size:clamp(38px,7vw,90px);margin:0 20px;text-shadow:0 0 25px #fff}.celebrate p{font-size:24px}.firework{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 -70px #ffdf5d,49px -49px #ff5d8f,70px 0 #65e0ff,49px 49px #8cff65,0 70px #ff9b5d,-49px 49px #c865ff,-70px 0 #fff,-49px -49px #5dffca;animation:boom 1.2s infinite ease-out}.fw1{left:25%;top:35%}.fw2{left:72%;top:28%;animation-delay:.35s}.fw3{left:55%;top:70%;animation-delay:.7s}@keyframes boom{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.3);opacity:0}}
+.exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
+</style></head><body>
+<div class="wrap">
+<section id="leagueHome">
+ <div class="brand">⚽ FANTASTICA</div>
+ <div class="authTabs"><button id="tabLogin" class="active">ENTRA IN UNA LEGA</button><button id="tabCreate">CREA NUOVA LEGA</button></div>
+
+ <div id="loginCard" class="homeCard authForm">
+  <h2>Accesso regia</h2>
+  <label>Nome lega</label><input id="loginLeague" autocomplete="off">
+  <label>Password</label><input id="loginPassword" type="password">
+  <button id="loginLeagueBtn" class="authAction">ENTRA</button>
+  <div id="loginMsg"></div>
+ </div>
+
+ <div id="createCard" class="homeCard authForm hidden">
+  <h2>Crea nuova lega</h2>
+  <label>Nome lega</label><input id="newName" maxlength="50">
+  <label>Password (minimo 5 caratteri)</label><input id="newPassword" type="password" minlength="5">
+  <label>Conferma password</label><input id="newPassword2" type="password" minlength="5">
+  <label>Email di verifica</label><input id="newEmail" type="email">
+  <div class="createGrid" style="margin-top:12px">
+   <div><label>Partecipanti lega</label><input id="newMembers" type="number" min="6" max="12" value="8"></div>
+   <div><label>Partecipanti asta</label><input id="newAuctionCount" type="number" min="2" max="12" value="8"></div>
+   <div><label>Timer (s)</label><input id="newDuration" type="number" min="1" max="600" value="10"></div>
+   <div><label>Crediti iniziali</label><input id="newCredits" type="number" min="1" value="600"></div>
+   <div><label>Portieri</label><input id="newP" type="number" min="0" value="4"></div>
+   <div><label>Difensori</label><input id="newD" type="number" min="0" value="9"></div>
+   <div><label>Centrocampisti</label><input id="newC" type="number" min="0" value="9"></div>
+   <div><label>Attaccanti</label><input id="newA" type="number" min="0" value="7"></div>
+   <div class="roleModeBox">
+    <label>Modalità asta</label>
+    <select id="newAuctionMode"><option value="FREE">Asta libera</option><option value="ROLE">Asta per ruolo</option></select>
+    <div id="newRoleOrderBox" class="hidden" style="margin-top:9px">
+     <label>Ordine ruoli</label><div class="roleOrder">
+      <select class="newRoleOrd"><option>P</option><option>D</option><option>C</option><option>A</option></select>
+      <select class="newRoleOrd"><option>D</option><option>P</option><option>C</option><option>A</option></select>
+      <select class="newRoleOrd"><option>C</option><option>P</option><option>D</option><option>A</option></select>
+      <select class="newRoleOrd"><option>A</option><option>P</option><option>D</option><option>C</option></select>
+     </div>
+    </div>
+   </div>
+  </div>
+  <button id="createLeague" class="authAction">INVIA EMAIL DI VERIFICA</button>
+  <div id="homeMsg"></div>
+ </div>
+</section>
+
+<section id="regia" class="hidden">
+ <div class="top"><button id="changeLeague">← ESCI REGIA</button><h1>⚽ <span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1><button id="settingsBtn">⚙ IMPOSTAZIONI</button></div>
+ <div id="status" class="status">Avvio...</div>
+ <div class="workspace">
+  <aside class="side"><h2>ROSA MIGLIOR OFFERENTE</h2><div id="leaderRoster"></div></aside>
+  <main class="center">
+   <div class="hero">
+    <div id="currentPlayer" class="currentPlayer"><div class="pn">Seleziona un giocatore dal listone</div></div>
+    <div>OFFERTA ATTUALE</div><div id="amount" class="amount">0</div><div id="who" class="who">Nessun offerente</div><div id="timer" class="timer">—</div><div id="closed"></div>
+    <div class="controls">
+     <button id="prevEvent" class="undo">◀ EVENTO PRECEDENTE</button>
+     <button id="pauseTimer" class="pause">⏸ PAUSA TIMER</button>
+     <button id="nextEvent" class="undo">EVENTO SUCCESSIVO ▶</button>
+     <button id="newAuction" class="newAuction">NUOVA ASTA</button>
+     <button id="confirmAssignment" class="confirmBuy hidden">✓ CONFERMA AGGIUDICAZIONE</button>
+    </div><div id="eventPos" class="eventPos"></div>
+   </div>
+   <div id="players" class="players"></div>
+   <h3>ULTIMI RILANCI</h3>
+   <table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table>
+  </main>
+  <aside class="side rightSide">
+   <div class="rightTop"><h2 id="rightTitle" style="flex:1">LISTONE</h2><button id="showList">LISTONE</button></div>
+   <div id="listView">
+    <div class="importBox">
+     <input id="listFile" type="file" accept=".csv,.xlsx,.xls">
+     <div class="importActions"><input id="listSource" value="Fantapazz" placeholder="Fonte listone"><button id="importList">IMPORTA</button></div>
+     <div id="importMsg"></div>
+    </div>
+    <div class="listControls"><input id="searchPlayer" placeholder="Cerca giocatore..."><select id="sortPlayers">
+      <option value="value_desc">Quotazione ↓</option><option value="value_asc">Quotazione ↑</option><option value="name_asc">Nome A-Z</option><option value="name_desc">Nome Z-A</option><option value="team">Squadra</option><option value="role">Ruolo</option>
+    </select></div>
+    <div class="roleFilters"><button class="rf active" data-role="">TUTTI</button><button class="rf" data-role="P">P</button><button class="rf" data-role="D">D</button><button class="rf" data-role="C">C</button><button class="rf" data-role="A">A</button></div>
+    <label style="font-size:11px"><input id="showAssigned" type="checkbox"> Mostra anche assegnati</label>
+    <div id="playerList" class="playerList"></div>
+   </div>
+   <div id="selectedRosterView" class="hidden"></div>
+  </aside>
+ </div>
+</section>
+</div>
+
+<div id="settingsPanel" class="settingsPanel"><div class="settingsBox">
+ <h2>Impostazioni lega</h2>
+ <div class="settingsGrid">
+  <div class="full"><label>Nome lega</label><input id="setName"></div>
+  <div><label>Partecipanti lega</label><input id="setMembers" type="number" min="6" max="12"></div>
+  <div><label>Partecipanti asta</label><input id="setAuctionCount" type="number" min="2" max="12"></div>
+  <div><label>Timer (s)</label><input id="setDuration" type="number" min="1" max="600"></div>
+  <div><label>Crediti iniziali</label><input id="setCredits" type="number" min="1"></div>
+  <div><label>Portieri</label><input id="setP" type="number" min="0"></div>
+  <div><label>Difensori</label><input id="setD" type="number" min="0"></div>
+  <div><label>Centrocampisti</label><input id="setC" type="number" min="0"></div>
+  <div><label>Attaccanti</label><input id="setA" type="number" min="0"></div>
+  <div class="full roleModeBox">
+   <label>Modalità asta</label><select id="setAuctionMode"><option value="FREE">Asta libera</option><option value="ROLE">Asta per ruolo</option></select>
+   <div id="setRoleOrderBox" class="hidden" style="margin-top:9px"><label>Ordine ruoli</label><div class="roleOrder">
+    <select class="setRoleOrd"></select><select class="setRoleOrd"></select><select class="setRoleOrd"></select><select class="setRoleOrd"></select>
+   </div></div>
+  </div>
+ </div>
+ <div class="settingsActions"><button id="saveSettings" class="saveSettings">SALVA</button><button id="closeSettings" class="closeSettings">CHIUDI</button></div>
+ <div id="settingsMsg"></div>
+ <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
+ <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
+</div></div>
+
+
+<div id="celebrate" class="celebrate">
+ <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
+ <div class="celebrateBox"><h1 id="celebrateTitle"></h1><p id="celebrateSub"></p>
+ <div id="exportActions" class="exportActions hidden">
+  <button id="exportXlsx">ESPORTA EXCEL</button><button id="exportPdf">ESPORTA PDF</button><button id="exportJson">FILE FANTASTICA</button>
+ </div></div>
+</div>
+
+<script type="module">
+import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v4";
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
+let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
+let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
+const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
+const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
+const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
+const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
+const serverNow=()=>Date.now()+serverOffset;
+async function syncServerClock(){try{const t0=Date.now();const {data}=await db.rpc("fa_server_time");const t1=Date.now();if(data?.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2)}catch{}}
+setInterval(syncServerClock,30000);
+
+function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faAudio=window.__faAudio||new C();return window.__faAudio}
+function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
+function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
+function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
+function showCelebration(title,final=false){const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";$("exportActions").classList.toggle("hidden",!final);el.classList.add("show");fireworksSound();setTimeout(()=>{if(!final)el.classList.remove("show")},5000)}
+$("celebrate").onclick=e=>{if(e.target.id==="celebrate"&&!lastComplete)$("celebrate").classList.remove("show")};
+
+function roleOrderValues(cls){return [...document.querySelectorAll(cls)].map(x=>x.value)}
+function validRoleOrder(a){return a.length===4&&new Set(a).size===4&&["P","D","C","A"].every(x=>a.includes(x))}
+function fillRoleSelects(cls,order){document.querySelectorAll(cls).forEach((s,i)=>{s.innerHTML=["P","D","C","A"].map(r=>`<option ${r===order[i]?"selected":""}>${r}</option>`).join("")})}
+function eligibleSlotsFor(role){if(!league||!role)return[];const lim=league["roster_"+role.toLowerCase()];return slots.filter(s=>s.slot<=league.member_limit&&s.display_name).filter(s=>catalog.filter(p=>p.assigned_slot===s.slot&&p.role===role).length<lim)}
+async function checkProgress(){
+ if(progressBusy||!league)return;progressBusy=true;
+ try{
+  const {data}=await db.rpc("fa_v4_check_progress",{p_league_id:league.id});
+  if(data?.role_changed||data?.final)await load(false);
+ }catch{}finally{progressBusy=false}
+}
+
+
+async function ensureAuth(){
+ const {data:{session}}=await db.auth.getSession();
+ if(session)return session;
+ const {data,error}=await db.auth.signInAnonymously();
+ if(error)throw error;
+ return data.session;
+}
+function showAuth(which){
+ const login=which==="login";
+ $("loginCard").classList.toggle("hidden",!login);
+ $("createCard").classList.toggle("hidden",login);
+ $("tabLogin").classList.toggle("active",login);
+ $("tabCreate").classList.toggle("active",!login);
+}
+$("tabLogin").onclick=()=>showAuth("login");
+$("tabCreate").onclick=()=>showAuth("create");
+$("newAuctionMode").onchange=()=>$("newRoleOrderBox").classList.toggle("hidden",$("newAuctionMode").value!=="ROLE");
+$("setAuctionMode").onchange=()=>$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");
+
+$("loginLeagueBtn").onclick=async()=>{
+ try{
+  await ensureAuth();msg($("loginMsg"),"Accesso...");
+  const {data,error}=await db.rpc("fa_login_organizer",{p_name:$("loginLeague").value.trim(),p_password:$("loginPassword").value});
+  if(error||!data?.ok){msg($("loginMsg"),"Nome lega o password non corretti.","bad");return}
+  $("loginPassword").value="";await openLeague(data.league_id);
+ }catch(e){msg($("loginMsg"),"Errore: "+e.message,"bad")}
+};
+
+let verificationPoll=null;
+
+async function pollPendingLeague(){
+ const raw=localStorage.getItem("fantastica-pending-league-v31");
+ if(!raw)return;
+ const pending=JSON.parse(raw);
+ clearInterval(verificationPoll);
+ const check=async()=>{
+   try{
+     await ensureAuth();
+     const {data,error}=await db.rpc("fa_finalize_pending_league_v4",{
+       p_pending_id:pending.pending_id,
+       p_client_secret:pending.client_secret
+     });
+     if(error){msg($("homeMsg"),"Errore verifica: "+error.message,"bad");return}
+     if(!data?.ok){
+       const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":data?.error;
+       msg($("homeMsg"),"Errore: "+em,"bad");clearInterval(verificationPoll);return
+     }
+     if(data.complete){
+       clearInterval(verificationPoll);
+       localStorage.removeItem("fantastica-pending-league-v31");
+       msg($("homeMsg"),"✓ Email verificata. Apertura lega...","ok");
+       await openLeague(data.league_id);
+     }else{
+       msg($("homeMsg"),"In attesa della verifica email... Puoi aprire la mail anche dal telefono.","warn");
+     }
+   }catch(e){msg($("homeMsg"),"Errore verifica: "+e.message,"bad")}
+ };
+ await check();
+ verificationPoll=setInterval(check,2000);
+}
+
+$("createLeague").onclick=async()=>{
+ const pwd=$("newPassword").value,pwd2=$("newPassword2").value,email=$("newEmail").value.trim(),name=$("newName").value.trim();
+ if(name.length<2){msg($("homeMsg"),"Inserisci il nome della lega.","bad");return}
+ if(pwd.length<5){msg($("homeMsg"),"La password deve avere almeno 5 caratteri.","bad");return}
+ if(pwd!==pwd2){msg($("homeMsg"),"Le password non coincidono.","bad");return}
+ if(!email.includes("@")){msg($("homeMsg"),"Inserisci un'email valida.","bad");return}
+ const newOrd=roleOrderValues(".newRoleOrd");if($("newAuctionMode").value==="ROLE"&&!validRoleOrder(newOrd)){msg($("homeMsg"),"L'ordine ruoli deve contenere P, D, C e A una sola volta.","bad");return}
+ try{
+   await ensureAuth();
+   const clientSecret=crypto.randomUUID()+"-"+crypto.randomUUID();
+   const args={
+     p_name:name,p_password:pwd,p_email:email,
+     p_member_limit:+$("newMembers").value,p_auction_count:+$("newAuctionCount").value,p_duration:+$("newDuration").value,
+     p_credits:+$("newCredits").value,
+     p_roster_p:+$("newP").value,p_roster_d:+$("newD").value,p_roster_c:+$("newC").value,p_roster_a:+$("newA").value,
+     p_auction_mode:$("newAuctionMode").value,
+     p_role_order:newOrd,
+     p_client_secret:clientSecret
+   };
+   msg($("homeMsg"),"Preparazione verifica...");
+   const {data,error}=await db.rpc("fa_begin_league_creation_v4",args);
+   if(error||!data?.ok){
+     const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":(error?.message||data?.error);
+     msg($("homeMsg"),"Errore: "+em,"bad");return
+   }
+   localStorage.setItem("fantastica-pending-league-v31",JSON.stringify({
+     pending_id:data.pending_id,client_secret:clientSecret
+   }));
+   const redirect=`${location.origin}/verify.html?pending=${encodeURIComponent(data.pending_id)}&token=${encodeURIComponent(data.verification_token)}`;
+   const mail=await db.auth.signInWithOtp({email,options:{emailRedirectTo:redirect}});
+   if(mail.error){msg($("homeMsg"),"Errore email: "+mail.error.message,"bad");return}
+   msg($("homeMsg"),"✓ Email inviata. Aprila su qualunque dispositivo: questa schermata entrerà automaticamente nella lega appena verificata.","ok");
+   pollPendingLeague();
+ }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}
+};
+
+$("changeLeague").onclick=()=>{localStorage.removeItem("fantastica-organizer-last-league");disconnect();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")};
+
+async function openLeague(id){
+ const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
+ if(error||!data){
+  localStorage.removeItem("fantastica-organizer-last-league");
+  msg($("loginMsg"),"Accesso alla lega non disponibile.","bad");
+  $("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login");
+  return
+ }
+ league=data;
+ localStorage.setItem("fantastica-organizer-last-league",league.id);
+ $("leagueName").textContent=league.name;
+ const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
+ $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
+ $("leagueHome").classList.add("hidden");
+ $("regia").classList.remove("hidden");
+ await load();connect();
+}
+async function load(runProgress=true){
+ if(!league)return;
+ const [l,a,s,b,e,p]=await Promise.all([
+  db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
+  db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",league.id).order("slot"),
+  db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30),
+  db.from("fa_events").select("seq,event_type,created_at").eq("league_id",league.id).order("seq"),
+  db.from("fa_players").select("*").eq("league_id",league.id)
+ ]);
+ if(l.error||a.error||s.error||b.error||e.error||p.error){msg($("status"),"Errore lettura database","bad");return}
+ const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
+ league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];events=e.data||[];catalog=p.data||[];
+ render();
+ if(prevPhase!==null&&league.role_phase!==prevPhase){
+   if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
+ }
+ lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
+ if(runProgress)setTimeout(checkProgress,50);
+}
+const online=s=>s.last_seen_at&&Date.now()-new Date(s.last_seen_at).getTime()<60000;
+function rosterInfo(slot){
+ const ps=catalog.filter(p=>p.assigned_slot===slot),spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
+ const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
+ return {ps,spent,remain,total,max};
+}
+function rosterHTML(slot,compact=true){
+ const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
+ const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
+ let h=`<div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
+ for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow"><span>${p.name}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
+ return h;
+}
+function render(){
+ $("leagueName").textContent=league.name;
+ const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
+ $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
+ const cp=currentPlayer();
+ $("currentPlayer").innerHTML=cp?`<div class="pn">${cp.name}${cp.modified?' <span class="modifiedMark">*</span>':''}</div><div class="meta">${cp.role} · ${cp.team||"—"} · Quotazione ${cp.value??"—"}${cp.assigned_slot?` · AGGIUDICATO A ${slotName(cp.assigned_slot)} (${cp.assigned_price})`:""}</div>`:`<div class="pn">Seleziona un giocatore dal listone</div>`;
+ $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ $("closed").textContent=auction.status==="SOLD"?(auction.assignment_confirmed?"✓ AGGIUDICAZIONE CONFERMATA":"🏁 ASTA TERMINATA"):"";
+ $("confirmAssignment").classList.toggle("hidden",!(auction.status==="SOLD"&&auction.highest_slot&&!auction.assignment_confirmed));
+ $("pauseTimer").textContent=auction.paused?"▶ RIPRENDI TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.assignment_confirmed;
+ $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
+ const visible=slots.filter(s=>s.slot<=league.member_limit);
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"} · ${online(s)?"ONLINE":"OFFLINE"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
+ document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=()=>{selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
+ $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
+ const max=events.length?Math.max(...events.map(x=>x.seq)):0;$("eventPos").textContent=`Evento ${auction.event_cursor||0} di ${max}`;$("prevEvent").disabled=(auction.event_cursor||0)<=0;$("nextEvent").disabled=(auction.event_cursor||0)>=max;
+ renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
+}
+function timer(){
+ if(!auction?.highest_slot){$("timer").textContent="—";return}
+ if(auction.paused){$("timer").textContent="⏸ "+((auction.paused_remaining_ms||league.duration_seconds*1000)/1000).toFixed(1)+" s";return}
+ if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent=auction.status==="SOLD"?"0.0 s":"—";return}
+ const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1)+" s";
+ const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
+}
+setInterval(timer,100);
+async function finalize(){if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;finalizeBusy=true;try{const {data}=await db.rpc("fa_finalize",{p_league_id:league.id});if(data?.expired)await load()}finally{finalizeBusy=false}}
+
+function renderList(){
+ let arr=catalog.filter(p=>$("showAssigned").checked||!p.assigned_slot);
+ const q=$("searchPlayer").value.trim().toLowerCase();if(q)arr=arr.filter(p=>(p.name+" "+(p.team||"")).toLowerCase().includes(q));
+ if(roleFilter)arr=arr.filter(p=>p.role===roleFilter);
+ const sort=$("sortPlayers").value;
+ arr.sort((a,b)=>sort==="value_desc"?(b.value??-1)-(a.value??-1)||a.name.localeCompare(b.name):sort==="value_asc"?(a.value??9999)-(b.value??9999):sort==="name_desc"?b.name.localeCompare(a.name):sort==="team"?(a.team||"").localeCompare(b.team||"")||a.name.localeCompare(b.name):sort==="role"?a.role.localeCompare(b.role)||(b.value??0)-(a.value??0):a.name.localeCompare(b.name));
+ $("playerList").innerHTML=arr.map(p=>{const roleOk=league.auction_mode!=="ROLE"||p.role===league.active_role;return `<div class="listRow ${p.assigned_slot?"assigned":""} ${league.auction_mode==="ROLE"?(roleOk?"roleActive":"roleInactive"):""}" data-id="${p.id}" data-role-ok="${roleOk?1:0}"><div><div class="listName">${p.name}${p.modified?' <span class="modifiedMark">*</span>':''}</div><div class="listMeta">${p.role} · ${p.team||"—"} · Q ${p.value??"—"}${p.assigned_slot?` · ${slotName(p.assigned_slot)} ${p.assigned_price}`:""}</div></div><button class="editBtn" data-edit="${p.id}">✎</button>${p.modified&&!p.assigned_slot?`<button class="editBtn" data-restore="${p.id}" title="Ripristina originale">↺</button>`:"<span></span>"}</div>`}).join("");
+ document.querySelectorAll(".listRow[data-id]").forEach(el=>el.onclick=async ev=>{
+ if(ev.target.dataset.edit||ev.target.dataset.restore)return;
+ const p=catalog.find(x=>x.id===+el.dataset.id);if(p.assigned_slot)return;
+ if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
+ const {data,error}=await db.rpc("fa_select_player_v4",{p_league_id:league.id,p_player_id:p.id});
+ if(error||!data?.ok){alert(error?.message||data?.error);return}
+ if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per 1 credito`,"ok");
+ await load();
+});
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();editPlayer(+b.dataset.edit)});
+ document.querySelectorAll("[data-restore]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();if(confirm("Ripristinare ruolo, squadra, nome e quotazione originali?")){await db.rpc("fa_restore_player",{p_league_id:league.id,p_player_id:+b.dataset.restore});await load()}});
+}
+async function editPlayer(id){
+ const p=catalog.find(x=>x.id===id);if(!p||p.assigned_slot)return;
+ const name=prompt("Nome:",p.name);if(name===null)return;
+ const role=(prompt("Ruolo (P/D/C/A):",p.role)||"").toUpperCase();if(!["P","D","C","A"].includes(role)){alert("Ruolo non valido");return}
+ const team=prompt("Squadra:",p.team||"");if(team===null)return;
+ const vv=prompt("Quotazione:",p.value??"");if(vv===null)return;const value=vv===""?null:Number(vv);
+ const {data,error}=await db.rpc("fa_update_player",{p_league_id:league.id,p_player_id:id,p_name:name,p_role:role,p_team:team,p_value:value});
+ if(error||!data?.ok){alert(error?.message||data?.error);return}
+ await load();
+}
+document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
+$("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
+$("showList").onclick=()=>{selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE"};
+function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot)}
+
+$("importList").onclick=async()=>{
+ const file=$("listFile").files[0];if(!file){msg($("importMsg"),"Seleziona un file.","warn");return}
+ try{
+  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+  if(!rows.length)throw new Error("File vuoto");
+  const headers=Object.keys(rows[0]),norm=s=>String(s).toLowerCase().replace(/[.\s_-]/g,"");
+  const find=(opts)=>headers.find(h=>opts.includes(norm(h)));
+  const hRole=find(["ruolo","r","role","posizione"]),hName=find(["calciatore","giocatore","nome","player"]),hTeam=find(["squadra","team","club","sqd"]),hValue=find(["quotazione","quota","valore","q","qta","quotazioneattuale","fvm"]);
+  if(!hRole||!hName)throw new Error("Non riconosco le colonne Ruolo/Calciatore. Intestazioni: "+headers.join(", "));
+  const players=rows.map(r=>({role:String(r[hRole]).trim().toUpperCase(),name:String(r[hName]).trim(),team:hTeam?String(r[hTeam]||"").trim():"",value:hValue&&r[hValue]!==""?parseInt(r[hValue],10):null,extra:r})).filter(x=>x.name);
+  if(catalog.some(p=>p.assigned_slot)){throw new Error("Ci sono già giocatori assegnati: il listone non può essere sostituito.")}
+  if(catalog.length&&!confirm(`Sostituire il listone attuale (${catalog.length} giocatori) con ${players.length} giocatori?`))return;
+  msg($("importMsg"),"Importazione...");
+  const {data,error}=await db.rpc("fa_import_players",{p_league_id:league.id,p_source:$("listSource").value.trim(),p_players:players});
+  if(error||!data?.ok)throw new Error(error?.message||data?.error);
+  msg($("importMsg"),`✓ Importati ${data.count} giocatori`,"ok");await load();
+ }catch(e){msg($("importMsg"),"Errore: "+e.message,"bad")}
+};
+
+$("newAuction").onclick=async()=>{
+ const {data,error}=await db.rpc("fa_start_auction_v4",{p_league_id:league.id});
+ if(error)msg($("status"),error.message,"bad");else if(!data?.ok)msg($("status"),data.error==="SELEZIONA_GIOCATORE"?"Seleziona prima un giocatore dal listone.":data.error,"bad");else msg($("status"),"🟢 ASTA PRONTA — partenza da 1 credito","ok");await load();
+};
+$("confirmAssignment").onclick=async()=>{if(!confirm(`Confermare ${currentPlayer()?.name} a ${slotName(auction.highest_slot)} per ${auction.current_bid} crediti?`))return;const {data,error}=await db.rpc("fa_confirm_assignment",{p_league_id:league.id});if(error||!data?.ok)alert(error?.message||data?.error);await load()};
+$("pauseTimer").onclick=async()=>{await db.rpc("fa_pause",{p_league_id:league.id,p_pause:!auction.paused});await load()};
+$("prevEvent").onclick=async()=>{await db.rpc("fa_restore_event",{p_league_id:league.id,p_direction:-1});await load()};
+$("nextEvent").onclick=async()=>{await db.rpc("fa_restore_event",{p_league_id:league.id,p_direction:1});await load()};
+
+function disconnect(){if(channel)db.removeChannel(channel);channel=null;clearTimeout(retry)}
+async function connect(){
+ disconnect();channel=db.channel("fantastica-"+league.id)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_leagues",filter:`id=eq.${league.id}`},load)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_slots",filter:`league_id=eq.${league.id}`},load)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_auction",filter:`league_id=eq.${league.id}`},load)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_bids",filter:`league_id=eq.${league.id}`},load)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_events",filter:`league_id=eq.${league.id}`},load)
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_players",filter:`league_id=eq.${league.id}`},load)
+ .subscribe(s=>{if(s==="SUBSCRIBED")msg($("status"),"🟢 CONNESSO","ok");else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(s))retry=setTimeout(connect,1500)});
+}
+
+$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setAuctionCount").value=league.auction_participant_count;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";$("settingsPanel").classList.add("show")};
+$("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
+$("saveSettings").onclick=async()=>{
+ const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
+ const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:+$("setMembers").value,p_auction_count:+$("setAuctionCount").value,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord};
+ const {data,error}=await db.rpc("fa_set_full_settings_v4",args);if(error||!data?.ok)msg($("settingsMsg"),"Errore: "+(error?.message||data?.error),"bad");else{msg($("settingsMsg"),"✓ Salvato","ok");await load()}
+};
+
+
+function exportRows(){
+ return slots.filter(s=>s.slot<=league.member_limit&&s.display_name).flatMap(s=>{
+  const r=rosterInfo(s.slot);
+  return r.ps.map(p=>({"Partecipante":s.display_name,"Ruolo":p.role,"Giocatore":p.name,"Squadra":p.team||"","Quotazione":p.value??"","Prezzo pagato":p.assigned_price||0,"Crediti residui":r.remain}));
+ });
+}
+function exportXlsx(){
+ const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(exportRows());XLSX.utils.book_append_sheet(wb,ws,"Rose");
+ XLSX.writeFile(wb,`FANTASTICA_${league.name.replace(/[^\w-]+/g,"_")}_rose.xlsx`);
+}
+function exportJson(){
+ const data={format:"FANTASTICA-ROSE-V1",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,credits_initial:league.credits_initial,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,players:r.ps.map(p=>({id:p.id,name:p.name,role:p.role,team:p.team,value:p.value,price:p.assigned_price}))}})};
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download=`FANTASTICA_${league.name.replace(/[^\w-]+/g,"_")}.fantastica.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+function exportPdf(){
+ const w=window.open("","_blank");if(!w){alert("Il browser ha bloccato la finestra PDF.");return}
+ let h=`<html><head><title>FANTASTICA - ${league.name}</title><style>body{font-family:Arial;padding:24px}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}</style></head><body><h1>FANTASTICA — ${league.name}</h1>`;
+ for(const s of slots.filter(s=>s.slot<=league.member_limit&&s.display_name)){const r=rosterInfo(s.slot);h+=`<div class="team"><h2>${s.display_name} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${r.ps.sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${p.role}</td><td>${p.name}</td><td>${p.team||""}</td><td>${p.assigned_price}</td></tr>`).join("")}</table></div>`}
+ h+=`</body></html>`;w.document.write(h);w.document.close();setTimeout(()=>w.print(),300)
+}
+$("exportXlsx").onclick=e=>{e.stopPropagation();exportXlsx()};$("exportJson").onclick=e=>{e.stopPropagation();exportJson()};$("exportPdf").onclick=e=>{e.stopPropagation();exportPdf()};
+
+function renderManage(){
+ $("managePlayers").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>`<div class="manageRow"><span>${s.display_name}</span><button class="rename" data-ren="${s.slot}">RINOMINA</button><button class="release" data-rel="${s.slot}">LIBERA</button></div>`).join("")||"Nessun partecipante.";
+ document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.ren),n=prompt("Nuovo nome:",s.display_name);if(n?.trim()){await db.rpc("fa_rename_slot",{p_league_id:league.id,p_slot:s.slot,p_name:n.trim()});await load()}});
+ document.querySelectorAll("[data-rel]").forEach(b=>b.onclick=async()=>{if(confirm("Liberare il posto?")){await db.rpc("fa_release_slot",{p_league_id:league.id,p_slot:+b.dataset.rel});await load()}});
+}
+$("deleteLeague").onclick=async()=>{if(!confirm(`Cancellare definitivamente "${league.name}"?`))return;const pwd=prompt("Inserisci la password della lega per confermare:");if(pwd===null)return;if(!confirm("Ultima conferma: operazione irreversibile."))return;const {data,error}=await db.rpc("fa_delete_league",{p_league_id:league.id,p_password:pwd});if(error||!data?.ok){alert(data?.error==="PASSWORD_ERRATA"?"Password errata.":(error?.message||data?.error));return}$("settingsPanel").classList.remove("show");$("changeLeague").click()};
+
+setInterval(()=>{if(league)load()},5000);
+(async()=>{
+ try{
+  await ensureAuth();
+  await syncServerClock();
+  showAuth("login");
+  if(localStorage.getItem("fantastica-pending-league-v31")){
+   showAuth("create");
+   pollPendingLeague();
+   return;
+  }
+  const lastLeague=localStorage.getItem("fantastica-organizer-last-league");
+  if(lastLeague){
+   await openLeague(lastLeague);
+  }
+ }catch(e){
+  localStorage.removeItem("fantastica-organizer-last-league");
+  msg($("loginMsg"),"Errore autenticazione: "+e.message,"bad");
+ }
+})();
+</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));</script>
+</body></html>
