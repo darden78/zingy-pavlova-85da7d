@@ -59,16 +59,50 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v475";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v476";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
+const DEVICE_KEY="fantastica-device-id-v476";
+function cookieGet(k){
+ const m=document.cookie.match(new RegExp("(?:^|; )"+k.replace(/[.$?*|{}()[\]\\/+^]/g,"\\$&")+"=([^;]*)"));
+ return m?decodeURIComponent(m[1]):null;
+}
+function cookieSet(k,v){
+ document.cookie=k+"="+encodeURIComponent(v)+"; Max-Age=315360000; Path=/; SameSite=Lax; Secure";
+}
+function idbGet(){
+ return new Promise(resolve=>{
+  try{
+   const q=indexedDB.open("fantastica-device-db",1);
+   q.onupgradeneeded=()=>q.result.createObjectStore("kv");
+   q.onerror=()=>resolve(null);
+   q.onsuccess=()=>{
+    try{
+     const tx=q.result.transaction("kv","readonly"),r=tx.objectStore("kv").get(DEVICE_KEY);
+     r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>resolve(null);
+    }catch{resolve(null)}
+   };
+  }catch{resolve(null)}
+ });
+}
+function idbSet(v){
+ try{
+  const q=indexedDB.open("fantastica-device-db",1);
+  q.onupgradeneeded=()=>q.result.createObjectStore("kv");
+  q.onsuccess=()=>{try{const tx=q.result.transaction("kv","readwrite");tx.objectStore("kv").put(v,DEVICE_KEY)}catch{}};
+ }catch{}
+}
 async function getDeviceId(){
  if(deviceId)return deviceId;
- let f=localStorage.getItem("fantastica-device-id-v474");
- if(!f){f="web:"+crypto.randomUUID();localStorage.setItem("fantastica-device-id-v474",f)}
- deviceId=f;return deviceId;
+ const legacy=localStorage.getItem("fantastica-device-id-v474");
+ let f=localStorage.getItem(DEVICE_KEY)||legacy||cookieGet(DEVICE_KEY)||await idbGet();
+ if(!f)f="web:"+crypto.randomUUID();
+ deviceId=f;
+ try{localStorage.setItem(DEVICE_KEY,f);localStorage.setItem("fantastica-device-id-v474",f)}catch{}
+ cookieSet(DEVICE_KEY,f);idbSet(f);
+ return f;
 }
 
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
@@ -165,13 +199,13 @@ function showReclaim(data){
  $("reclaimCandidates").innerHTML=(data.candidates||[]).map(c=>`<button class="reclaimBtn" data-slot="${c.slot}">${c.name}</button>`).join("");
  $("nameScreen").classList.remove("hidden");
  document.querySelectorAll(".reclaimBtn").forEach(b=>b.onclick=async()=>{
-  const {data:r,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:+b.dataset.slot});
+  const {data:r,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:+b.dataset.slot});
   if(error||!r?.ok){m($("nameMsg"),"Errore: "+(error?.message||r?.error),"bad");return}
   await finishDeviceJoin(r);
  });
 }
 $("newParticipantBtn").onclick=async()=>{
- const {data,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:0});
+ const {data,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:0});
  if(error||!data?.ok){m($("nameMsg"),"Errore: "+(error?.message||data?.error),"bad");return}
  await finishDeviceJoin(data);
 };
@@ -179,7 +213,7 @@ $("loginBtn").onclick=async()=>{
  try{
   await ensureAuth();m($("loginMsg"),"Accesso...");
   pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
-  const {data,error}=await db.rpc("fa_join_participant_device_v474",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
+  const {data,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
   if(error||!data?.ok){m($("loginMsg"),data?.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
   if(data.needs_reclaim){showReclaim(data);return}
   await finishDeviceJoin(data);
