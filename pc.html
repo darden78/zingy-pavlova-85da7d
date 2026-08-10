@@ -381,7 +381,11 @@ function renderList(){
  const p=catalog.find(x=>x.id===+el.dataset.id);if(p.assigned_slot)return;
  if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
  const {data,error}=await db.rpc("fa_select_player_v4",{p_league_id:league.id,p_player_id:p.id});
- if(error||!data?.ok){alert(error?.message||data?.error);return}
+ if(error||!data?.ok){
+  const er=error?.message||data?.error;
+  alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er);
+  return
+ }
  if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per 1 credito`,"ok");
  await load();
 });
