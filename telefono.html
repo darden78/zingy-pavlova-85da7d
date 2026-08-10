@@ -58,7 +58,7 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v46";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v47";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -201,14 +201,18 @@ function timerTick(){
 setInterval(timerTick,100);
 let loadTimer=null;
 function scheduleLoad(ms=40){clearTimeout(loadTimer);loadTimer=setTimeout(()=>load(),ms)}
+function upsertBy(arr,key,val){
+ const i=arr.findIndex(x=>x[key]===val[key]);
+ if(i>=0)arr[i]={...arr[i],...val};else arr.push(val);
+}
 async function connect(){
  if(channel)try{await db.removeChannel(channel)}catch{}
  channel=db.channel("fantastica-"+leagueId)
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_leagues",filter:`id=eq.${leagueId}`},scheduleLoad)
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_auction",filter:`league_id=eq.${leagueId}`},scheduleLoad)
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_slots",filter:`league_id=eq.${leagueId}`},scheduleLoad)
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_players",filter:`league_id=eq.${leagueId}`},scheduleLoad)
- .subscribe(async st=>{if(st==="SUBSCRIBED"){m($("status"),"🟢 ONLINE","ok");await heartbeat();await load()}else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st))retry=setTimeout(connect,1500)})
+ .on("postgres_changes",{event:"UPDATE",schema:"public",table:"fa_leagues",filter:`id=eq.${leagueId}`},payload=>{league={...league,...payload.new};render()})
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_auction",filter:`league_id=eq.${leagueId}`},payload=>{if(payload.new)auction={...auction,...payload.new};render()})
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_slots",filter:`league_id=eq.${leagueId}`},payload=>{if(payload.eventType==="DELETE")slots=slots.filter(x=>x.slot!==payload.old.slot);else upsertBy(slots,"slot",payload.new);slotData=slots.find(x=>x.slot===slot);render()})
+ .on("postgres_changes",{event:"*",schema:"public",table:"fa_players",filter:`league_id=eq.${leagueId}`},payload=>{if(payload.eventType==="DELETE")catalog=catalog.filter(x=>x.id!==payload.old.id);else upsertBy(catalog,"id",payload.new);render()})
+ .subscribe(async st=>{if(st==="SUBSCRIBED"){m($("status"),"🟢 ONLINE","ok");heartbeat()}else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st))retry=setTimeout(connect,900)})
 }
 const errs={COOLDOWN:"Attendi 1 secondo: l'offerta è appena cambiata.",NON_PARTECIPI:"Non partecipi a questa asta.",SEI_FUORI_ASTA:"Sei fuori asta.",OFFERTA_TROPPO_BASSA:"Offerta troppo bassa.",ASTA_CHIUSA:"Asta chiusa.",ASTA_APPENA_CHIUSA:"Asta appena terminata.",RUOLO_COMPLETO:"Ruolo completo.",ROSA_COMPLETA:"Rosa completa.",CREDITI_INSUFFICIENTI:"Crediti insufficienti.",NESSUN_GIOCATORE:"Nessun giocatore selezionato.",NON_AUTORIZZATO:"Accesso non autorizzato."};
 async function bid(kind,exact=null){
