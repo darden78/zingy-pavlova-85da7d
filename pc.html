@@ -158,7 +158,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v474";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v475";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -395,8 +395,13 @@ async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
  finalizeBusy=true;
  try{
-  const {data,error}=await db.rpc("fa_finalize_v46",{p_league_id:league.id});
-  if(!error&&data?.expired)await load(false);
+  const {data,error}=await db.rpc("fa_finalize_v475",{p_league_id:league.id});
+  if(error||data?.ok===false){
+    msg($("status"),"Errore assegnazione: "+(error?.message||data?.error||"errore sconosciuto"),"bad");
+    await load(false);
+  }else if(data?.expired){
+    await load(false);
+  }
  }finally{finalizeBusy=false}
 }
 
@@ -468,7 +473,7 @@ $("newAuction").onclick=async()=>{
 $("pauseTimer").onclick=async()=>{await db.rpc("fa_pause",{p_league_id:league.id,p_pause:!auction.paused});await load()};
 $("prevEvent").onclick=async()=>{
  if(auction.status==="SOLD"||auction.assignment_confirmed){
-   const {data,error}=await db.rpc("fa_undo_assignment_v472",{p_league_id:league.id});
+   const {data,error}=await db.rpc("fa_undo_assignment_v475",{p_league_id:league.id});
    if(error||!data?.ok){alert(error?.message||data?.error);return}
    await load(false);
    historyOffset=0;

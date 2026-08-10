@@ -59,7 +59,7 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v474";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v475";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -328,7 +328,7 @@ $("leave").onclick=async()=>{
  slotData.abandoned=!wasAbandoned;
  m($("msg"),wasAbandoned?"Rientro...":"Abbandono asta...","warn");
  render();
- const {data,error}=await db.rpc("fa_leave_v46",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_rejoin:wasAbandoned});
+ const {data,error}=await db.rpc("fa_leave_v475",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_rejoin:wasAbandoned});
  if(error)m($("msg"),error.message,"bad");
  else if(data?.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
  else if(data?.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
