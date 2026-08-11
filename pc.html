@@ -156,7 +156,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v486";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v489";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -350,6 +350,7 @@ async function load(runProgress=true){
    else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
+ if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
 }
 async function loadCore(){
@@ -363,6 +364,7 @@ async function loadCore(){
  if(l.error||a.error||s.error||b.error)return;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
  render();
+ if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const online=s=>s.last_seen_at&&Date.now()-new Date(s.last_seen_at).getTime()<60000;
 function rosterInfo(slot){
@@ -370,6 +372,52 @@ function rosterInfo(slot){
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
  return {ps,spent,remain,total,max};
 }
+function phoneParticipantState(s){
+ const r=rosterInfo(s.slot),counts={P:0,D:0,C:0,A:0};
+ for(const p of r.ps)if(counts[p.role]!==undefined)counts[p.role]++;
+ return{
+  slot:s.slot,display_name:s.display_name,active:!!s.active,abandoned:!!s.abandoned,
+  spent:r.spent,remain:r.remain,roster_count:r.ps.length,total:r.total,max:r.max,
+  role_counts:counts
+ };
+}
+function phoneStatePayload(){
+ const p=currentPlayer();
+ return{
+  sent_at_ms:serverNow(),
+  league:{
+   id:league.id,name:league.name,member_limit:league.member_limit,
+   credits_initial:league.credits_initial,
+   roster_p:league.roster_p,roster_d:league.roster_d,
+   roster_c:league.roster_c,roster_a:league.roster_a,
+   auction_mode:league.auction_mode,active_role:league.active_role,
+   role_phase:league.role_phase,auction_complete:!!league.auction_complete
+  },
+  auction:auction?{
+   current_player_id:auction.current_player_id,current_bid:auction.current_bid,
+   highest_slot:auction.highest_slot,status:auction.status,
+   paused:!!auction.paused,paused_remaining_ms:auction.paused_remaining_ms,
+   timer_deadline:auction.timer_deadline,assignment_confirmed:!!auction.assignment_confirmed
+  }:null,
+  current_player:p?{
+   id:p.id,name:p.name,team:p.team,role:p.role,value:p.value??p.quotation??null,
+   quotation:p.quotation??p.value??null,assigned_slot:p.assigned_slot,assigned_price:p.assigned_price
+  }:null,
+  participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(phoneParticipantState)
+ };
+}
+async function pushPhoneState(){
+ if(!channel||!rtConnected||!league||!auction)return;
+ try{await channel.send({type:"broadcast",event:"PHONE_STATE",payload:phoneStatePayload()})}catch{}
+}
+async function pushRosterState(){
+ if(!channel||!rtConnected||!league)return;
+ const assigned=catalog.filter(p=>p.assigned_slot).map(p=>({
+  id:p.id,name:p.name,team:p.team,role:p.role,assigned_slot:p.assigned_slot,assigned_price:p.assigned_price
+ }));
+ try{await channel.send({type:"broadcast",event:"ROSTER_STATE",payload:{sent_at_ms:serverNow(),players:assigned}})}catch{}
+}
+
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
@@ -557,6 +605,8 @@ async function connect(){
       if(d.message)showParticipantCelebration(d.message);
       scheduleLoad(8);
    })
+   .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
+   .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
       if(st==="SUBSCRIBED"){
         rtConnected=true;

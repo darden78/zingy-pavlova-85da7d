@@ -59,9 +59,9 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v486";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v489";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
 const DEVICE_KEY="fantastica-device-id-v476";
@@ -273,17 +273,29 @@ async function loadCore(){
  render();
 }
 const slotName=n=>slots.find(x=>x.slot===n)?.display_name||`Posto ${n}`;
-const cp=()=>catalog.find(p=>p.id===auction?.current_player_id);
+const cp=()=>currentPlayerState||catalog.find(p=>p.id===auction?.current_player_id);
 function rosterInfo(sl){
- const ps=catalog.filter(p=>p.assigned_slot===sl),spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a,max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);return{ps,spent,remain,total,max}
+ const ps=catalog.filter(p=>p.assigned_slot===sl),sm=slots.find(s=>s.slot===sl);
+ const total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
+ if(sm&&sm._summary)return{ps,spent:sm._summary.spent,remain:sm._summary.remain,total:sm._summary.total,max:sm._summary.max};
+ const spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
+ return{ps,spent,remain,total,max}
 }
-function roleCount(sl,role){return catalog.filter(p=>p.assigned_slot===sl&&p.role===role).length}
+function roleCount(sl,role){
+ const sm=slots.find(s=>s.slot===sl);
+ if(sm?._summary?.role_counts&&sm._summary.role_counts[role]!==undefined)return sm._summary.role_counts[role];
+ return catalog.filter(p=>p.assigned_slot===sl&&p.role===role).length
+}
 function roleLimit(role){return league["roster_"+role.toLowerCase()]}
 function rosterPage(s){
  const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
  for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
 }
 function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(rosterPage).join("")}
+async function requestRosters(){
+ if(rosterCacheLoaded){renderRosterPages();return}
+ if(channel&&rtConnected)try{await channel.send({type:"broadcast",event:"REQUEST_ROSTERS",payload:{slot}})}catch{}
+}
 function render(){
  if(!auction||!slotData)return;$("leagueDisplay").textContent=league.name;$("playerName").textContent=slotData.display_name;
  const player=cp(),own=rosterInfo(slot),best=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
@@ -307,7 +319,6 @@ function render(){
  else if(auction.highest_slot===slot){$("leave").textContent="MAGGIORE OFFERENTE";$("leave").className="leave disabled"}
  else if(slotData.abandoned){$("leave").textContent="RIPRENDI ASTA";$("leave").className="leave resume"}
  else{if(["IN ATTESA DELLA PROSSIMA ASTA","NON PARTECIPI A QUESTA ASTA"].includes($("msg").textContent))m($("msg"),"");$("leave").textContent="ABBANDONA ASTA";$("leave").className="leave"}
- renderRosterPages();
 }
 function timerTick(){
  if(!auction?.highest_slot||auction.paused||auction.status!=="OPEN"||!auction.timer_deadline){$("phoneTimer").textContent=auction?.paused?"⏸ PAUSA":"—";return}
@@ -326,19 +337,48 @@ function scheduleLoad(ms=12,full=false){
  },ms);
 }
 function showRt(payload){lastRtAt=Date.now()}
+function applyRegiaState(d){
+ if(!d||!d.league||!d.auction)return;
+ const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
+ league={...(league||{}),...d.league};
+ auction={...(auction||{}),...d.auction};
+ currentPlayerState=d.current_player||null;
+ slots=(d.participants||[]).map(x=>({
+  league_id:leagueId,slot:x.slot,display_name:x.display_name,active:!!x.active,abandoned:!!x.abandoned,
+  _summary:{spent:Number(x.spent||0),remain:Number(x.remain||0),total:Number(x.total||0),max:Number(x.max||0),role_counts:x.role_counts||{P:0,D:0,C:0,A:0}}
+ }));
+ slotData=slots.find(x=>x.slot===slot);
+ lastRegiaStateAt=Date.now();
+ if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
+ if(prevPhase!==null&&league.role_phase!==prevPhase){
+   if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
+ }
+ lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
+ if(slotData)render();
+}
+
 async function connect(){
  if(channel)try{await db.removeChannel(channel)}catch{}
  rtConnected=false;
  channel=db.channel("fantastica:"+leagueId)
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
+   if(channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+ })
+ .on("broadcast",{event:"PHONE_STATE"},payload=>{
    const d=payload?.payload||payload||{};
-   scheduleLoad(18,d.table==="fa_players"||d.table==="fa_leagues");
+   applyRegiaState(d);
+ })
+ .on("broadcast",{event:"ROSTER_STATE"},payload=>{
+   const d=payload?.payload||payload||{};
+   catalog=(d.players||[]).map(p=>({...p}));
+   rosterCacheLoaded=true;
+   renderRosterPages();
  })
  .on("broadcast",{event:"CELEBRATE"},payload=>{
    const d=payload?.payload||payload||{};
    if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE");
-   scheduleLoad(8);
  })
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
@@ -388,7 +428,11 @@ async function bid(kind,exact=null){
  const {data,error}=await db.rpc("fa_place_bid",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
  busy=false;
  if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
- else if(data?.ok){if(auction){auction.current_bid=data.amount;auction.highest_slot=slot}m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");scheduleLoad(25)}
+ else if(data?.ok){
+ if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=true;auction.timer_deadline=null}
+ m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");render();
+ if(channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+}
  else if(data?.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
  else{m($("msg"),errs[data?.error]||data?.error,"warn");scheduleLoad(20)}
 }
@@ -407,7 +451,7 @@ $("leave").onclick=async()=>{
  scheduleLoad(25);
 };
 const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";modal.classList.add("show")};document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
-setInterval(()=>{if(leagueId&&!document.hidden)load()},60000);
+setInterval(()=>{if(leagueId&&!document.hidden&&channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{})},30000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(wakeWanted)requestWakeLock(true);heartbeat();load();connect()}else{wakeLock=null}});
 
 (async()=>{
