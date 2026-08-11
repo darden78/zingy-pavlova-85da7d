@@ -156,7 +156,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v490";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -604,6 +604,11 @@ async function connect(){
       const d=payload?.payload||payload||{};
       if(d.message)showParticipantCelebration(d.message);
       scheduleLoad(8);
+   })
+   .on("broadcast",{event:"PHONE_PRESENCE"},payload=>{
+      const d=payload?.payload||payload||{},n=Number(d.slot);
+      const s=slots.find(x=>x.slot===n);
+      if(s){s.last_seen_at=new Date().toISOString();render()}
    })
    .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
