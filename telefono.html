@@ -36,7 +36,7 @@
 
 <div id="nameScreen" class="entry hidden"><div class="entryBox">
  <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2>
- <div id="reclaimBox" class="hidden"><p>Se eri già presente, scegli il tuo nome:</p><div id="reclaimCandidates"></div><button id="newParticipantBtn" style="background:#555">SONO UN NUOVO PARTECIPANTE</button></div>
+ <div id="reclaimBox" class="hidden"><p><b>Dispositivo non riconosciuto.</b></p><p>Per evitare di entrare con l'account di un altro partecipante, il recupero deve essere autorizzato dalla regia.</p><button id="backToLoginBtn" style="background:#555">TORNA INDIETRO</button></div>
  <div id="newNameBox"><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p><input id="participantName" maxlength="30" placeholder="Il tuo nome"><button id="nameBtn">CONFERMA</button></div>
  <div id="nameMsg"></div>
 </div></div>
@@ -59,7 +59,7 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v476";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v477";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -194,20 +194,18 @@ async function finishDeviceJoin(data){
  await enterGame();
 }
 function showReclaim(data){
- leagueId=data.league_id;$("loginScreen").classList.add("hidden");$("nameLeague").textContent=data.league_name;
- $("newNameBox").classList.add("hidden");$("reclaimBox").classList.remove("hidden");
- $("reclaimCandidates").innerHTML=(data.candidates||[]).map(c=>`<button class="reclaimBtn" data-slot="${c.slot}">${c.name}</button>`).join("");
+ leagueId=data.league_id;
+ $("loginScreen").classList.add("hidden");
+ $("nameLeague").textContent=data.league_name;
+ $("newNameBox").classList.add("hidden");
+ $("reclaimBox").classList.remove("hidden");
  $("nameScreen").classList.remove("hidden");
- document.querySelectorAll(".reclaimBtn").forEach(b=>b.onclick=async()=>{
-  const {data:r,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:+b.dataset.slot});
-  if(error||!r?.ok){m($("nameMsg"),"Errore: "+(error?.message||r?.error),"bad");return}
-  await finishDeviceJoin(r);
- });
+ m($("nameMsg"),"Chiedi alla regia di liberare il tuo vecchio posto, poi rientra con nome lega e password.","warn");
 }
-$("newParticipantBtn").onclick=async()=>{
- const {data,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:0});
- if(error||!data?.ok){m($("nameMsg"),"Errore: "+(error?.message||data?.error),"bad");return}
- await finishDeviceJoin(data);
+$("backToLoginBtn").onclick=()=>{
+ $("nameScreen").classList.add("hidden");
+ $("reclaimBox").classList.add("hidden");
+ $("loginScreen").classList.remove("hidden");
 };
 $("loginBtn").onclick=async()=>{
  try{
