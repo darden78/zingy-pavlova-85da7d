@@ -59,9 +59,9 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v491";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v495";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
 const DEVICE_KEY="fantastica-device-id-v476";
@@ -302,7 +302,10 @@ function rosterPage(s){
 function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(rosterPage).join("")}
 async function requestRosters(){
  if(rosterCacheLoaded){renderRosterPages();return}
- if(channel&&rtConnected)try{await channel.send({type:"broadcast",event:"REQUEST_ROSTERS",payload:{slot}})}catch{}
+ if(rosterRequestPending||!(channel&&rtConnected))return;
+ rosterRequestPending=true;
+ try{await channel.send({type:"broadcast",event:"REQUEST_ROSTERS",payload:{slot}})}catch{rosterRequestPending=false}
+ setTimeout(()=>{if(!rosterCacheLoaded)rosterRequestPending=false},1500);
 }
 function render(){
  if(!auction||!slotData)return;$("leagueDisplay").textContent=league.name;$("playerName").textContent=slotData.display_name;
@@ -353,8 +356,11 @@ function applyRegiaState(d){
  currentPlayerState=d.current_player||null;
  slots=(d.participants||[]).map(x=>({
   league_id:leagueId,slot:x.slot,display_name:x.display_name,active:!!x.active,abandoned:!!x.abandoned,
-  _summary:{spent:Number(x.spent||0),remain:Number(x.remain||0),total:Number(x.total||0),max:Number(x.max||0),role_counts:x.role_counts||{P:0,D:0,C:0,A:0}}
+  _summary:{spent:Number(x.spent||0),remain:Number(x.remain||0),total:Number(x.total||0),max:Number(x.max||0),count:Number(x.roster_count||0),role_counts:x.role_counts||{P:0,D:0,C:0,A:0}}
  }));
+ const rosterCountFromRegia=slots.reduce((n,s)=>n+Number(s._summary?.count||0),0);
+ const rosterCountLocal=catalog.filter(p=>p.assigned_slot).length;
+ if(rosterCountFromRegia!==rosterCountLocal)rosterCacheLoaded=false;
  slotData=slots.find(x=>x.slot===slot);
  lastRegiaStateAt=Date.now();
  if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
@@ -363,7 +369,7 @@ function applyRegiaState(d){
    else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
- if(slotData)render();
+ if(slotData){render();renderRosterPages()}
 }
 
 function requestState(){
@@ -414,7 +420,7 @@ async function connect(force=false){
  .on("broadcast",{event:"ROSTER_STATE"},payload=>{
    const d=payload?.payload||payload||{};
    catalog=(d.players||[]).map(p=>({...p}));
-   rosterCacheLoaded=true;
+   rosterCacheLoaded=true;rosterRequestPending=false;
    renderRosterPages();
  })
  .on("broadcast",{event:"CELEBRATE"},payload=>{
@@ -438,6 +444,16 @@ async function connect(force=false){
 document.addEventListener("pointerdown",()=>{
  try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}
  if(wakeWanted&&!document.hidden)requestWakeLock(false);
+},{passive:true});
+
+const pagesEl=$("pages");
+let rosterScrollCheck=0;
+pagesEl.addEventListener("scroll",()=>{
+ if(rosterCacheLoaded||rosterRequestPending)return;
+ clearTimeout(rosterScrollCheck);
+ rosterScrollCheck=setTimeout(()=>{
+  if(pagesEl.scrollLeft>Math.max(24,window.innerWidth*0.08))requestRosters();
+ },40);
 },{passive:true});
 
 function eventInsideAuction(ev){
