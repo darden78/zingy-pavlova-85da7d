@@ -95,7 +95,6 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
      <button id="pauseTimer" class="pause">▶ AVVIA TIMER</button>
      <button id="assignNow" class="newAuction">✓ ASSEGNA ASTA</button>
      <button id="nextEvent" class="undo">EVENTO SUCCESSIVO ▶</button>
-     <button id="newAuction" class="newAuction">NUOVA ASTA</button>
     </div><div id="eventPos" class="eventPos"></div>
    </div>
    <div id="players" class="players"></div>
@@ -159,7 +158,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v480";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v481";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -417,14 +416,15 @@ function renderList(){
  if(ev.target.dataset.edit||ev.target.dataset.restore)return;
  const p=catalog.find(x=>x.id===+el.dataset.id);if(p.assigned_slot)return;
  if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
- const {data,error}=await db.rpc("fa_select_player_v4",{p_league_id:league.id,p_player_id:p.id});
+ const {data,error}=await db.rpc("fa_select_and_start_v481",{p_league_id:league.id,p_player_id:p.id});
  if(error||!data?.ok){
   const er=error?.message||data?.error;
-  alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er);
+  alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="PARTECIPANTI_OFFLINE"?"Impossibile iniziare: non sono online tutti i partecipanti richiesti.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
   return
  }
  if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per 1 credito`,"ok");
- await load();
+ else msg($("status"),`🟢 ${p.name} — ASTA PRONTA, timer in PAUSA`,"ok");
+ await load(false);
 });
  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();editPlayer(+b.dataset.edit)});
  document.querySelectorAll("[data-restore]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();if(confirm("Ripristinare ruolo, squadra, nome e quotazione originali?")){await db.rpc("fa_restore_player",{p_league_id:league.id,p_player_id:+b.dataset.restore});await load()}});
@@ -463,14 +463,6 @@ $("importList").onclick=async()=>{
  }catch(e){msg($("importMsg"),"Errore: "+e.message,"bad")}
 };
 
-$("newAuction").onclick=async()=>{
- msg($("status"),"Avvio asta...","warn");
- const {data,error}=await db.rpc("fa_start_auction_v480",{p_league_id:league.id});
- if(error)msg($("status"),error.message,"bad");
- else if(!data?.ok){const em=data.error==="SELEZIONA_GIOCATORE"?"Seleziona prima un giocatore dal listone.":data.error==="PARTECIPANTI_OFFLINE"?`Impossibile avviare: online ${data.online} su ${data.required} partecipanti richiesti.`:data.error;msg($("status"),em,"bad");}
- else msg($("status"),"🟢 ASTA PRONTA — timer in PAUSA","ok");
- scheduleLoad(35);
-};
 $("pauseTimer").onclick=async()=>{
  const {data,error}=await db.rpc("fa_timer_control_v480",{p_league_id:league.id,p_run:!!auction.paused});
  if(error||!data?.ok){alert(error?.message||data?.error);return}
