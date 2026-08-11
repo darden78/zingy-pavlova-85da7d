@@ -44,7 +44,7 @@
 <div id="pages" class="pages hidden">
  <section class="page auctionPage"><div class="app">
   <div class="topline"><h1>⚽ FANTASTICA</h1><button id="exitBtn" class="exitBtn">ESCI</button></div>
-  <div id="leagueDisplay" class="league"></div><div id="playerName" class="name"></div><div id="status">Avvio...</div>
+  <div id="leagueDisplay" class="league"></div><div id="playerName" class="name"></div><div id="status">Avvio...</div><div id="rtDiag" style="font-size:11px;color:#8fd3ff">⚡ Realtime: connessione...</div>
   <div id="current" class="current">Nessun giocatore selezionato</div><div id="info">Offerta: 0 · Nessun offerente</div><div id="phoneTimer">—</div><div id="finance"></div>
   <div class="main"><button id="plus1" class="big">+1</button></div>
   <div class="row"><button id="plus10">+10</button><button id="exact">IMPORTO</button></div>
@@ -59,7 +59,7 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v483";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v482";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -240,17 +240,21 @@ setInterval(()=>{if(!document.hidden)heartbeat()},10000);
 
 async function load(){
  if(!leagueId)return;
- const {data,error}=await db.rpc("fa_snapshot_v483",{p_league_id:leagueId});
- if(error||!data?.ok){m($("status"),"Riconnessione...","warn");return}
+ const [l,a,s,p]=await Promise.all([
+  db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
+  db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",leagueId).order("slot"),
+  db.from("fa_players").select("*").eq("league_id",leagueId)
+ ]);
+ if(!l.data){localStorage.removeItem("fantastica-last-league");showLogin();return}
  const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
- league=data.league;auction=data.auction;slots=data.slots||[];catalog=data.players||[];slotData=slots.find(x=>x.slot===slot);
- if(data.server_ms)serverOffset=Number(data.server_ms)-Date.now();
+ league=l.data;auction=a.data;slots=s.data||[];catalog=p.data||[];slotData=slots.find(x=>x.slot===slot);
  if(prevPhase!==null&&league.role_phase!==prevPhase){
    if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
    else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
- if(!slotData){m($("status"),"Dispositivo non associato","bad");return}
+ if(!slotData){localStorage.removeItem("fantastica-last-league");showLogin();return}
  render();
 }
 const slotName=n=>slots.find(x=>x.slot===n)?.display_name||`Posto ${n}`;
@@ -298,26 +302,20 @@ function timerTick(){
 setInterval(timerTick,100);
 let loadTimer=null,rtConnected=false,lastRtAt=0;
 function scheduleLoad(ms=12){clearTimeout(loadTimer);loadTimer=setTimeout(()=>load(),ms)}
-function fastSend(kind,payload={}){
- if(!channel||!rtConnected)return;
- channel.send({type:"broadcast",event:"FAST",payload:{kind,...payload,sent_at_ms:serverNow()}}).catch(()=>{});
+function showRt(payload){
+ const d=payload?.payload||payload||{};
+ const sent=Number(d.sent_at_ms||0);
+ const lag=sent?Math.max(0,Math.round(serverNow()-sent)):null;
+ lastRtAt=Date.now();
+ $("rtDiag").textContent=lag===null?"⚡ Realtime: evento ricevuto":`⚡ Realtime: ${lag} ms`;
 }
-function showRt(payload){lastRtAt=Date.now()}
 async function connect(){
  if(channel)try{await db.removeChannel(channel)}catch{}
  rtConnected=false;
  channel=db.channel("fantastica:"+leagueId)
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
-   scheduleLoad(5);
- })
- .on("broadcast",{event:"FAST"},payload=>{
-   const d=payload?.payload||{};
-   if(d.kind==="BID"&&auction){
-     auction={...auction,current_bid:d.amount,highest_slot:d.slot,status:"OPEN",paused:true,timer_deadline:null,paused_remaining_ms:league.duration_seconds*1000,manual_timer_started:false};
-     render();
-   }
-   scheduleLoad(d.kind==="BID"?35:5);
+   scheduleLoad(8);
  })
  .on("broadcast",{event:"CELEBRATE"},payload=>{
    const d=payload?.payload||payload||{};
@@ -327,12 +325,12 @@ async function connect(){
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
      rtConnected=true;
-     
+     $("rtDiag").textContent="⚡ Realtime: CONNESSO";
      m($("status"),"🟢 ONLINE","ok");
      heartbeat();
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
      rtConnected=false;
-     
+     $("rtDiag").textContent="⚠ Realtime: riconnessione...";
      retry=setTimeout(connect,700);
    }
  })
@@ -372,13 +370,7 @@ async function bid(kind,exact=null){
  const {data,error}=await db.rpc("fa_place_bid",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
  busy=false;
  if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
- else if(data?.ok){
-   if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=true;auction.timer_deadline=null;auction.paused_remaining_ms=league.duration_seconds*1000;auction.manual_timer_started=false}
-   render();
-   fastSend("BID",{amount:data.amount,slot});
-   m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");
-   scheduleLoad(35);
- }
+ else if(data?.ok){if(auction){auction.current_bid=data.amount;auction.highest_slot=slot}m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");scheduleLoad(25)}
  else if(data?.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
  else{m($("msg"),errs[data?.error]||data?.error,"warn");scheduleLoad(20)}
 }
