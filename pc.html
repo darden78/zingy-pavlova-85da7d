@@ -35,7 +35,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .celebrate{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;text-align:center;overflow:hidden}.celebrate.show{display:flex}.celebrateBox{position:relative;z-index:2}.celebrate h1{font-size:clamp(38px,7vw,90px);margin:0 20px;text-shadow:0 0 25px #fff}.celebrate p{font-size:24px}.firework{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 -70px #ffdf5d,49px -49px #ff5d8f,70px 0 #65e0ff,49px 49px #8cff65,0 70px #ff9b5d,-49px 49px #c865ff,-70px 0 #fff,-49px -49px #5dffca;animation:boom 1.2s infinite ease-out}.fw1{left:25%;top:35%}.fw2{left:72%;top:28%;animation-delay:.35s}.fw3{left:55%;top:70%;animation-delay:.7s}@keyframes boom{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.3);opacity:0}}
 .exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
 
-.installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite code{display:block;word-break:break-all;color:#ddd;font-size:11px;margin-top:6px}
+.installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -145,7 +145,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <div id="settingsMsg"></div>
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
 
- <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
+ <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
 
@@ -153,9 +153,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 <div id="celebrate" class="celebrate">
  <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
  <div class="celebrateBox"><h1 id="celebrateTitle"></h1><p id="celebrateSub"></p>
- <div id="exportActions" class="exportActions hidden">
-  <button id="exportXlsx">ESPORTA EXCEL</button><button id="exportPdf">ESPORTA PDF</button><button id="exportJson">FILE FANTASTICA</button>
- </div></div>
+ <div id="exportActions" class="exportActions hidden"><button id="exportAll">ESPORTA FILES</button></div></div>
 </div>
 
 <script type="module">
@@ -668,21 +666,55 @@ function exportRows(){
   return r.ps.map(p=>({"Partecipante":s.display_name,"Ruolo":p.role,"Giocatore":p.name,"Squadra":p.team||"","Quotazione":p.value??"","Prezzo pagato":p.assigned_price||0,"Crediti residui":r.remain}));
  });
 }
-function exportXlsx(){
- const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(exportRows());XLSX.utils.book_append_sheet(wb,ws,"Rose");
- XLSX.writeFile(wb,`FANTASTICA_${league.name.replace(/[^\w-]+/g,"_")}_rose.xlsx`);
+function exportFantasticaData(){
+ return {format:"FANTASTICA-ROSE-V1",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,credits_initial:league.credits_initial,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,players:r.ps.map(p=>({id:p.id,name:p.name,role:p.role,team:p.team,value:p.value,price:p.assigned_price}))}})};
 }
-function exportJson(){
- const data={format:"FANTASTICA-ROSE-V1",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,credits_initial:league.credits_initial,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,players:r.ps.map(p=>({id:p.id,name:p.name,role:p.role,team:p.team,value:p.value,price:p.assigned_price}))}})};
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download=`FANTASTICA_${league.name.replace(/[^\w-]+/g,"_")}.fantastica.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+function escHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function exportPdfHtml(){
+ let h=`<!doctype html><html><head><meta charset="utf-8"><title>FANTASTICA - ${escHtml(league.name)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#111}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}</style></head><body><h1>FANTASTICA — ${escHtml(league.name)}</h1>`;
+ for(const s of slots.filter(s=>s.slot<=league.member_limit&&s.display_name)){
+  const r=rosterInfo(s.slot);
+  h+=`<div class="team"><h2>${escHtml(s.display_name)} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${[...r.ps].sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${escHtml(p.role)}</td><td>${escHtml(p.name)}</td><td>${escHtml(p.team||"")}</td><td>${p.assigned_price||0}</td></tr>`).join("")}</table></div>`;
+ }
+ return h+`</body></html>`;
 }
-function exportPdf(){
- const w=window.open("","_blank");if(!w){alert("Il browser ha bloccato la finestra PDF.");return}
- let h=`<html><head><title>FANTASTICA - ${league.name}</title><style>body{font-family:Arial;padding:24px}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}</style></head><body><h1>FANTASTICA — ${league.name}</h1>`;
- for(const s of slots.filter(s=>s.slot<=league.member_limit&&s.display_name)){const r=rosterInfo(s.slot);h+=`<div class="team"><h2>${s.display_name} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${r.ps.sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${p.role}</td><td>${p.name}</td><td>${p.team||""}</td><td>${p.assigned_price}</td></tr>`).join("")}</table></div>`}
- h+=`</body></html>`;w.document.write(h);w.document.close();setTimeout(()=>w.print(),300)
+function makeXlsxBase64(){
+ const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(exportRows());
+ XLSX.utils.book_append_sheet(wb,ws,"Rose");
+ return XLSX.write(wb,{bookType:"xlsx",type:"base64"});
 }
-$("exportXlsx").onclick=e=>{e.stopPropagation();exportXlsx()};$("exportJson").onclick=e=>{e.stopPropagation();exportJson()};$("exportPdf").onclick=e=>{e.stopPropagation();exportPdf()};
+function browserDownload(name,blob){
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+async function exportAllFiles(){
+ const btn=$("exportAll");if(btn.disabled)return;btn.disabled=true;const old=btn.textContent;btn.textContent="ESPORTAZIONE...";
+ try{
+  const safe=(league.name||"lega").replace(/[^\w-]+/g,"_");
+  const xlsxBase64=makeXlsxBase64();
+  const jsonText=JSON.stringify(exportFantasticaData(),null,2);
+  const pdfHtml=exportPdfHtml();
+
+  if(window.fantasticaDesktop?.exportFiles){
+   const r=await window.fantasticaDesktop.exportFiles({leagueName:league.name,xlsxBase64,jsonText,pdfHtml});
+   if(r?.canceled)return;
+   if(!r?.ok)throw new Error(r?.error||"Esportazione non riuscita");
+   alert(`File esportati correttamente in:\n${r.folder}`);
+   $("celebrate").classList.remove("show");
+   return;
+  }
+
+  // Fallback per la Regia aperta da browser: scarica Excel e file FANTASTICA,
+  // poi apre la versione stampabile per il salvataggio PDF.
+  const xbin=Uint8Array.from(atob(xlsxBase64),c=>c.charCodeAt(0));
+  browserDownload(`FANTASTICA_${safe}_rose.xlsx`,new Blob([xbin],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  browserDownload(`FANTASTICA_${safe}.fantastica.json`,new Blob([jsonText],{type:"application/json"}));
+  const w=window.open("","_blank");
+  if(w){w.document.write(pdfHtml);w.document.close();setTimeout(()=>w.print(),300)}
+  else alert("Excel e file FANTASTICA scaricati. Il browser ha bloccato la finestra per il PDF.");
+ }catch(err){alert("Errore durante l'esportazione: "+(err?.message||err))}
+ finally{btn.disabled=false;btn.textContent=old}
+}
+$("exportAll").onclick=e=>{e.stopPropagation();exportAllFiles()};
 
 function renderManage(){
  $("managePlayers").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>`<div class="manageRow"><span>${s.display_name}</span><button class="rename" data-ren="${s.slot}">RINOMINA</button><button class="release" data-rel="${s.slot}">LIBERA</button></div>`).join("")||"Nessun partecipante.";
