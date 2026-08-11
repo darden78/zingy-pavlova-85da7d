@@ -55,8 +55,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
   <label>Conferma password</label><input id="newPassword2" type="password" minlength="5">
   <label>Email di verifica</label><input id="newEmail" type="email">
   <div class="createGrid" style="margin-top:12px">
-   <div><label>Partecipanti lega</label><input id="newMembers" type="number" min="6" max="12" value="8"></div>
-   <div><label>Partecipanti asta</label><input id="newAuctionCount" type="number" min="2" max="12" value="8"></div>
+   <div><label>Partecipanti lega</label><input id="newMembers" type="number" min="2" max="12" value="8"></div>
    <div><label>Timer (s)</label><input id="newDuration" type="number" min="1" max="600" value="10"></div>
    <div><label>Crediti iniziali</label><input id="newCredits" type="number" min="1" value="600"></div>
    <div><label>Portieri</label><input id="newP" type="number" min="0" value="4"></div>
@@ -126,8 +125,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <h2>Impostazioni lega</h2>
  <div class="settingsGrid">
   <div class="full"><label>Nome lega</label><input id="setName"></div>
-  <div><label>Partecipanti lega</label><input id="setMembers" type="number" min="6" max="12"></div>
-  <div><label>Partecipanti asta</label><input id="setAuctionCount" type="number" min="2" max="12"></div>
+  <div><label>Partecipanti lega</label><input id="setMembers" type="number" min="2" max="12"></div>
   <div><label>Timer (s)</label><input id="setDuration" type="number" min="1" max="600"></div>
   <div><label>Crediti iniziali</label><input id="setCredits" type="number" min="1"></div>
   <div><label>Portieri</label><input id="setP" type="number" min="0"></div>
@@ -158,7 +156,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v484";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v485";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -284,13 +282,14 @@ $("createLeague").onclick=async()=>{
  if(pwd.length<5){msg($("homeMsg"),"La password deve avere almeno 5 caratteri.","bad");return}
  if(pwd!==pwd2){msg($("homeMsg"),"Le password non coincidono.","bad");return}
  if(!email.includes("@")){msg($("homeMsg"),"Inserisci un'email valida.","bad");return}
+ if(+$("newMembers").value<2||+$("newMembers").value>12){msg($("homeMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const newOrd=roleOrderValues(".newRoleOrd");if($("newAuctionMode").value==="ROLE"&&!validRoleOrder(newOrd)){msg($("homeMsg"),"L'ordine ruoli deve contenere P, D, C e A una sola volta.","bad");return}
  try{
    await ensureAuth();
    const clientSecret=crypto.randomUUID()+"-"+crypto.randomUUID();
    const args={
      p_name:name,p_password:pwd,p_email:email,
-     p_member_limit:+$("newMembers").value,p_auction_count:+$("newAuctionCount").value,p_duration:+$("newDuration").value,
+     p_member_limit:+$("newMembers").value,p_duration:+$("newDuration").value,
      p_credits:+$("newCredits").value,
      p_roster_p:+$("newP").value,p_roster_d:+$("newD").value,p_roster_c:+$("newC").value,p_roster_a:+$("newA").value,
      p_auction_mode:$("newAuctionMode").value,
@@ -298,7 +297,7 @@ $("createLeague").onclick=async()=>{
      p_client_secret:clientSecret
    };
    msg($("homeMsg"),"Preparazione verifica...");
-   const {data,error}=await db.rpc("fa_begin_league_creation_v4",args);
+   const {data,error}=await db.rpc("fa_begin_league_creation_v485",args);
    if(error||!data?.ok){
      const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":(error?.message||data?.error);
      msg($("homeMsg"),"Errore: "+em,"bad");return
@@ -571,12 +570,13 @@ async function connect(){
    });
 }
 
-$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setAuctionCount").value=league.auction_participant_count;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";$("settingsPanel").classList.add("show")};
+$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";$("settingsPanel").classList.add("show")};
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
 $("saveSettings").onclick=async()=>{
+ if(+$("setMembers").value<2||+$("setMembers").value>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
- const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:+$("setMembers").value,p_auction_count:+$("setAuctionCount").value,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord};
- const {data,error}=await db.rpc("fa_set_full_settings_v4",args);if(error||!data?.ok)msg($("settingsMsg"),"Errore: "+(error?.message||data?.error),"bad");else{msg($("settingsMsg"),"✓ Salvato","ok");await load()}
+ const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:+$("setMembers").value,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord};
+ const {data,error}=await db.rpc("fa_set_full_settings_v485",args);if(error||!data?.ok)msg($("settingsMsg"),"Errore: "+(error?.message||data?.error),"bad");else{msg($("settingsMsg"),"✓ Salvato","ok");await load()}
 };
 
 
