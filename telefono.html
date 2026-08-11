@@ -61,7 +61,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTimer=null;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
 const DEVICE_KEY="fantastica-device-id-v476";
@@ -371,19 +371,18 @@ function requestState(){
  channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
  return true;
 }
-function announcePresence(){
- if(!(channel&&rtConnected&&slot))return false;
- channel.send({type:"broadcast",event:"PHONE_PRESENCE",payload:{slot,at:Date.now()}}).catch(()=>{});
- return true;
+async function trackPhonePresence(){
+ if(!(channel&&rtConnected&&slot)||presenceTracked)return presenceTracked;
+ try{
+  const status=await channel.track({kind:"phone",slot:Number(slot),online_at:new Date().toISOString()});
+  presenceTracked=status==="ok";
+ }catch{presenceTracked=false}
+ return presenceTracked;
 }
-function announceOffline(){
- if(!(channel&&rtConnected&&slot))return false;
- try{channel.send({type:"broadcast",event:"PHONE_OFFLINE",payload:{slot,at:Date.now()}}).catch(()=>{})}catch{}
- return true;
-}
-function startPresencePulse(){
- clearInterval(presenceTimer);
- presenceTimer=setInterval(()=>{if(leagueId&&rtConnected)announcePresence()},4000);
+function untrackPhonePresence(){
+ if(!(channel&&presenceTracked))return;
+ presenceTracked=false;
+ try{channel.untrack().catch(()=>{})}catch{}
 }
 function scheduleStateFallback(delay=2200){
  clearTimeout(stateFallbackTimer);
@@ -402,7 +401,7 @@ async function connect(){
  connectInFlight=true;
  clearTimeout(retry);retry=null;
  if(channel)try{await db.removeChannel(channel)}catch{}
- rtConnected=false;
+ rtConnected=false;presenceTracked=false;
  channel=db.channel("fantastica:"+leagueId)
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
@@ -427,11 +426,10 @@ async function connect(){
      rtConnected=true;connectInFlight=false;
      m($("status"),"🟢 ONLINE","ok");
      heartbeat(false);
-     announcePresence();
-     startPresencePulse();
+     await trackPhonePresence();
      requestState();
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
-     rtConnected=false;connectInFlight=false;
+     rtConnected=false;connectInFlight=false;presenceTracked=false;
      clearTimeout(retry);retry=setTimeout(connect,1200);
    }
  })
@@ -504,7 +502,7 @@ function resumeLightSync(){
   lastResumeSyncAt=now;
   if(wakeWanted)requestWakeLock(true);
   heartbeat(false);
-  if(rtConnected){announcePresence();requestState()}else connect();
+  if(rtConnected){trackPhonePresence();requestState()}else connect();
   scheduleStateFallback();
  },180);
 }
@@ -513,8 +511,8 @@ document.addEventListener("visibilitychange",()=>{
  else{wakeLock=null;clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer)}
 });
 window.addEventListener("pageshow",()=>{if(leagueId)resumeLightSync()});
-window.addEventListener("pagehide",()=>{announceOffline();clearInterval(presenceTimer)});
-window.addEventListener("beforeunload",()=>{announceOffline()});
+window.addEventListener("pagehide",()=>{untrackPhonePresence()});
+window.addEventListener("beforeunload",()=>{untrackPhonePresence()});
 
 (async()=>{
  try{

@@ -366,15 +366,21 @@ async function loadCore(){
  render();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
-const presenceSeen=new Map();
-const PRESENCE_OFFLINE_MS=11000;
-const online=s=>!!s&&presenceSeen.has(Number(s.slot))&&Date.now()-presenceSeen.get(Number(s.slot))<PRESENCE_OFFLINE_MS;
-let lastPresenceSignature="";
-setInterval(()=>{
- if(!league)return;
- const sig=slots.map(s=>`${s.slot}:${online(s)?1:0}`).join("|");
- if(sig!==lastPresenceSignature){lastPresenceSignature=sig;render()}
-},1000);
+const presenceSeen=new Set();
+const online=s=>!!s&&presenceSeen.has(Number(s.slot));
+function syncPhonePresence(){
+ if(!channel)return;
+ const state=channel.presenceState?.()||{},next=new Set();
+ for(const entries of Object.values(state)){
+  for(const p of (Array.isArray(entries)?entries:[])){
+   const n=Number(p?.slot);
+   if(p?.kind==="phone"&&n)next.add(n);
+  }
+ }
+ const changed=next.size!==presenceSeen.size||[...next].some(n=>!presenceSeen.has(n));
+ presenceSeen.clear();for(const n of next)presenceSeen.add(n);
+ if(changed)render();
+}
 function rosterInfo(slot){
  const ps=catalog.filter(p=>p.assigned_slot===slot),spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
@@ -449,7 +455,7 @@ function render(){
  $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD";$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.slot<=league.member_limit);
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"} · ${online(s)?"ONLINE":"OFFLINE"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=()=>{selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
  const hist=syncHistoryOffset(),histTotal=hist.length;
@@ -613,25 +619,13 @@ async function connect(){
       if(d.message)showParticipantCelebration(d.message);
       scheduleLoad(8);
    })
-   .on("broadcast",{event:"PHONE_PRESENCE"},payload=>{
-      const d=payload?.payload||payload||{},n=Number(d.slot);
-      if(!n)return;
-      presenceSeen.set(n,Date.now());
-      const s=slots.find(x=>x.slot===n);
-      if(s){s.last_seen_at=new Date().toISOString();render()}
-   })
-   .on("broadcast",{event:"PHONE_OFFLINE"},payload=>{
-      const d=payload?.payload||payload||{},n=Number(d.slot);
-      if(!n)return;
-      presenceSeen.delete(n);
-      render();
-   })
+.on("presence",{event:"sync"},()=>{syncPhonePresence()})
    .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
       if(st==="SUBSCRIBED"){
         rtConnected=true;
-        
+        syncPhonePresence();
         msg($("status"),"🟢 CONNESSO","ok");
       }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
         rtConnected=false;
