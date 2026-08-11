@@ -34,6 +34,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .listRow.roleActive{background:#364b38;border:1px solid #57d67d}.listRow.roleActive .listName{font-weight:900;color:#fff}.listRow.roleInactive{opacity:.38;cursor:not-allowed}.phaseBadge{display:inline-block;padding:5px 10px;border-radius:999px;background:#375b42;font-weight:900;margin-left:8px}
 .celebrate{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;text-align:center;overflow:hidden}.celebrate.show{display:flex}.celebrateBox{position:relative;z-index:2}.celebrate h1{font-size:clamp(38px,7vw,90px);margin:0 20px;text-shadow:0 0 25px #fff}.celebrate p{font-size:24px}.firework{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 -70px #ffdf5d,49px -49px #ff5d8f,70px 0 #65e0ff,49px 49px #8cff65,0 70px #ff9b5d,-49px 49px #c865ff,-70px 0 #fff,-49px -49px #5dffca;animation:boom 1.2s infinite ease-out}.fw1{left:25%;top:35%}.fw2{left:72%;top:28%;animation-delay:.35s}.fw3{left:55%;top:70%;animation-delay:.7s}@keyframes boom{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.3);opacity:0}}
 .exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
+
+.installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite code{display:block;word-break:break-all;color:#ddd;font-size:11px;margin-top:6px}
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -142,6 +144,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <div class="settingsActions"><button id="saveSettings" class="saveSettings">SALVA</button><button id="closeSettings" class="closeSettings">CHIUDI</button></div>
  <div id="settingsMsg"></div>
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
+
+ <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><code>https://darden78.github.io/zingy-pavlova-85da7d/installa.html</code></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
 
@@ -164,6 +168,7 @@ const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
+function roleArticle(r){return r==="A"?"GLI":"I"}
 const serverNow=()=>Date.now()+serverOffset;
 let historyOffset=0;
 function currentAuctionBidHistory(){
@@ -237,8 +242,10 @@ $("setAuctionMode").onchange=()=>$("setRoleOrderBox").classList.toggle("hidden",
 $("loginLeagueBtn").onclick=async()=>{
  try{
   await ensureAuth();msg($("loginMsg"),"Accesso...");
-  const {data,error}=await db.rpc("fa_login_organizer",{p_name:$("loginLeague").value.trim(),p_password:$("loginPassword").value});
+  const leagueName=$("loginLeague").value.trim(),password=$("loginPassword").value;
+  const {data,error}=await db.rpc("fa_login_organizer",{p_name:leagueName,p_password:password});
   if(error||!data?.ok){msg($("loginMsg"),"Nome lega o password non corretti.","bad");return}
+  try{await window.fantasticaDesktop?.saveLeagueAccess?.({leagueId:data.league_id,leagueName,password})}catch{}
   $("loginPassword").value="";await openLeague(data.league_id);
  }catch(e){msg($("loginMsg"),"Errore: "+e.message,"bad")}
 };
@@ -305,7 +312,7 @@ $("createLeague").onclick=async()=>{
    localStorage.setItem("fantastica-pending-league-v31",JSON.stringify({
      pending_id:data.pending_id,client_secret:clientSecret
    }));
-   const redirect=`${location.origin}/verify.html?pending=${encodeURIComponent(data.pending_id)}&token=${encodeURIComponent(data.verification_token)}`;
+   const redirect=`${PUBLIC_BASE_URL}/verify.html?pending=${encodeURIComponent(data.pending_id)}&token=${encodeURIComponent(data.verification_token)}`;
    const mail=await db.auth.signInWithOtp({email,options:{emailRedirectTo:redirect}});
    if(mail.error){msg($("homeMsg"),"Errore email: "+mail.error.message,"bad");return}
    msg($("homeMsg"),"✓ Email inviata. Aprila su qualunque dispositivo: questa schermata entrerà automaticamente nella lega appena verificata.","ok");
@@ -313,18 +320,24 @@ $("createLeague").onclick=async()=>{
  }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}
 };
 
-$("changeLeague").onclick=()=>{localStorage.removeItem("fantastica-organizer-last-league");disconnect();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")};
+$("changeLeague").onclick=async()=>{
+ localStorage.removeItem("fantastica-organizer-last-league");
+ try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
+ try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
+ disconnect();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+};
 
 async function openLeague(id){
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
  if(error||!data){
-  localStorage.removeItem("fantastica-organizer-last-league");
+  // Non cancellare la lega memorizzata per un errore temporaneo: viene rimossa solo con "ESCI REGIA".
   msg($("loginMsg"),"Accesso alla lega non disponibile.","bad");
   $("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login");
   return
  }
  league=data;
  localStorage.setItem("fantastica-organizer-last-league",league.id);
+ try{await window.fantasticaDesktop?.setLastLeague?.(league.id)}catch{}
  $("leagueName").textContent=league.name;
  const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
  $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
@@ -347,7 +360,7 @@ async function load(runProgress=true){
  render();
  if(prevPhase!==null&&league.role_phase!==prevPhase){
    if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
@@ -689,12 +702,32 @@ setInterval(()=>{if(league)load(false)},60000);
    pollPendingLeague();
    return;
   }
-  const lastLeague=localStorage.getItem("fantastica-organizer-last-league");
-  if(lastLeague){
-   await openLeague(lastLeague);
+  // Desktop: riautentica automaticamente l'organizzatore con le credenziali
+  // salvate nel profilo Windows. La password resta cifrata a riposo tramite Electron safeStorage.
+  if(window.fantasticaDesktop?.getSavedLeagueAccess){
+   let saved=null;
+   try{saved=await window.fantasticaDesktop.getSavedLeagueAccess()}catch{}
+   if(saved?.leagueName&&saved?.password){
+    msg($("loginMsg"),"Rientro automatico nella lega...");
+    const {data,error}=await db.rpc("fa_login_organizer",{p_name:saved.leagueName,p_password:saved.password});
+    if(!error&&data?.ok){
+     try{await window.fantasticaDesktop.setLastLeague?.(data.league_id)}catch{}
+     await openLeague(data.league_id);
+     return;
+    }
+    msg($("loginMsg"),"Accesso salvato non più valido. Inserisci nuovamente lega e password.","bad");
+    $("loginLeague").value=saved.leagueName||"";
+    return;
+   }
+   // Nessun accesso Desktop salvato: mostra semplicemente il login.
+   // Non usa vecchi ID di lega, che potrebbero appartenere a una sessione anonima scaduta.
+   return;
   }
+  // Versione web: mantiene il comportamento originario basato su localStorage.
+  const lastLeague=localStorage.getItem("fantastica-organizer-last-league");
+  if(lastLeague)await openLeague(lastLeague);
  }catch(e){
-  localStorage.removeItem("fantastica-organizer-last-league");
+  // Mantieni il rientro automatico anche dopo errori temporanei di rete/autenticazione.
   msg($("loginMsg"),"Errore autenticazione: "+e.message,"bad");
  }
 })();

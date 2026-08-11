@@ -1,10 +1,9 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>FANTASTICA</title><meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="apple-touch-icon" href="./icon-192.png">
-<script>
-(function(){const ua=navigator.userAgent||"",ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!ios){const l=document.createElement("link");l.rel="manifest";l.href="./manifest-phone.webmanifest?v=fv3";document.head.appendChild(l)}})();
-</script>
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
+<link rel="manifest" href="./manifest-phone.webmanifest?v=iphone1">
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;inset:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
 .entry{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:min(430px,100%);background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
@@ -106,6 +105,7 @@ async function getDeviceId(){
 }
 
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
+function roleArticle(r){return r==="A"?"GLI":"I"}
 const serverNow=()=>Date.now()+serverOffset;
 async function syncServerClock(){
  try{
@@ -263,7 +263,7 @@ async function load(){
  catalog=p.data||[];slotData=slots.find(x=>x.slot===slot);
  if(prevPhase!==null&&league.role_phase!==prevPhase){
    if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(!slotData){m($("status"),"Dispositivo non associato","bad");return}
@@ -323,7 +323,7 @@ function render(){
 
  const auctionPrepared=!!auction.current_player_id&&anyActive;
  if(league.auction_complete){m($("msg"),"FINE DELLE ASTE","ok");$("leave").textContent="ASTE CONCLUSE";$("leave").className="leave disabled"}
- else if(rolePhaseComplete){m($("msg"),`HAI COMPLETATO I ${roleNames[league.active_role]||league.active_role} — IN ATTESA`,"warn");$("leave").textContent="RUOLO COMPLETATO";$("leave").className="leave disabled roleWait"}
+ else if(rolePhaseComplete){m($("msg"),`HAI COMPLETATO ${roleArticle(league.active_role)} ${roleNames[league.active_role]||league.active_role} — IN ATTESA`,"warn");$("leave").textContent="RUOLO COMPLETATO";$("leave").className="leave disabled roleWait"}
  else if(auction.status==="SOLD"){m($("msg"),"✓ AGGIUDICATO","ok");$("leave").textContent="ASTA TERMINATA";$("leave").className="leave disabled"}
  else if(!auctionPrepared){m($("msg"),"IN ATTESA DELLA PROSSIMA ASTA","warn");$("leave").textContent="IN ATTESA";$("leave").className="leave disabled"}
  else if(!slotData.active){m($("msg"),"NON PARTECIPI A QUESTA ASTA","warn");$("leave").textContent="NON IN GARA";$("leave").className="leave disabled"}
@@ -366,7 +366,7 @@ function applyRegiaState(d){
  if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
  if(prevPhase!==null&&league.role_phase!==prevPhase){
    if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER I ${roleNames[prevRole]||prevRole}`,false);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(slotData){render();renderRosterPages()}
