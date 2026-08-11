@@ -371,7 +371,9 @@ const online=s=>!!s&&presenceSeen.has(Number(s.slot));
 function syncPhonePresence(){
  if(!channel)return;
  const state=channel.presenceState?.()||{},next=new Set();
- for(const entries of Object.values(state)){
+ for(const [key,entries] of Object.entries(state)){
+  const km=/^phone:(\d+)$/.exec(String(key));
+  if(km&&Number(km[1]))next.add(Number(km[1]));
   for(const p of (Array.isArray(entries)?entries:[])){
    const n=Number(p?.slot);
    if(p?.kind==="phone"&&n)next.add(n);
@@ -620,6 +622,8 @@ async function connect(){
       scheduleLoad(8);
    })
 .on("presence",{event:"sync"},()=>{syncPhonePresence()})
+   .on("presence",{event:"join"},()=>{syncPhonePresence()})
+   .on("presence",{event:"leave"},()=>{syncPhonePresence()})
    .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{

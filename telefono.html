@@ -396,13 +396,13 @@ function scheduleStateFallback(delay=2200){
   await load();
  },delay);
 }
-async function connect(){
- if(!leagueId||document.hidden||rtConnected||connectInFlight)return;
+async function connect(force=false){
+ if(!leagueId||document.hidden||(!force&&rtConnected)||connectInFlight)return;
  connectInFlight=true;
  clearTimeout(retry);retry=null;
  if(channel)try{await db.removeChannel(channel)}catch{}
  rtConnected=false;presenceTracked=false;
- channel=db.channel("fantastica:"+leagueId)
+ channel=db.channel("fantastica:"+leagueId,{config:{presence:{key:`phone:${Number(slot)}`}}})
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
    requestState();
@@ -493,24 +493,29 @@ $("leave").onclick=async()=>{
 };
 const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";modal.classList.add("show")};document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
 setInterval(()=>{if(leagueId&&!document.hidden)requestState()},30000);
-function resumeLightSync(){
+function resumeLightSync(forceReconnect=false){
  clearTimeout(resumeTimer);
  resumeTimer=setTimeout(()=>{
   if(document.hidden||!leagueId)return;
   const now=Date.now();
-  if(now-lastResumeSyncAt<2000)return;
+  if(now-lastResumeSyncAt<1200)return;
   lastResumeSyncAt=now;
   if(wakeWanted)requestWakeLock(true);
   heartbeat(false);
-  if(rtConnected){trackPhonePresence();requestState()}else connect();
+  if(forceReconnect){
+   rtConnected=false;presenceTracked=false;
+   connect(true);
+  }else if(rtConnected){
+   trackPhonePresence();requestState();
+  }else connect();
   scheduleStateFallback();
  },180);
 }
 document.addEventListener("visibilitychange",()=>{
- if(!document.hidden)resumeLightSync();
- else{wakeLock=null;clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer)}
+ if(!document.hidden)resumeLightSync(true);
+ else{wakeLock=null;clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
 });
-window.addEventListener("pageshow",()=>{if(leagueId)resumeLightSync()});
+window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted)});
 window.addEventListener("pagehide",()=>{untrackPhonePresence()});
 window.addEventListener("beforeunload",()=>{untrackPhonePresence()});
 
