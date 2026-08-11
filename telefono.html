@@ -59,7 +59,7 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v481";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v482";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -317,6 +317,11 @@ async function connect(){
    showRt(payload);
    scheduleLoad(8);
  })
+ .on("broadcast",{event:"CELEBRATE"},payload=>{
+   const d=payload?.payload||payload||{};
+   if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE");
+   scheduleLoad(8);
+ })
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
      rtConnected=true;
@@ -332,6 +337,7 @@ async function connect(){
 }
 
 document.addEventListener("pointerdown",()=>{
+ try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}
  if(wakeWanted&&!document.hidden)requestWakeLock(false);
 },{passive:true});
 
