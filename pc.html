@@ -366,7 +366,15 @@ async function loadCore(){
  render();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
-const online=s=>s.last_seen_at&&Date.now()-new Date(s.last_seen_at).getTime()<60000;
+const presenceSeen=new Map();
+const PRESENCE_OFFLINE_MS=11000;
+const online=s=>!!s&&presenceSeen.has(Number(s.slot))&&Date.now()-presenceSeen.get(Number(s.slot))<PRESENCE_OFFLINE_MS;
+let lastPresenceSignature="";
+setInterval(()=>{
+ if(!league)return;
+ const sig=slots.map(s=>`${s.slot}:${online(s)?1:0}`).join("|");
+ if(sig!==lastPresenceSignature){lastPresenceSignature=sig;render()}
+},1000);
 function rosterInfo(slot){
  const ps=catalog.filter(p=>p.assigned_slot===slot),spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
@@ -607,8 +615,16 @@ async function connect(){
    })
    .on("broadcast",{event:"PHONE_PRESENCE"},payload=>{
       const d=payload?.payload||payload||{},n=Number(d.slot);
+      if(!n)return;
+      presenceSeen.set(n,Date.now());
       const s=slots.find(x=>x.slot===n);
       if(s){s.last_seen_at=new Date().toISOString();render()}
+   })
+   .on("broadcast",{event:"PHONE_OFFLINE"},payload=>{
+      const d=payload?.payload||payload||{},n=Number(d.slot);
+      if(!n)return;
+      presenceSeen.delete(n);
+      render();
    })
    .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})

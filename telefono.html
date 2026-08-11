@@ -61,7 +61,7 @@
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTimer=null;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
 const DEVICE_KEY="fantastica-device-id-v476";
@@ -373,8 +373,17 @@ function requestState(){
 }
 function announcePresence(){
  if(!(channel&&rtConnected&&slot))return false;
- channel.send({type:"broadcast",event:"PHONE_PRESENCE",payload:{slot}}).catch(()=>{});
+ channel.send({type:"broadcast",event:"PHONE_PRESENCE",payload:{slot,at:Date.now()}}).catch(()=>{});
  return true;
+}
+function announceOffline(){
+ if(!(channel&&rtConnected&&slot))return false;
+ try{channel.send({type:"broadcast",event:"PHONE_OFFLINE",payload:{slot,at:Date.now()}}).catch(()=>{})}catch{}
+ return true;
+}
+function startPresencePulse(){
+ clearInterval(presenceTimer);
+ presenceTimer=setInterval(()=>{if(leagueId&&rtConnected)announcePresence()},4000);
 }
 function scheduleStateFallback(delay=2200){
  clearTimeout(stateFallbackTimer);
@@ -419,6 +428,7 @@ async function connect(){
      m($("status"),"🟢 ONLINE","ok");
      heartbeat(false);
      announcePresence();
+     startPresencePulse();
      requestState();
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
      rtConnected=false;connectInFlight=false;
@@ -502,6 +512,9 @@ document.addEventListener("visibilitychange",()=>{
  if(!document.hidden)resumeLightSync();
  else{wakeLock=null;clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer)}
 });
+window.addEventListener("pageshow",()=>{if(leagueId)resumeLightSync()});
+window.addEventListener("pagehide",()=>{announceOffline();clearInterval(presenceTimer)});
+window.addEventListener("beforeunload",()=>{announceOffline()});
 
 (async()=>{
  try{
