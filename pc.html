@@ -83,7 +83,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <section id="regia" class="hidden">
  <div class="top"><button id="changeLeague">← ESCI REGIA</button><h1>⚽ <span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1><button id="settingsBtn">⚙ IMPOSTAZIONI</button></div>
- <div id="status" class="status">Avvio...</div>
+ <div id="status" class="status">Avvio...</div><div id="rtDiag" style="font-size:12px;color:#8fd3ff;margin:-5px 0 8px">⚡ Realtime: connessione...</div>
  <div class="workspace">
   <aside class="side"><h2>ROSA MIGLIOR OFFERENTE</h2><div id="leaderRoster"></div></aside>
   <main class="center">
@@ -92,7 +92,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
     <div>OFFERTA ATTUALE</div><div id="amount" class="amount">0</div><div id="who" class="who">Nessun offerente</div><div id="timer" class="timer">—</div><div id="closed"></div>
     <div class="controls">
      <button id="prevEvent" class="undo">◀ EVENTO PRECEDENTE</button>
-     <button id="pauseTimer" class="pause">⏸ PAUSA TIMER</button>
+     <button id="pauseTimer" class="pause">▶ AVVIA TIMER</button>
+     <button id="assignNow" class="newAuction">✓ ASSEGNA ASTA</button>
      <button id="nextEvent" class="undo">EVENTO SUCCESSIVO ▶</button>
      <button id="newAuction" class="newAuction">NUOVA ASTA</button>
     </div><div id="eventPos" class="eventPos"></div>
@@ -158,7 +159,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v477";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v480";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
@@ -370,7 +371,7 @@ function render(){
    $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
  }
  $("closed").textContent=auction.status==="SOLD"?"✓ AGGIUDICATO":"";
- $("pauseTimer").textContent=auction.paused?"▶ RIPRENDI TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD";
+ $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD";$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.slot<=league.member_limit);
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"} · ${online(s)?"ONLINE":"OFFLINE"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
@@ -464,16 +465,27 @@ $("importList").onclick=async()=>{
 
 $("newAuction").onclick=async()=>{
  msg($("status"),"Avvio asta...","warn");
- const {data,error}=await db.rpc("fa_start_auction_v474",{p_league_id:league.id});
+ const {data,error}=await db.rpc("fa_start_auction_v480",{p_league_id:league.id});
  if(error)msg($("status"),error.message,"bad");
  else if(!data?.ok){const em=data.error==="SELEZIONA_GIOCATORE"?"Seleziona prima un giocatore dal listone.":data.error==="PARTECIPANTI_OFFLINE"?`Impossibile avviare: online ${data.online} su ${data.required} partecipanti richiesti.`:data.error;msg($("status"),em,"bad");}
- else msg($("status"),"🟢 ASTA PRONTA — partenza da 1 credito","ok");
+ else msg($("status"),"🟢 ASTA PRONTA — timer in PAUSA","ok");
  scheduleLoad(35);
 };
-$("pauseTimer").onclick=async()=>{await db.rpc("fa_pause",{p_league_id:league.id,p_pause:!auction.paused});await load()};
+$("pauseTimer").onclick=async()=>{
+ const {data,error}=await db.rpc("fa_timer_control_v480",{p_league_id:league.id,p_run:!!auction.paused});
+ if(error||!data?.ok){alert(error?.message||data?.error);return}
+ await load(false);
+};
+$("assignNow").onclick=async()=>{
+ if(!auction?.highest_slot||auction.status==="SOLD")return;
+ const {data,error}=await db.rpc("fa_assign_now_v480",{p_league_id:league.id});
+ if(error||!data?.ok){alert(error?.message||data?.error);return}
+ msg($("status"),`✓ ASTA ASSEGNATA — ${slotName(data.slot)} a ${data.amount}`,"ok");
+ await load(false);
+};
 $("prevEvent").onclick=async()=>{
  if(auction.status==="SOLD"||auction.assignment_confirmed){
-   const {data,error}=await db.rpc("fa_undo_assignment_v477",{p_league_id:league.id});
+   const {data,error}=await db.rpc("fa_undo_assignment_v480",{p_league_id:league.id});
    if(error||!data?.ok){alert(error?.message||data?.error);return}
    await load(false);
    historyOffset=0;
@@ -483,7 +495,7 @@ $("prevEvent").onclick=async()=>{
  const h=syncHistoryOffset();
  if(!h.length||historyOffset>=h.length-1){msg($("status"),"Sei già alla prima offerta di questa asta.","warn");return}
  const target=h[historyOffset+1];
- const {data,error}=await db.rpc("fa_set_bid_history_v471",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
+ const {data,error}=await db.rpc("fa_set_bid_history_v480",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
  if(error||!data?.ok){alert(error?.message||data?.error);return}
  historyOffset++;
  auction={...auction,highest_slot:target.slot,current_bid:target.amount,status:"OPEN",paused:true,paused_remaining_ms:league.duration_seconds*1000,timer_deadline:null,assignment_confirmed:false};
@@ -494,7 +506,7 @@ $("nextEvent").onclick=async()=>{
  const h=syncHistoryOffset();
  if(!h.length||historyOffset<=0){msg($("status"),"Sei già all'ultima offerta.","warn");return}
  const target=h[historyOffset-1];
- const {data,error}=await db.rpc("fa_set_bid_history_v471",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
+ const {data,error}=await db.rpc("fa_set_bid_history_v480",{p_league_id:league.id,p_slot:target.slot,p_amount:target.amount});
  if(error||!data?.ok){alert(error?.message||data?.error);return}
  historyOffset--;
  auction={...auction,highest_slot:target.slot,current_bid:target.amount,status:"OPEN",paused:true,paused_remaining_ms:league.duration_seconds*1000,timer_deadline:null,assignment_confirmed:false};
@@ -502,26 +514,41 @@ $("nextEvent").onclick=async()=>{
  msg($("status"),`↪ Offerta successiva — ${slotName(target.slot)} a ${target.amount}`,"warn");
 };
 
-let loadTimer=null;
-function scheduleLoad(ms=45){
+let loadTimer=null,rtConnected=false,lastRtAt=0;
+function scheduleLoad(ms=12){
  clearTimeout(loadTimer);
  loadTimer=setTimeout(()=>load(false),ms);
 }
-function disconnect(){if(channel)db.removeChannel(channel);channel=null;clearTimeout(retry);clearTimeout(loadTimer)}
-function upsertBy(arr,key,val){
- const i=arr.findIndex(x=>x[key]===val[key]);
- if(i>=0)arr[i]={...arr[i],...val};else arr.push(val);
+function disconnect(){
+ if(channel)db.removeChannel(channel);
+ channel=null;rtConnected=false;
+ clearTimeout(retry);clearTimeout(loadTimer);
 }
-function realtimeRender(){render();if(selectedRosterSlot)showSelectedRoster(false)}
+function showRt(payload){
+ const d=payload?.payload||payload||{};
+ const sent=Number(d.sent_at_ms||0);
+ const lag=sent?Math.max(0,Math.round(serverNow()-sent)):null;
+ lastRtAt=Date.now();
+ $("rtDiag").textContent=lag===null?"⚡ Realtime: evento ricevuto":`⚡ Realtime: ${lag} ms`;
+}
 async function connect(){
- disconnect();channel=db.channel("fantastica-"+league.id)
- .on("postgres_changes",{event:"UPDATE",schema:"public",table:"fa_leagues",filter:`id=eq.${league.id}`},payload=>{league={...league,...payload.new};realtimeRender()})
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_slots",filter:`league_id=eq.${league.id}`},payload=>{if(payload.eventType==="DELETE")slots=slots.filter(x=>x.slot!==payload.old.slot);else upsertBy(slots,"slot",payload.new);realtimeRender()})
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_auction",filter:`league_id=eq.${league.id}`},payload=>{if(payload.new)auction={...auction,...payload.new};realtimeRender()})
- .on("postgres_changes",{event:"INSERT",schema:"public",table:"fa_bids",filter:`league_id=eq.${league.id}`},payload=>{bids=[payload.new,...bids.filter(x=>x.id!==payload.new.id)].slice(0,30);$("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("")})
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_events",filter:`league_id=eq.${league.id}`},payload=>{if(payload.eventType==="DELETE")events=events.filter(x=>x.seq!==payload.old.seq);else upsertBy(events,"seq",payload.new);const max=events.length?Math.max(...events.map(x=>x.seq)):0;$("eventPos").textContent=`Evento ${auction.event_cursor||0} di ${max}`})
- .on("postgres_changes",{event:"*",schema:"public",table:"fa_players",filter:`league_id=eq.${league.id}`},payload=>{if(payload.eventType==="DELETE")catalog=catalog.filter(x=>x.id!==payload.old.id);else upsertBy(catalog,"id",payload.new);realtimeRender()})
- .subscribe(s=>{if(s==="SUBSCRIBED")msg($("status"),"🟢 CONNESSO","ok");else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(s))retry=setTimeout(connect,900)});
+ disconnect();
+ channel=db.channel("fantastica:"+league.id)
+   .on("broadcast",{event:"STATE"},payload=>{
+      showRt(payload);
+      scheduleLoad(8);
+   })
+   .subscribe(st=>{
+      if(st==="SUBSCRIBED"){
+        rtConnected=true;
+        $("rtDiag").textContent="⚡ Realtime: CONNESSO";
+        msg($("status"),"🟢 CONNESSO","ok");
+      }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
+        rtConnected=false;
+        $("rtDiag").textContent="⚠ Realtime: riconnessione...";
+        retry=setTimeout(connect,700);
+      }
+   });
 }
 
 $("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setAuctionCount").value=league.auction_participant_count;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";$("settingsPanel").classList.add("show")};
@@ -562,7 +589,7 @@ function renderManage(){
 }
 $("deleteLeague").onclick=async()=>{if(!confirm(`Cancellare definitivamente "${league.name}"?`))return;const pwd=prompt("Inserisci la password della lega per confermare:");if(pwd===null)return;if(!confirm("Ultima conferma: operazione irreversibile."))return;const {data,error}=await db.rpc("fa_delete_league",{p_league_id:league.id,p_password:pwd});if(error||!data?.ok){alert(data?.error==="PASSWORD_ERRATA"?"Password errata.":(error?.message||data?.error));return}$("settingsPanel").classList.remove("show");$("changeLeague").click()};
 
-setInterval(()=>{if(league)load(false)},15000);
+setInterval(()=>{if(league)load(false)},5000);
 (async()=>{
  try{
   await ensureAuth();
