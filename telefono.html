@@ -59,9 +59,9 @@
 
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v489";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v490";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
 const DEVICE_KEY="fantastica-device-id-v476";
@@ -231,12 +231,20 @@ async function enterGame(){
  league=l;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
  await heartbeat();await load();connect();startKeepAwake();
 }
-async function heartbeat(){
- if(!leagueId||!slot)return;
- const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
- if(error||!data?.ok){m($("status"),"Riconnessione...","warn")}
+const HEARTBEAT_MIN_MS=18000;
+async function heartbeat(force=false){
+ if(!leagueId||!slot)return false;
+ const now=Date.now();
+ if(heartbeatInFlight||(!force&&now-lastHeartbeatAt<HEARTBEAT_MIN_MS))return true;
+ heartbeatInFlight=true;lastHeartbeatAt=now;
+ try{
+  const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
+  if(error||!data?.ok){m($("status"),"Riconnessione...","warn");return false}
+  return true;
+ }catch{return false}
+ finally{heartbeatInFlight=false}
 }
-setInterval(()=>{if(!document.hidden)heartbeat()},20000);
+setInterval(()=>{if(!document.hidden)heartbeat(false)},20000);
 
 async function load(){
  if(!leagueId)return;
@@ -358,13 +366,33 @@ function applyRegiaState(d){
  if(slotData)render();
 }
 
+function requestState(){
+ if(!(channel&&rtConnected))return false;
+ channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+ return true;
+}
+function scheduleStateFallback(delay=2200){
+ clearTimeout(stateFallbackTimer);
+ const requestedAt=Date.now();
+ stateFallbackTimer=setTimeout(async()=>{
+  if(!leagueId||document.hidden)return;
+  if(lastRegiaStateAt>=requestedAt)return;
+  const now=Date.now();
+  if(now-lastFallbackLoadAt<30000)return;
+  lastFallbackLoadAt=now;
+  await load();
+ },delay);
+}
 async function connect(){
+ if(!leagueId||document.hidden||rtConnected||connectInFlight)return;
+ connectInFlight=true;
+ clearTimeout(retry);retry=null;
  if(channel)try{await db.removeChannel(channel)}catch{}
  rtConnected=false;
  channel=db.channel("fantastica:"+leagueId)
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
-   if(channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+   requestState();
  })
  .on("broadcast",{event:"PHONE_STATE"},payload=>{
    const d=payload?.payload||payload||{};
@@ -382,14 +410,13 @@ async function connect(){
  })
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
-     rtConnected=true;
-     
+     rtConnected=true;connectInFlight=false;
      m($("status"),"🟢 ONLINE","ok");
-     heartbeat();
+     heartbeat(false);
+     requestState();
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
-     rtConnected=false;
-     
-     retry=setTimeout(connect,700);
+     rtConnected=false;connectInFlight=false;
+     clearTimeout(retry);retry=setTimeout(connect,1200);
    }
  })
 }
@@ -431,7 +458,7 @@ async function bid(kind,exact=null){
  else if(data?.ok){
  if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=true;auction.timer_deadline=null}
  m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");render();
- if(channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+ requestState();
 }
  else if(data?.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
  else{m($("msg"),errs[data?.error]||data?.error,"warn");scheduleLoad(20)}
@@ -451,8 +478,24 @@ $("leave").onclick=async()=>{
  scheduleLoad(25);
 };
 const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";modal.classList.add("show")};document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
-setInterval(()=>{if(leagueId&&!document.hidden&&channel&&rtConnected)channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{})},30000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(wakeWanted)requestWakeLock(true);heartbeat();load();connect()}else{wakeLock=null}});
+setInterval(()=>{if(leagueId&&!document.hidden)requestState()},30000);
+function resumeLightSync(){
+ clearTimeout(resumeTimer);
+ resumeTimer=setTimeout(()=>{
+  if(document.hidden||!leagueId)return;
+  const now=Date.now();
+  if(now-lastResumeSyncAt<2000)return;
+  lastResumeSyncAt=now;
+  if(wakeWanted)requestWakeLock(true);
+  heartbeat(false);
+  if(rtConnected)requestState();else connect();
+  scheduleStateFallback();
+ },180);
+}
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden)resumeLightSync();
+ else{wakeLock=null;clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer)}
+});
 
 (async()=>{
  try{
