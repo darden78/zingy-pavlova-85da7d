@@ -35,7 +35,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .celebrate{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;text-align:center;overflow:hidden}.celebrate.show{display:flex}.celebrateBox{position:relative;z-index:2}.celebrate h1{font-size:clamp(38px,7vw,90px);margin:0 20px;text-shadow:0 0 25px #fff}.celebrate p{font-size:24px}.firework{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 -70px #ffdf5d,49px -49px #ff5d8f,70px 0 #65e0ff,49px 49px #8cff65,0 70px #ff9b5d,-49px 49px #c865ff,-70px 0 #fff,-49px -49px #5dffca;animation:boom 1.2s infinite ease-out}.fw1{left:25%;top:35%}.fw2{left:72%;top:28%;animation-delay:.35s}.fw3{left:55%;top:70%;animation-delay:.7s}@keyframes boom{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.3);opacity:0}}
 .exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
 
-.installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}
+.installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}.installInvite button{display:inline-block;margin:8px 0 0 7px;border:0;color:#fff;background:#315f8a;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer}
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -146,6 +146,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
 
  <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
+ <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare la Regia in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
 
@@ -161,6 +162,7 @@ import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
+let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={};
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
@@ -445,6 +447,130 @@ async function pushRosterState(){
  try{await channel.send({type:"broadcast",event:"ROSTER_STATE",payload:{sent_at_ms:serverNow(),players:assigned}})}catch{}
 }
 
+
+// MIRROR SPETTATORE: nessuna logica d'asta duplicata.
+// La Regia invia soltanto ciò che ha già renderizzato; la pagina spettatore lo riproduce.
+function mirrorPublicUrl(){
+ return league?`${PUBLIC_BASE_URL}/spettatore.html?lega=${encodeURIComponent(league.id)}`:"";
+}
+function mirrorPartState(){
+ const right=document.querySelector("#regia .rightSide"),top=document.querySelector("#regia .top"),controls=document.querySelector("#regia .controls"),celebrate=$("celebrate");
+ return{
+  top:top?.innerHTML||"",
+  status:{html:$("status")?.innerHTML||"",className:$("status")?.className||""},
+  leaderRoster:$("leaderRoster")?.innerHTML||"",
+  currentPlayer:$("currentPlayer")?.innerHTML||"",
+  amount:$("amount")?.textContent||"",
+  who:$("who")?.textContent||"",
+  timer:$("timer")?.textContent||"—",
+  closed:$("closed")?.textContent||"",
+  controls:controls?.innerHTML||"",
+  eventPos:$("eventPos")?.textContent||"",
+  players:$("players")?.innerHTML||"",
+  log:$("log")?.innerHTML||"",
+  rightSide:right?.innerHTML||"",
+  celebrate:{html:celebrate?.innerHTML||"",className:celebrate?.className||"celebrate"}
+ };
+}
+function mirrorSig(v){return typeof v==="string"?v:JSON.stringify(v)}
+async function sendMirrorView(force=false){
+ if(!mirrorChannel||!mirrorRtConnected||!league||$("regia").classList.contains("hidden"))return;
+ const state=mirrorPartState(),parts={},large=[];
+ for(const [k,v] of Object.entries(state)){
+  const sig=mirrorSig(v);
+  if(force||mirrorLastParts[k]!==sig){
+   mirrorLastParts[k]=sig;
+   // Sul piano Supabase Free un singolo Broadcast deve restare sotto 256 KB.
+   // Le porzioni HTML grandi (tipicamente il listone) vengono spezzate senza ritardare le parti d'asta.
+   if(typeof v==="string"&&v.length>50000)large.push([k,v]);else parts[k]=v;
+  }
+ }
+ if(!Object.keys(parts).length&&!large.length)return;
+ mirrorTimerLast=state.timer;
+ try{
+  if(Object.keys(parts).length)await mirrorChannel.send({type:"broadcast",event:"MIRROR_VIEW",payload:{league_id:league.id,sent_at_ms:Date.now(),full:!!force,parts}});
+  for(const [key,value] of large){
+   const transfer_id=crypto.randomUUID(),size=60000,total=Math.ceil(value.length/size);
+   for(let index=0;index<total;index++){
+    await mirrorChannel.send({type:"broadcast",event:"MIRROR_PART_CHUNK",payload:{league_id:league.id,transfer_id,key,index,total,chunk:value.slice(index*size,(index+1)*size)}});
+   }
+  }
+ }catch{}
+}
+function queueMirrorView(force=false){
+ mirrorForceQueued=mirrorForceQueued||force;
+ if(mirrorSendQueued)return;
+ mirrorSendQueued=true;
+ queueMicrotask(()=>{
+  const f=mirrorForceQueued;mirrorForceQueued=false;mirrorSendQueued=false;
+  sendMirrorView(f);
+ });
+}
+async function sendMirrorTimer(){
+ if(!mirrorChannel||!mirrorRtConnected||!league)return;
+ const text=$("timer")?.textContent||"—";
+ if(text===mirrorTimerLast)return;
+ mirrorTimerLast=text;
+ try{await mirrorChannel.send({type:"broadcast",event:"MIRROR_TIMER",payload:{league_id:league.id,sent_at_ms:Date.now(),text}})}catch{}
+}
+function mirrorNodeIsTimer(node){
+ const el=node?.nodeType===1?node:node?.parentElement;
+ return !!el&&(el.id==="timer"||!!el.closest?.("#timer"));
+}
+function stopMirrorObservers(){
+ mirrorObserver?.disconnect();mirrorCelebrationObserver?.disconnect();mirrorObserver=null;mirrorCelebrationObserver=null;
+}
+function startMirrorObservers(){
+ stopMirrorObservers();
+ const regia=$("regia"),celebrate=$("celebrate");
+ if(regia){
+  mirrorObserver=new MutationObserver(records=>{
+   if(records.length&&records.every(r=>mirrorNodeIsTimer(r.target))){sendMirrorTimer();return}
+   queueMirrorView(false);
+  });
+  mirrorObserver.observe(regia,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["class","disabled"]});
+ }
+ if(celebrate){
+  mirrorCelebrationObserver=new MutationObserver(()=>queueMirrorView(false));
+  mirrorCelebrationObserver.observe(celebrate,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:["class"]});
+ }
+}
+function disconnectMirror(){
+ clearTimeout(mirrorRetry);mirrorRetry=null;
+ stopMirrorObservers();
+ if(mirrorChannel)db.removeChannel(mirrorChannel);
+ mirrorChannel=null;mirrorRtConnected=false;mirrorSendQueued=false;mirrorForceQueued=false;mirrorTimerLast="";mirrorLastParts={};
+}
+function connectMirror(){
+ if(!league)return;
+ disconnectMirror();
+ startMirrorObservers();
+ mirrorChannel=db.channel("fantastica-mirror:"+league.id)
+  .on("broadcast",{event:"MIRROR_REQUEST"},()=>queueMirrorView(true))
+  .subscribe(st=>{
+   if(st==="SUBSCRIBED"){
+    mirrorRtConnected=true;
+    queueMirrorView(true);
+   }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
+    mirrorRtConnected=false;
+    clearTimeout(mirrorRetry);
+    mirrorRetry=setTimeout(()=>{if(league)connectMirror()},700);
+   }
+  });
+}
+function refreshMirrorLink(){
+ const url=mirrorPublicUrl(),a=$("mirrorLink"),b=$("copyMirrorLink");
+ if(a)a.href=url||"#";
+ if(b)b.disabled=!url;
+}
+async function copyMirrorLink(){
+ const text=mirrorPublicUrl();if(!text)return;
+ try{await navigator.clipboard.writeText(text)}catch{
+  const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.left="-9999px";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+ }
+ msg($("settingsMsg"),"✓ Link spettatore copiato","ok");
+}
+
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
@@ -617,6 +743,7 @@ function disconnect(){
  if(channel)db.removeChannel(channel);
  channel=null;rtConnected=false;
  clearTimeout(retry);clearTimeout(loadTimer);
+ disconnectMirror();
 }
 function showRt(payload){lastRtAt=Date.now()}
 async function connect(){
@@ -648,10 +775,12 @@ async function connect(){
         retry=setTimeout(connect,700);
       }
    });
+ connectMirror();
 }
 
-$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";$("settingsPanel").classList.add("show")};
+$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";refreshMirrorLink();$("settingsPanel").classList.add("show")};
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
+$("copyMirrorLink").onclick=copyMirrorLink;
 $("saveSettings").onclick=async()=>{
  if(+$("setMembers").value<2||+$("setMembers").value>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
