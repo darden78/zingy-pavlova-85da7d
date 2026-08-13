@@ -20,13 +20,14 @@
 .players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.p{background:#202020;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #555}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.ps{font-size:11px;margin-top:4px;color:#aaa}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}
 table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;overflow:hidden;font-size:12px}th,td{padding:7px;border-bottom:1px solid #333;text-align:left}
 .rosterHead{font-size:14px;color:#bbb;line-height:1.35;margin-bottom:7px}.rosterName{font-size:24px;font-weight:900}.rosterStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 9px;margin:7px 0;font-size:13px}
-.roleBlock{margin-top:6px}.roleTitle{font-size:13px;font-weight:900;color:#ddd;border-bottom:1px solid #333;margin-bottom:2px}.rosterRow{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:clamp(11px,1.45vh,15px);line-height:1.35;white-space:nowrap;min-height:18px;align-items:center}.rosterRow span:first-child{overflow:hidden;text-overflow:ellipsis}.emptyLine{color:#555}
+.roleBlock{margin-top:6px}.roleTitle{font-size:13px;font-weight:900;color:#ddd;border-bottom:1px solid #333;margin-bottom:2px}.rosterRow{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:clamp(11px,1.45vh,15px);line-height:1.35;white-space:nowrap;min-height:18px;align-items:center}.rosterRow span:first-child{overflow:hidden;text-overflow:ellipsis}.rosterRow.manageable{cursor:pointer;border-radius:6px;padding:2px 4px}.rosterRow.manageable:hover{background:#303030;outline:1px solid #555}.emptyLine{color:#555}
 .rightTop{display:flex;gap:6px;align-items:center;margin-bottom:6px}.rightTop button{border:0;border-radius:8px;padding:7px 9px;background:#333;color:#fff;font-weight:800;cursor:pointer}.listControls{display:grid;grid-template-columns:1fr auto;gap:5px;margin-bottom:6px}.listControls input,.listControls select{min-width:0;padding:7px;border:0;border-radius:8px;background:#2a2a2a;color:#fff}
 .roleFilters{display:flex;gap:4px;margin-bottom:6px}.roleFilters button{flex:1;border:0;border-radius:7px;padding:6px;background:#2c2c2c;color:#fff;font-weight:800;cursor:pointer}.roleFilters button.active{background:#2f8f57}
 .playerList{height:calc(100vh - 300px);overflow:auto}.listRow{display:grid;grid-template-columns:1fr 30px 30px;gap:4px;align-items:center;border-bottom:1px solid #292929;padding:5px 2px;cursor:pointer}.listRow:hover{background:#242424}.listName{font-size:12px;font-weight:800}.listMeta{font-size:10px;color:#aaa}.editBtn{border:0;border-radius:6px;background:#444;color:#fff;height:27px;cursor:pointer}.assigned{opacity:.45}.modifiedMark{color:#ffc857}
 .importBox{background:#202020;border-radius:10px;padding:8px;margin-bottom:7px}.importBox input[type=file]{width:100%;font-size:11px}.importActions{display:flex;gap:5px;margin-top:5px}.importActions input{min-width:0;flex:1;padding:6px;background:#2b2b2b;color:#fff;border:0;border-radius:7px}.importActions button{border:0;border-radius:7px;background:#315f8a;color:#fff;font-weight:800;padding:6px 8px}
 .settingsPanel{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50}.settingsPanel.show{display:flex}.settingsBox{width:min(590px,94vw);max-height:92vh;overflow:auto;background:#202020;border-radius:15px;padding:18px}.settingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.settingsGrid label{font-size:12px;color:#bbb}.settingsGrid input{width:100%;padding:9px;border:0;border-radius:8px}.full{grid-column:1/-1}.settingsActions{display:flex;gap:8px;margin-top:12px}.settingsActions button{flex:1;padding:11px;border:0;border-radius:9px;font-weight:900}.saveSettings{background:#2f8f57;color:#fff}.closeSettings{background:#444;color:#fff}.danger{background:#8b3030!important;color:#fff}
 .linkBox{background:#202020;border-radius:12px;padding:10px;margin-top:12px}.linkRow{display:grid;grid-template-columns:90px 1fr 72px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.linkRow code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bbb;font-size:11px}.copyLink{border:0;border-radius:7px;padding:7px;background:#315f8a;color:#fff;font-weight:800;cursor:pointer}.manageRow{display:grid;grid-template-columns:1fr 80px 70px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.manageRow button{border:0;border-radius:7px;padding:6px;color:#fff}.rename{background:#315f8a}.release{background:#8b3030}
+.rosterModal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:900}.rosterModal.show{display:flex}.rosterModalBox{position:relative;width:min(560px,94vw);max-height:88vh;overflow:auto;background:#202020;border-radius:16px;padding:18px;box-shadow:0 18px 60px #000}.rosterModalBox h2{margin:0 0 8px;font-size:27px}.rosterModalBox p{color:#bbb}.rosterModalActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.rosterModalActions button,.rosterChoice{border:0;border-radius:11px;padding:12px 16px;color:#fff;font-weight:900;cursor:pointer;background:#315f8a}.rosterModalActions .dangerAction{background:#8b3030}.rosterModalActions .swapAction{background:#8b5fc5}.rosterModalActions .neutralAction{background:#444}.rosterChoice{display:block;width:100%;text-align:left;margin:7px 0;background:#303030}.rosterChoice:hover{background:#3a3a3a}.refundInput{width:100%;padding:12px;border:0;border-radius:9px;background:#111;color:#fff;font-size:22px;font-weight:900}.selectionHint{background:#4f3f19;color:#ffd978;border-radius:9px;padding:8px 10px;margin-bottom:8px;font-weight:800}.rosterModalClose{position:absolute;top:8px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:#3a3a3a;color:#fff;font-size:24px;line-height:30px;font-weight:900;cursor:pointer}.rosterModalClose:hover{background:#555}.rosterRow.outOfList{background:#4a2020!important;outline:1px solid #a84b4b;color:#ffd0d0}.outListTag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:5px;background:#8b3030;color:#fff;font-size:9px;font-weight:900;vertical-align:1px}.outListWarning{margin:10px 0;padding:9px;border-radius:9px;background:#4a2020;color:#ffd0d0;font-weight:900}
 @media(max-width:1250px){.workspace{grid-template-columns:240px 1fr}.rightSide{grid-column:1/-1;position:static;height:70vh}.players{grid-template-columns:repeat(3,1fr)}}
 
 .roleModeBox{grid-column:1/-1;background:#171717;border-radius:10px;padding:10px;margin-top:4px}
@@ -36,6 +37,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
 
 .installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}.installInvite button{display:inline-block;margin:8px 0 0 7px;border:0;color:#fff;background:#315f8a;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer}
+.repairInvite{margin-top:18px;background:#171717;border:1px solid #56451f;border-radius:12px;padding:14px;text-align:center}.repairInvite p{color:#bbb;font-size:12px;margin:8px 0}.repairBtn{border:0;border-radius:10px;padding:11px 15px;background:#9a7426;color:#fff;font-weight:900;cursor:pointer}.repairField{display:block;margin:12px 0;text-align:left}.repairField label{display:block;font-size:12px;color:#bbb;margin-bottom:5px}.repairField input,.repairField select{width:100%;padding:11px;border:0;border-radius:9px;background:#111;color:#fff}.repairSummary{background:#151515;border-radius:10px;padding:11px;margin:12px 0;text-align:left;line-height:1.55}.repairModeBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.repairModeBtns button{border:0;border-radius:11px;padding:14px;background:#315f8a;color:#fff;font-weight:900;cursor:pointer}.repairModeBtns button.role{background:#8b5fc5}
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -147,9 +149,12 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
  <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
  <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare la Regia in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
+ <div class="repairInvite"><h3>Mercato di riparazione</h3><p>Ripristina il backup dell’asta precedente, carica il nuovo listone e aggiungi i fantacrediti destinati alla riparazione.</p><button id="repairMarketBtn" class="repairBtn" type="button">MERCATO DI RIPARAZIONE</button></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
 
+
+<div id="rosterModal" class="rosterModal"><div id="rosterModalBox" class="rosterModalBox"></div></div>
 
 <div id="celebrate" class="celebrate">
  <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
@@ -161,13 +166,23 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
-let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="";
+let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="",rosterSwapSourceId=null,rosterSwapMode="";
+let repairDraft={backup:null,backupFileName:"",listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE"};
 let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={};
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
+function phaseText(l=league){
+ if(!l)return "";
+ if(l.auction_session==="REPAIR"){
+  if(l.auction_complete||l.repair_stage==="COMPLETE")return "RIPARAZIONE CONCLUSA";
+  if(l.repair_stage==="PREP")return "RIPARAZIONE · PREPARAZIONE";
+  return l.auction_mode==="ROLE"?`RIPARAZIONE · ${roleNames[l.active_role]||l.active_role||"RUOLO"}`:"RIPARAZIONE · ASTA LIBERA";
+ }
+ return l.auction_complete?"ASTE CONCLUSE":l.auction_mode==="ROLE"?(roleNames[l.active_role]||l.active_role):"ASTA LIBERA";
+}
 function roleArticle(r){return r==="A"?"GLI":"I"}
 const serverNow=()=>Date.now()+serverOffset;
 let historyOffset=0;
@@ -339,7 +354,7 @@ async function openLeague(id){
  localStorage.setItem("fantastica-organizer-last-league",league.id);
  try{await window.fantasticaDesktop?.setLastLeague?.(league.id)}catch{}
  $("leagueName").textContent=league.name;
- const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
+ const phase=phaseText(league);
  $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
  $("leagueHome").classList.add("hidden");
  $("regia").classList.remove("hidden");
@@ -350,7 +365,7 @@ async function load(runProgress=true){
  const [l,a,s,b,p]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30),
   db.from("fa_players").select("*").eq("league_id",league.id)
  ]);
@@ -359,8 +374,9 @@ async function load(runProgress=true){
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  render();
  if(prevPhase!==null&&league.role_phase!==prevPhase){
-   if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
+   const repair=league.auction_session==="REPAIR";
+   if(league.auction_complete&&!prevComplete)showCelebration(repair?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE",true);
+   else if(prevRole&&prevRole!==league.active_role)showCelebration(`${repair?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE"} PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
@@ -371,7 +387,7 @@ async function loadCore(){
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30)
  ]);
  if(l.error||a.error||s.error||b.error)return;
@@ -397,9 +413,9 @@ function syncPhonePresence(){
  if(changed)render();
 }
 function rosterInfo(slot){
- const ps=catalog.filter(p=>p.assigned_slot===slot),spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
+ const ps=catalog.filter(p=>p.assigned_slot===slot),playerSpent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),adjustment=Number(slots.find(s=>s.slot===slot)?.credit_adjustment||0),remain=league.credits_initial-playerSpent+adjustment,spent=league.credits_initial-remain,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
- return {ps,spent,remain,total,max};
+ return {ps,spent,playerSpent,adjustment,remain,total,max};
 }
 function phoneParticipantState(s){
  const r=rosterInfo(s.slot),counts={P:0,D:0,C:0,A:0};
@@ -575,19 +591,19 @@ function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
  let h=`<div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
- for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow"><span>${p.name}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
+ for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
  return h;
 }
 function render(){
  $("leagueName").textContent=league.name;
- const phase=league.auction_complete?"ASTE CONCLUSE":league.auction_mode==="ROLE"?(roleNames[league.active_role]||league.active_role):"ASTA LIBERA";
+ const phase=phaseText(league);
  $("phaseBadge").textContent=phase;$("phaseBadge").classList.toggle("hidden",!phase);
  const cp=currentPlayer(),assignedDone=auction.status==="SOLD"||!!cp?.assigned_slot;
  if(assignedDone){
    $("currentPlayer").innerHTML=`<div class="pn">Seleziona il prossimo giocatore</div>`;
    $("amount").textContent="—";$("who").textContent="—";
  }else{
-   $("currentPlayer").innerHTML=cp?`<div class="pn">${cp.name}${cp.modified?' <span class="modifiedMark">*</span>':''}</div><div class="meta">${cp.role} · ${cp.team||"—"} · Quotazione ${cp.value??"—"}</div>`:`<div class="pn">Seleziona un giocatore dal listone</div>`;
+   $("currentPlayer").innerHTML=cp?`<div class="pn">${cp.name}${cp.modified?' <span class="modifiedMark">*</span>':''}</div><div class="meta">${cp.role} · ${cp.team||"—"} · Quotazione ${cp.value??"—"}</div>`:(league.auction_session==="REPAIR"&&league.repair_stage==="PREP"?`<div class="pn">MERCATO DI RIPARAZIONE</div><div class="meta">Libera i giocatori da sostituire, poi seleziona dal listone il primo giocatore da mettere all’asta.</div>`:`<div class="pn">Seleziona un giocatore dal listone</div>`);
    $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
  }
  $("closed").textContent=auction.status==="SOLD"?"✓ AGGIUDICATO":"";
@@ -601,7 +617,7 @@ function render(){
  $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
  $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
  $("nextEvent").disabled=historyOffset<=0;
- renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
+ if($("importList"))$("importList").textContent=catalog.some(p=>p.in_current_list!==false)?"AGGIORNA":"IMPORTA";renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
 }
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
@@ -627,28 +643,42 @@ async function finalize(){
 }
 
 function renderList(){
- let arr=catalog.filter(p=>$("showAssigned").checked||!p.assigned_slot);
+ const selectingFree=rosterSwapMode==="free"&&rosterSwapSourceId;
+ const swapSrc=selectingFree?catalog.find(p=>p.id===rosterSwapSourceId):null;
+ let arr=selectingFree?catalog.filter(p=>p.in_current_list!==false&&!p.assigned_slot&&p.role===swapSrc?.role):catalog.filter(p=>p.in_current_list!==false&&($("showAssigned").checked||!p.assigned_slot));
  const q=$("searchPlayer").value.trim().toLowerCase();if(q)arr=arr.filter(p=>(p.name+" "+(p.team||"")).toLowerCase().includes(q));
- if(roleFilter)arr=arr.filter(p=>p.role===roleFilter);
+ if(!selectingFree&&roleFilter)arr=arr.filter(p=>p.role===roleFilter);
  const sort=$("sortPlayers").value;
  arr.sort((a,b)=>sort==="value_desc"?(b.value??-1)-(a.value??-1)||a.name.localeCompare(b.name):sort==="value_asc"?(a.value??9999)-(b.value??9999):sort==="name_desc"?b.name.localeCompare(a.name):sort==="team"?(a.team||"").localeCompare(b.team||"")||a.name.localeCompare(b.name):sort==="role"?a.role.localeCompare(b.role)||(b.value??0)-(a.value??0):a.name.localeCompare(b.name));
- $("playerList").innerHTML=arr.map(p=>{const roleOk=league.auction_mode!=="ROLE"||p.role===league.active_role;return `<div class="listRow ${p.assigned_slot?"assigned":""} ${league.auction_mode==="ROLE"?(roleOk?"roleActive":"roleInactive"):""}" data-id="${p.id}" data-role-ok="${roleOk?1:0}"><div><div class="listName">${p.name}${p.modified?' <span class="modifiedMark">*</span>':''}</div><div class="listMeta">${p.role} · ${p.team||"—"} · Q ${p.value??"—"}${p.assigned_slot?` · ${slotName(p.assigned_slot)} ${p.assigned_price}`:""}</div></div><button class="editBtn" data-edit="${p.id}">✎</button>${p.modified&&!p.assigned_slot?`<button class="editBtn" data-restore="${p.id}" title="Ripristina originale">↺</button>`:"<span></span>"}</div>`}).join("");
+ $("playerList").innerHTML=(selectingFree?`<div class="selectionHint">Seleziona un ${swapSrc?.role||""} libero da scambiare con ${swapSrc?.name||""}.</div>`:"")+arr.map(p=>{const roleOk=selectingFree||league.auction_mode!=="ROLE"||p.role===league.active_role;return `<div class="listRow ${p.assigned_slot?"assigned":""} ${!selectingFree&&league.auction_mode==="ROLE"?(roleOk?"roleActive":"roleInactive"):""}" data-id="${p.id}" data-role-ok="${roleOk?1:0}"><div><div class="listName">${p.name}${p.modified?' <span class="modifiedMark">*</span>':''}</div><div class="listMeta">${p.role} · ${p.team||"—"} · Q ${p.value??"—"}${p.assigned_slot?` · ${slotName(p.assigned_slot)} ${p.assigned_price}`:""}</div></div>${selectingFree?"<span></span><span></span>":`<button class="editBtn" data-edit="${p.id}">✎</button>${p.modified&&!p.assigned_slot?`<button class="editBtn" data-restore="${p.id}" title="Ripristina originale">↺</button>`:"<span></span>"}`}</div>`}).join("");
  document.querySelectorAll(".listRow[data-id]").forEach(el=>el.onclick=async ev=>{
- if(ev.target.dataset.edit||ev.target.dataset.restore)return;
- const p=catalog.find(x=>x.id===+el.dataset.id);if(p.assigned_slot)return;
- if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
- const {data,error}=await db.rpc("fa_select_and_start_v481",{p_league_id:league.id,p_player_id:p.id});
- if(error||!data?.ok){
-  const er=error?.message||data?.error;
-  alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="PARTECIPANTI_OFFLINE"?"Impossibile iniziare: non sono online tutti i partecipanti richiesti.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
-  return
+  if(ev.target.dataset.edit||ev.target.dataset.restore)return;
+  const p=catalog.find(x=>x.id===+el.dataset.id);
+  if(selectingFree){
+   const src=catalog.find(x=>x.id===rosterSwapSourceId);if(!src)return;
+   const sourceSlot=src.assigned_slot;
+   if(!confirm(`Scambiare ${src.name} con ${p.name}?\nIl prezzo della rosa resterà ${src.assigned_price} crediti.`))return;
+   const {data,error}=await db.rpc("fa_roster_swap_free",{p_league_id:league.id,p_roster_player_id:src.id,p_free_player_id:p.id});
+   if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}
+   rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=sourceSlot;
+   await load(false);msg($("status"),`✓ ${data.out} sostituito con ${data.in}; prezzo mantenuto ${data.price}`,"ok");return;
+  }
+  if(p.assigned_slot)return;
+  if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
+  const {data,error}=await db.rpc("fa_select_and_start_v481",{p_league_id:league.id,p_player_id:p.id});
+  if(error||!data?.ok){
+   const er=error?.message||data?.error;
+   alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="PARTECIPANTI_OFFLINE"?"Impossibile iniziare: non sono online tutti i partecipanti richiesti.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
+   return
+  }
+  if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per ${data.amount??1} credito` ,"ok");
+  else msg($("status"),`🟢 ${p.name} — ASTA PRONTA, timer in PAUSA`,"ok");
+  await load(false);
+ });
+ if(!selectingFree){
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();editPlayer(+b.dataset.edit)});
+  document.querySelectorAll("[data-restore]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();if(confirm("Ripristinare ruolo, squadra, nome e quotazione originali?")){await db.rpc("fa_restore_player",{p_league_id:league.id,p_player_id:+b.dataset.restore});await load()}});
  }
- if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per 1 credito`,"ok");
- else msg($("status"),`🟢 ${p.name} — ASTA PRONTA, timer in PAUSA`,"ok");
- await load(false);
-});
- document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=ev=>{ev.stopPropagation();editPlayer(+b.dataset.edit)});
- document.querySelectorAll("[data-restore]").forEach(b=>b.onclick=async ev=>{ev.stopPropagation();if(confirm("Ripristinare ruolo, squadra, nome e quotazione originali?")){await db.rpc("fa_restore_player",{p_league_id:league.id,p_player_id:+b.dataset.restore});await load()}});
 }
 async function editPlayer(id){
  const p=catalog.find(x=>x.id===id);if(!p||p.assigned_slot)return;
@@ -662,8 +692,50 @@ async function editPlayer(id){
 }
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
 $("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
-$("showList").onclick=()=>{selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE"};
-function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot)}
+$("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";renderList()};
+function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks()}
+
+function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Un giocatore fuori dal listone corrente può essere soltanto liberato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
+function closeRosterModal(){$("rosterModal").classList.remove("show");$("rosterModalBox").innerHTML=""}
+function showRosterModal(html){$("rosterModalBox").innerHTML=`<button id="rosterModalX" class="rosterModalClose" type="button" title="Annulla">×</button>${html}`;$("rosterModal").classList.add("show");$("rosterModalX").onclick=closeRosterModal}
+$("rosterModal").onclick=e=>{if(e.target.id==="rosterModal")closeRosterModal()};
+function bindRosterPlayerClicks(){document.querySelectorAll("#selectedRosterView [data-roster-player]").forEach(el=>el.onclick=()=>openRosterPlayer(+el.dataset.rosterPlayer))}
+function openRosterPlayer(id){
+ const p=catalog.find(x=>x.id===id);if(!p?.assigned_slot)return;
+ if(auction?.status==="OPEN"){alert(rosterActionError("ASTA_IN_CORSO"));return}
+ const fuori=p.in_current_list===false;
+ showRosterModal(`<h2>${p.name}</h2><p>${p.role} · ${p.team||"—"} · prezzo in rosa <b>${p.assigned_price}</b></p>${fuori?'<div class="outListWarning">Questo giocatore non è più presente nel listone corrente.</div>':''}<div class="rosterModalActions"><button id="rosterRelease" class="dangerAction">LIBERA</button>${fuori?'':'<button id="rosterSwap" class="swapAction">SCAMBIA</button>'}</div>`);
+ $("rosterRelease").onclick=()=>showRosterRelease(p.id);if(!fuori)$("rosterSwap").onclick=()=>showRosterSwapMenu(p.id);
+}
+function showRosterRelease(id){
+ const p=catalog.find(x=>x.id===id);if(!p)return;
+ showRosterModal(`<h2>${p.name}</h2><p>Crediti da restituire alla rosa <b>${slotName(p.assigned_slot)}</b>:</p><input id="refundAmount" class="refundInput" type="number" min="0" step="1" value="${p.assigned_price||0}"><div class="rosterModalActions"><button id="confirmRelease" class="dangerAction">LIBERA</button><button id="backRoster" class="neutralAction">INDIETRO</button></div>`);
+ $("backRoster").onclick=()=>openRosterPlayer(id);
+ $("confirmRelease").onclick=async()=>{const refund=Number($("refundAmount").value);if(!Number.isInteger(refund)||refund<0){alert("Inserisci un numero intero di crediti uguale o maggiore di zero.");return}const slot=p.assigned_slot;const {data,error}=await db.rpc("fa_roster_release_player",{p_league_id:league.id,p_player_id:p.id,p_refund:refund});if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}closeRosterModal();selectedRosterSlot=slot;await load(false);msg($("status"),`✓ ${data.player} liberato · restituiti ${data.refund} crediti`,"ok")};
+}
+function showRosterSwapMenu(id){
+ const p=catalog.find(x=>x.id===id);if(!p)return;
+ showRosterModal(`<h2>${p.name}</h2><p>Come vuoi effettuare lo scambio?</p><div class="rosterModalActions"><button id="swapFree" class="swapAction">CON LIBERI</button><button id="swapRoster" class="swapAction">CON ALTRA ROSA</button><button id="backRoster" class="neutralAction">INDIETRO</button></div>`);
+ $("backRoster").onclick=()=>openRosterPlayer(id);$("swapFree").onclick=()=>beginSwapWithFree(id);$("swapRoster").onclick=()=>chooseOtherRoster(id);
+}
+function beginSwapWithFree(id){
+ const p=catalog.find(x=>x.id===id);if(!p)return;closeRosterModal();rosterSwapSourceId=id;rosterSwapMode="free";selectedRosterSlot=null;roleFilter="";$("searchPlayer").value="";$("showAssigned").checked=false;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent=`SCAMBIA ${p.name} — SCEGLI ${p.role} LIBERO`;renderList();
+}
+function chooseOtherRoster(id){
+ const p=catalog.find(x=>x.id===id);if(!p)return;const other=slots.filter(s=>s.display_name&&s.slot!==p.assigned_slot&&catalog.some(x=>x.in_current_list!==false&&x.assigned_slot===s.slot&&x.role===p.role));
+ const body=other.length?other.map(s=>`<button class="rosterChoice" data-swap-slot="${s.slot}">${s.display_name}</button>`).join(""):`<p>Nessun'altra rosa contiene un giocatore di ruolo ${p.role}.</p>`;
+ showRosterModal(`<h2>${p.name}</h2><p>Seleziona la rosa con cui scambiare un giocatore di ruolo <b>${p.role}</b>.</p>${body}<div class="rosterModalActions"><button id="backSwap" class="neutralAction">INDIETRO</button></div>`);
+ document.querySelectorAll("[data-swap-slot]").forEach(b=>b.onclick=()=>chooseOtherRosterPlayer(id,+b.dataset.swapSlot));$("backSwap").onclick=()=>showRosterSwapMenu(id);
+}
+function chooseOtherRosterPlayer(id,slot){
+ const p=catalog.find(x=>x.id===id);if(!p)return;const arr=catalog.filter(x=>x.in_current_list!==false&&x.assigned_slot===slot&&x.role===p.role).sort((a,b)=>a.name.localeCompare(b.name));
+ showRosterModal(`<h2>${slotName(slot)}</h2><p>Scegli il giocatore da scambiare con <b>${p.name}</b>.</p>${arr.map(x=>`<button class="rosterChoice" data-swap-player="${x.id}">${x.name}<span style="float:right">${x.assigned_price}</span></button>`).join("")}<div class="rosterModalActions"><button id="backTeams" class="neutralAction">INDIETRO</button></div>`);
+ document.querySelectorAll("[data-swap-player]").forEach(b=>b.onclick=()=>confirmRosterSwap(id,+b.dataset.swapPlayer));$("backTeams").onclick=()=>chooseOtherRoster(id);
+}
+async function confirmRosterSwap(idA,idB){
+ const a=catalog.find(x=>x.id===idA),b=catalog.find(x=>x.id===idB);if(!a||!b)return;const slotA=a.assigned_slot,slotB=b.assigned_slot,priceA=a.assigned_price,priceB=b.assigned_price;if(!confirm(`Scambiare ${a.name} (${slotName(slotA)}) con ${b.name} (${slotName(slotB)})?\n${slotName(slotA)} manterrà il prezzo ${priceA}; ${slotName(slotB)} manterrà il prezzo ${priceB}.`))return;
+ const {data,error}=await db.rpc("fa_roster_swap_between",{p_league_id:league.id,p_player_a_id:idA,p_player_b_id:idB});if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}closeRosterModal();selectedRosterSlot=slotA;await load(false);msg($("status"),`✓ Scambio completato: ${data.player_a} ↔ ${data.player_b}`,"ok");
+}
 
 $("importList").onclick=async()=>{
  const file=$("listFile").files[0];if(!file){msg($("importMsg"),"Seleziona un file.","warn");return}
@@ -675,12 +747,16 @@ $("importList").onclick=async()=>{
   const hRole=find(["ruolo","r","role","posizione"]),hName=find(["calciatore","giocatore","nome","player"]),hTeam=find(["squadra","team","club","sqd"]),hValue=find(["quotazione","quota","valore","q","qta","quotazioneattuale","fvm"]);
   if(!hRole||!hName)throw new Error("Non riconosco le colonne Ruolo/Calciatore. Intestazioni: "+headers.join(", "));
   const players=rows.map(r=>({role:String(r[hRole]).trim().toUpperCase(),name:String(r[hName]).trim(),team:hTeam?String(r[hTeam]||"").trim():"",value:hValue&&r[hValue]!==""?parseInt(r[hValue],10):null,extra:r})).filter(x=>x.name);
-  if(catalog.some(p=>p.assigned_slot)){throw new Error("Ci sono già giocatori assegnati: il listone non può essere sostituito.")}
-  if(catalog.length&&!confirm(`Sostituire il listone attuale (${catalog.length} giocatori) con ${players.length} giocatori?`))return;
-  msg($("importMsg"),"Importazione...");
-  const {data,error}=await db.rpc("fa_import_players",{p_league_id:league.id,p_source:$("listSource").value.trim(),p_players:players});
+  if(auction?.status==="OPEN"&&auction?.current_player_id){throw new Error("Concludi l'asta in corso prima di aggiornare il listone.")}
+  const hasList=catalog.some(p=>p.in_current_list!==false);
+  if(hasList&&!confirm(`Aggiornare il listone corrente con ${players.length} giocatori?\nI giocatori già in rosa ma assenti dal nuovo listone resteranno nella rosa come FUORI LISTONE.`))return;
+  msg($("importMsg"),hasList?"Aggiornamento listone...":"Importazione...");
+  const rpc=hasList?"fa_update_players_list":"fa_import_players";
+  const {data,error}=await db.rpc(rpc,{p_league_id:league.id,p_source:$("listSource").value.trim(),p_players:players});
   if(error||!data?.ok)throw new Error(error?.message||data?.error);
-  msg($("importMsg"),`✓ Importati ${data.count} giocatori`,"ok");await load();
+  if(hasList)msg($("importMsg"),`✓ Listone aggiornato: ${data.count} presenti · ${data.added} nuovi · ${data.missing_assigned} in rosa fuori listone`,"ok");
+  else msg($("importMsg"),`✓ Importati ${data.count} giocatori`,"ok");
+  await load();
  }catch(e){msg($("importMsg"),"Errore: "+e.message,"bad")}
 };
 
@@ -778,9 +854,63 @@ async function connect(){
  connectMirror();
 }
 
+
+function resetRepairDraft(){repairDraft={backup:null,backupFileName:"",listPlayers:null,listFileName:"",listSource:league?.list_source||$("listSource")?.value||"Fantapazz",bonus:0,auctionMode:"FREE"}}
+function repairBackupPlayerCount(){return (repairDraft.backup?.participants||[]).reduce((n,p)=>n+(Array.isArray(p.players)?p.players.length:0),0)}
+function validateRepairBackup(b){
+ if(!b||typeof b!=="object"||!String(b.format||"").startsWith("FANTASTICA-ROSE-V"))throw new Error("Il file selezionato non è un backup FANTASTICA valido.");
+ if(!b.league||!Array.isArray(b.participants)||!b.participants.length)throw new Error("Il backup non contiene lega e partecipanti.");
+ if(b.league.id&&String(b.league.id)!==String(league.id))throw new Error("Questo backup appartiene a un'altra lega.");
+ if(!b.league.roster||!Number.isFinite(Number(b.league.credits_initial)))throw new Error("Nel backup mancano crediti o configurazione rosa.");
+ for(const p of b.participants){if(!Number.isFinite(Number(p.slot))||!p.name||!Array.isArray(p.players)||!Number.isFinite(Number(p.credits_remaining)))throw new Error("Il backup contiene una rosa non valida.")}
+ return b;
+}
+async function parseRepairListFile(file){
+ const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{defval:""});
+ if(!rows.length)throw new Error("Il listone è vuoto.");
+ const headers=Object.keys(rows[0]),norm=s=>String(s).toLowerCase().replace(/[.\s_-]/g,"");
+ const find=opts=>headers.find(h=>opts.includes(norm(h)));
+ const hRole=find(["ruolo","r","role","posizione"]),hName=find(["calciatore","giocatore","nome","player"]),hTeam=find(["squadra","team","club","sqd"]),hValue=find(["quotazione","quota","valore","q","qta","quotazioneattuale","fvm"]);
+ if(!hRole||!hName)throw new Error("Non riconosco le colonne Ruolo/Calciatore. Intestazioni: "+headers.join(", "));
+ const players=rows.map(r=>({role:String(r[hRole]).trim().toUpperCase(),name:String(r[hName]).trim(),team:hTeam?String(r[hTeam]||"").trim():"",value:hValue&&r[hValue]!==""?parseInt(r[hValue],10):null,extra:r})).filter(x=>x.name);
+ if(!players.length)throw new Error("Il listone non contiene giocatori utilizzabili.");
+ const bad=players.find(x=>!["P","D","C","A"].includes(x.role));if(bad)throw new Error(`Ruolo non valido nel listone: ${bad.name} (${bad.role})`);
+ return players;
+}
+function startRepairWizard(){
+ if(auction?.status==="OPEN"&&auction?.current_player_id){alert("Concludi l'asta in corso prima di avviare il mercato di riparazione.");return}
+ resetRepairDraft();showRepairBackupStep();
+}
+function showRepairBackupStep(){
+ showRosterModal(`<h2>Mercato di riparazione</h2><p><b>1 di 4 — Backup asta precedente</b></p><p>Carica il file <b>.fantastica.json</b> esportato alla fine dell'asta precedente. Fino alla conferma finale non verrà modificato nulla.</p><div class="repairField"><label>Backup FANTASTICA</label><input id="repairBackupFile" type="file" accept=".json,application/json"></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairBackupNext" class="swapAction">AVANTI</button></div>`);
+ $("repairBackupNext").onclick=async()=>{const f=$("repairBackupFile").files[0];if(!f){msg($("repairStepMsg"),"Seleziona il backup.","warn");return}try{const b=validateRepairBackup(JSON.parse(await f.text()));repairDraft.backup=b;repairDraft.backupFileName=f.name;showRepairListStep()}catch(e){msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
+}
+function showRepairListStep(){
+ const b=repairDraft.backup,pc=(b.participants||[]).length,pl=repairBackupPlayerCount();
+ showRosterModal(`<h2>Mercato di riparazione</h2><p><b>2 di 4 — Nuovo listone</b></p><div class="repairSummary">Backup: <b>${escHtml(b.league?.name||league.name)}</b><br>Partecipanti: <b>${pc}</b> · Giocatori in rosa: <b>${pl}</b></div><p>Carica il listone aggiornato che vuoi utilizzare per il mercato di riparazione.</p><div class="repairField"><label>Nuovo listone</label><input id="repairListFile" type="file" accept=".csv,.xlsx,.xls"></div><div class="repairField"><label>Fonte listone</label><input id="repairListSource" value="${escHtml(repairDraft.listSource||"Fantapazz")}"></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairListNext" class="swapAction">AVANTI</button><button id="repairListBack" class="neutralAction">INDIETRO</button></div>`);
+ $("repairListBack").onclick=showRepairBackupStep;
+ $("repairListNext").onclick=async()=>{const f=$("repairListFile").files[0];if(!f){msg($("repairStepMsg"),"Seleziona il nuovo listone.","warn");return}try{repairDraft.listPlayers=await parseRepairListFile(f);repairDraft.listFileName=f.name;repairDraft.listSource=$("repairListSource").value.trim()||"Listone riparazione";showRepairCreditsStep()}catch(e){msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
+}
+function showRepairCreditsStep(){
+ showRosterModal(`<h2>Mercato di riparazione</h2><p><b>3 di 4 — Fantacrediti aggiuntivi</b></p><p>Questi crediti verranno aggiunti <b>a ogni partecipante</b> ai crediti rimasti nel backup. I successivi svincoli aggiungeranno anche il rimborso che indicherai.</p><div class="repairField"><label>Fantacrediti aggiuntivi per partecipante</label><input id="repairBonus" type="number" min="0" step="1" value="${Number(repairDraft.bonus)||0}"></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairCreditsNext" class="swapAction">AVANTI</button><button id="repairCreditsBack" class="neutralAction">INDIETRO</button></div>`);
+ $("repairCreditsBack").onclick=showRepairListStep;
+ $("repairCreditsNext").onclick=()=>{const v=Number($("repairBonus").value);if(!Number.isInteger(v)||v<0){msg($("repairStepMsg"),"Inserisci un numero intero uguale o maggiore di zero.","bad");return}repairDraft.bonus=v;showRepairModeStep()};
+}
+function showRepairModeStep(){
+ showRosterModal(`<h2>Mercato di riparazione</h2><p><b>4 di 4 — Modalità asta</b></p><p>Il mercato userà esattamente le stesse regole dell'asta principale, compresi timer, offerte, avanzamento ruoli e fuochi d'artificio.</p><div class="repairModeBtns"><button id="repairModeFree">ASTA LIBERA</button><button id="repairModeRole" class="role">ASTA PER RUOLO</button></div><div class="rosterModalActions"><button id="repairModeBack" class="neutralAction">INDIETRO</button></div>`);
+ $("repairModeBack").onclick=showRepairCreditsStep;$("repairModeFree").onclick=()=>{repairDraft.auctionMode="FREE";showRepairConfirmStep()};$("repairModeRole").onclick=()=>{repairDraft.auctionMode="ROLE";showRepairConfirmStep()};
+}
+function showRepairConfirmStep(){
+ const b=repairDraft.backup,participants=b.participants||[],oldRemain=participants.reduce((n,p)=>n+Number(p.credits_remaining||0),0),mode=repairDraft.auctionMode==="ROLE"?"ASTA PER RUOLO":"ASTA LIBERA";
+ showRosterModal(`<h2>Conferma mercato di riparazione</h2><div class="repairSummary"><b>Backup:</b> ${escHtml(repairDraft.backupFileName)}<br><b>Nuovo listone:</b> ${escHtml(repairDraft.listFileName)} · ${repairDraft.listPlayers.length} giocatori<br><b>Partecipanti:</b> ${participants.length}<br><b>Crediti residui complessivi nel backup:</b> ${oldRemain}<br><b>Bonus:</b> +${repairDraft.bonus} a ogni partecipante<br><b>Modalità:</b> ${mode}</div><p>Confermando, la lega verrà preparata per il mercato di riparazione. Le rose del backup verranno ripristinate; chi non è più nel nuovo listone sarà marcato <b>FUORI LISTONE</b>. Potrai poi liberare i giocatori e iniziare le aste sui posti rimasti liberi.</p><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairConfirm" class="dangerAction">CONFERMA E PREPARA</button><button id="repairConfirmBack" class="neutralAction">INDIETRO</button></div>`);
+ $("repairConfirmBack").onclick=showRepairModeStep;
+ $("repairConfirm").onclick=async()=>{const btn=$("repairConfirm");btn.disabled=true;msg($("repairStepMsg"),"Preparazione mercato di riparazione...","warn");try{const {data,error}=await db.rpc("fa_start_repair_market",{p_league_id:league.id,p_backup:repairDraft.backup,p_source:repairDraft.listSource,p_players:repairDraft.listPlayers,p_bonus:repairDraft.bonus,p_auction_mode:repairDraft.auctionMode});if(error||!data?.ok)throw new Error(error?.message||data?.error||"Operazione non riuscita");closeRosterModal();$("settingsPanel").classList.remove("show");selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;if($("listSource"))$("listSource").value=repairDraft.listSource;await load(false);msg($("status"),`✓ Mercato di riparazione preparato · +${data.bonus} crediti · ${data.out_of_list} giocatori FUORI LISTONE`,"ok")}catch(e){btn.disabled=false;msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
+}
+
 $("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";refreshMirrorLink();$("settingsPanel").classList.add("show")};
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
 $("copyMirrorLink").onclick=copyMirrorLink;
+$("repairMarketBtn").onclick=startRepairWizard;
 $("saveSettings").onclick=async()=>{
  if(+$("setMembers").value<2||+$("setMembers").value>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
@@ -796,7 +926,7 @@ function exportRows(){
  });
 }
 function exportFantasticaData(){
- return {format:"FANTASTICA-ROSE-V1",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,credits_initial:league.credits_initial,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,players:r.ps.map(p=>({id:p.id,name:p.name,role:p.role,team:p.team,value:p.value,price:p.assigned_price}))}})};
+ return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:r.ps.map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,in_current_list:p.in_current_list!==false}))}})};
 }
 function escHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function exportPdfHtml(){
