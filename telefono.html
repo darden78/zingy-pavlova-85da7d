@@ -56,9 +56,12 @@
 
 <div id="modal" class="modal"><h2>IMPORTO ESATTO</h2><input id="display" readonly inputmode="numeric"><div class="keys"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button>C</button><button>0</button><button>⌫</button><button>ANNULLA</button><button class="send">INVIA</button></div></div>
 
-<script type="module">
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v495";
+<script src="https://unpkg.com/@supabase/supabase-js@2.45.3/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL="https://evjwadffhsyzltnnzgqk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5JZ7VvIiadcSkAvjpFZZxw_xgHC5ga5";
+const createClient=window.supabase&&window.supabase.createClient;
+if(!createClient){document.getElementById("startupScreen").querySelector("p").textContent="Errore caricamento connessione. Ricarica la pagina.";throw new Error("SUPABASE_CLIENT_NON_CARICATO");}
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -97,7 +100,7 @@ async function getDeviceId(){
  if(deviceId)return deviceId;
  const legacy=localStorage.getItem("fantastica-device-id-v474");
  let f=localStorage.getItem(DEVICE_KEY)||legacy||cookieGet(DEVICE_KEY)||await idbGet();
- if(!f)f="web:"+crypto.randomUUID();
+ if(!f){const ru=(globalThis.crypto&&typeof globalThis.crypto.randomUUID==="function")?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});f="web:"+ru;}
  deviceId=f;
  try{localStorage.setItem(DEVICE_KEY,f);localStorage.setItem("fantastica-device-id-v474",f)}catch{}
  cookieSet(DEVICE_KEY,f);idbSet(f);
@@ -535,17 +538,20 @@ window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted
 window.addEventListener("pagehide",()=>{untrackPhonePresence()});
 window.addEventListener("beforeunload",()=>{untrackPhonePresence()});
 
+function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))])}
 (async()=>{
  try{
-  await ensureAuth();
-  await syncServerClock();
-  if(!await tryDeviceRestore())showLogin();
+  await withTimeout(ensureAuth(),8000,"Connessione Supabase non disponibile");
+  syncServerClock();
+  let restored=false;
+  try{restored=await withTimeout(tryDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
+  if(!restored)showLogin();
  }catch(e){
   $("startupScreen").classList.add("hidden");
   $("loginScreen").classList.remove("hidden");
-  m($("loginMsg"),"Errore avvio: "+(e?.message||e),"bad");
+  m($("loginMsg"),"Connessione non riuscita. Verifica Internet e riprova.","bad");
  }
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=509-tablet"));</script>
 </body></html>
