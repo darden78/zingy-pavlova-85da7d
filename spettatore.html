@@ -110,11 +110,26 @@ function applyChunk(d){
 async function requestView(){if(!channel)return;try{await channel.send({type:"broadcast",event:"MIRROR_REQUEST",payload:{league_id:leagueId,sent_at_ms:Date.now()}})}catch{}}
 function startRequests(){clearInterval(requestTimer);waitingFresh=true;requestView();requestTimer=setInterval(()=>{if(waitingFresh)requestView();else{clearInterval(requestTimer);requestTimer=null}},800)}
 function disconnect(){clearTimeout(retry);clearInterval(requestTimer);retry=null;requestTimer=null;if(channel)db.removeChannel(channel);channel=null}
+async function emailSessionFromMagicLink(){
+ const callback=location.hash.indexOf("access_token=")>=0||location.hash.indexOf("type=magiclink")>=0||new URLSearchParams(location.search).has("code");
+ const tries=callback?40:1;
+ for(let i=0;i<tries;i++){
+  const {data:{session}}=await db.auth.getSession();
+  if(session&&session.user&&session.user.email)return session;
+  if(i+1<tries)await new Promise(r=>setTimeout(r,100));
+ }
+ return null;
+}
+async function verifyPendingFromMirrorLink(){
+ const session=await emailSessionFromMagicLink();
+ if(!session)return;
+ try{await db.rpc("fa_verify_pending_league_by_reserved_id",{p_league_id:leagueId})}catch{}
+}
 async function ensureAuth(){const {data:{session}}=await db.auth.getSession();if(session)return;await db.auth.signInAnonymously()}
 async function connect(){
  disconnect();
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(leagueId)){$("waitingText").textContent="Link spettatore non valido.";setBadge("SOLA VISIONE · LINK NON VALIDO","bad");return}
- try{await ensureAuth()}catch{}
+ try{await verifyPendingFromMirrorLink();await ensureAuth()}catch{}
  channel=db.channel("fantastica-mirror:"+leagueId)
   .on("broadcast",{event:"MIRROR_VIEW"},x=>applyView(x?.payload||x))
   .on("broadcast",{event:"MIRROR_TIMER"},x=>applyTimer(x?.payload||x))

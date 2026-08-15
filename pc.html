@@ -328,8 +328,9 @@ $("createLeague").onclick=async()=>{
    localStorage.setItem("fantastica-pending-league-v31",JSON.stringify({
      pending_id:data.pending_id,client_secret:clientSecret
    }));
-   const redirect=`${PUBLIC_BASE_URL}/verify.html?pending=${encodeURIComponent(data.pending_id)}&token=${encodeURIComponent(data.verification_token)}`;
-   const mail=await db.auth.signInWithOtp({email,options:{emailRedirectTo:redirect}});
+   if(!data.reserved_league_id){msg($("homeMsg"),"Errore: ID lega non disponibile.","bad");return}
+   const mirrorUrl=`${PUBLIC_BASE_URL}/spettatore.html?lega=${encodeURIComponent(data.reserved_league_id)}`;
+   const mail=await db.auth.signInWithOtp({email,options:{emailRedirectTo:mirrorUrl}});
    if(mail.error){msg($("homeMsg"),"Errore email: "+mail.error.message,"bad");return}
    msg($("homeMsg"),"✓ Email inviata. Aprila su qualunque dispositivo: questa schermata entrerà automaticamente nella lega appena verificata.","ok");
    pollPendingLeague();
