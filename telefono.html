@@ -56,8 +56,38 @@
 
 <div id="modal" class="modal"><h2>IMPORTO ESATTO</h2><input id="display" readonly inputmode="numeric"><div class="keys"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button>C</button><button>0</button><button>⌫</button><button>ANNULLA</button><button class="send">INVIA</button></div></div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2.45.3/dist/umd/supabase.js"></script>
 <script>
+(function(){
+ const startupText=()=>document.getElementById("startupScreen")?.querySelector("p");
+ const setStartup=t=>{const e=startupText();if(e)e.textContent=t};
+ function loadScript(src,ms){
+  return new Promise((resolve,reject)=>{
+   let done=false;const s=document.createElement("script");s.src=src;s.async=true;
+   const finish=(ok,err)=>{if(done)return;done=true;clearTimeout(timer);if(!ok)try{s.remove()}catch{};ok?resolve():reject(err||new Error("SCRIPT_ERROR"))};
+   const timer=setTimeout(()=>finish(false,new Error("SCRIPT_TIMEOUT")),ms);
+   s.onload=()=>finish(true);s.onerror=()=>finish(false,new Error("SCRIPT_ERROR"));
+   document.head.appendChild(s);
+  });
+ }
+ window.__fantasticaLoadSupabase=async()=>{
+  if(window.supabase&&window.supabase.createClient)return;
+  setStartup("Connessione...");
+  const cdns=[
+   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.3/dist/umd/supabase.js",
+   "https://unpkg.com/@supabase/supabase-js@2.45.3/dist/umd/supabase.js"
+  ];
+  let last=null;
+  for(const src of cdns){
+   try{await loadScript(src,4500);if(window.supabase&&window.supabase.createClient)return}catch(e){last=e}
+  }
+  setStartup("Connessione non disponibile. Tocca Ricarica in Safari.");
+  throw last||new Error("SUPABASE_CLIENT_NON_CARICATO");
+ };
+})();
+</script>
+<script>
+(async()=>{
+await window.__fantasticaLoadSupabase();
 const SUPABASE_URL="https://evjwadffhsyzltnnzgqk.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5JZ7VvIiadcSkAvjpFZZxw_xgHC5ga5";
 const createClient=window.supabase&&window.supabase.createClient;
@@ -552,6 +582,7 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
   m($("loginMsg"),"Connessione non riuscita. Verifica Internet e riprova.","bad");
  }
 })();
+})();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=509-tablet"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508b-ipad"));</script>
 </body></html>
