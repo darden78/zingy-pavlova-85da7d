@@ -1,9 +1,9 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508f-universal-persist">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508g-release-guard">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
-<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508f";document.head.appendChild(ml)}}catch(e){}})();</script>
+<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508g";document.head.appendChild(ml)}}catch(e){}})();</script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
 .entry{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:100%;max-width:430px;background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox{width:min(430px,100%)}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
@@ -112,6 +112,16 @@ function cookieSet(k,v){
   document.cookie=k+"="+encodeURIComponent(v)+"; expires="+exp+"; path=/";
   document.cookie=k+"="+encodeURIComponent(v)+"; Max-Age=315360000; Path=/; SameSite=Lax; Secure";
  }catch(e){}
+}
+function cookieDel(k){
+ try{
+  document.cookie=k+"=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  document.cookie=k+"=; Max-Age=0; Path=/; SameSite=Lax; Secure";
+ }catch(e){}
+}
+function clearParticipantState(){
+ try{localStorage.removeItem("fantastica-last-league");localStorage.removeItem("fantastica-last-slot")}catch(e){}
+ cookieDel("fantastica-last-league");cookieDel("fantastica-last-slot");
 }
 function queryDeviceId(){
  try{
@@ -245,7 +255,7 @@ function showLogin(){
  $("pages").classList.add("hidden");$("nameScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
  $("loginPassword").value="";m($("loginMsg"),"");
 }
-$("exitBtn").onclick=()=>{stopKeepAwake();localStorage.removeItem("fantastica-last-league");showLogin()};
+$("exitBtn").onclick=()=>{stopKeepAwake();clearParticipantState();showLogin()};
 
 async function finishDeviceJoin(data){
  leagueId=data.league_id;slot=data.slot;try{localStorage.setItem("fantastica-last-league",leagueId);localStorage.setItem("fantastica-last-slot",String(slot))}catch(e){};cookieSet("fantastica-last-league",leagueId);cookieSet("fantastica-last-slot",String(slot));
@@ -284,12 +294,28 @@ $("nameBtn").onclick=async()=>{
  slot=data.slot;$("nameScreen").classList.add("hidden");await enterGame();
 };
 
+async function invalidateParticipant(){
+ try{await stopKeepAwake()}catch(e){}
+ clearParticipantState();
+ league=null;leagueId=null;slot=null;auction=null;slotData=null;slots=[];catalog=[];
+ showLogin();
+}
+async function validateParticipant(){
+ if(!leagueId||!slot)return false;
+ try{
+  const r=await db.rpc("fa_my_participant",{p_league_id:leagueId});
+  const d=r&&r.data;
+  if(r.error||!d||!d.ok||Number(d.slot)!==Number(slot)||!d.display_name)return false;
+  return true;
+ }catch(e){return false}
+}
 async function enterGame(){
  $("startupScreen").classList.add("hidden");
- const {data:l,error}=await db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle();
- if(error||!l){localStorage.removeItem("fantastica-last-league");showLogin();return}
- league=l;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
- await heartbeat();await load();connect();startKeepAwake();
+ const lr=await db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle();
+ if(lr.error||!lr.data){await invalidateParticipant();return}
+ if(!(await validateParticipant())){await invalidateParticipant();return}
+ league=lr.data;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
+ await heartbeat(true);await load();connect();startKeepAwake();
 }
 const HEARTBEAT_MIN_MS=18000;
 async function heartbeat(force=false){
@@ -299,7 +325,10 @@ async function heartbeat(force=false){
  heartbeatInFlight=true;lastHeartbeatAt=now;
  try{
   const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
-  if(error||!data||!data.ok){m($("status"),"Riconnessione...","warn");return false}
+  if(error||!data||!data.ok){
+   if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return false}
+   m($("status"),"Riconnessione...","warn");return false
+  }
   return true;
  }catch{return false}
  finally{heartbeatInFlight=false}
@@ -313,7 +342,7 @@ async function load(){
   db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
   db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",leagueId).order("slot")
  ]);
- if(!l.data){localStorage.removeItem("fantastica-last-league");showLogin();return}
+ if(!l.data){await invalidateParticipant();return}
  league=l.data;auction=a.data;slots=s.data||[];
  let pq=db.from("fa_players").select("id,name,team,role,quotation,assigned_slot,assigned_price").eq("league_id",leagueId);
  if(auction&&auction.current_player_id)pq=pq.or(`assigned_slot.not.is.null,id.eq.${auction.current_player_id}`);
@@ -326,7 +355,7 @@ async function load(){
    else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
- if(!slotData){m($("status"),"Dispositivo non associato","bad");return}
+ if(!slotData||!slotData.display_name){await invalidateParticipant();return}
  render();
 }
 async function loadCore(){
@@ -613,11 +642,12 @@ const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";m
 setInterval(()=>{if(leagueId&&!document.hidden)requestState()},30000);
 function resumeLightSync(forceReconnect=false){
  clearTimeout(resumeTimer);
- resumeTimer=setTimeout(()=>{
+ resumeTimer=setTimeout(async()=>{
   if(document.hidden||!leagueId)return;
   const now=Date.now();
   if(now-lastResumeSyncAt<1200)return;
   lastResumeSyncAt=now;
+  if(!(await validateParticipant())){await invalidateParticipant();return}
   if(wakeWanted)requestWakeLock(true);
   heartbeat(false);
   if(forceReconnect){
@@ -653,5 +683,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508f-universal"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508g-release-guard"));</script>
 </body></html>
