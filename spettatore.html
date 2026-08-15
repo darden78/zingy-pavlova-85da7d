@@ -71,9 +71,45 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v505-mirror";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
-const leagueId=new URLSearchParams(location.search).get("lega")||"";
+let leagueId=new URLSearchParams(location.search).get("lega")||"";
+let pendingMirrorId=new URLSearchParams(location.search).get("pending")||"";
 let channel=null,retry=null,requestTimer=null,waitingFresh=true;
 const chunkTransfers=new Map();
+function validUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v||"")}
+function extractPendingFromEmailLink(){
+ if(pendingMirrorId)return pendingMirrorId;
+ let raw=(location.hash||"").slice(1);
+ if(!raw)return "";
+ for(let i=0;i<2;i++){try{const d=decodeURIComponent(raw);if(d===raw)break;raw=d}catch{break}}
+ try{
+  const u=new URL(raw,location.href),p=u.searchParams.get("pending")||"";
+  if(validUuid(p)){
+   pendingMirrorId=p;
+   // Elimina immediatamente dal browser qualunque altro dato presente nel redirect della mail.
+   history.replaceState(null,"",location.pathname+"?pending="+encodeURIComponent(p));
+   return p;
+  }
+ }catch{}
+ return "";
+}
+async function resolveEmailMirror(){
+ const pending=extractPendingFromEmailLink();
+ if(!pending)return false;
+ $("waitingText").textContent="Preparazione del Mirror della lega…";setBadge("SOLA VISIONE · ATTESA LEGA","wait");
+ for(let i=0;i<120;i++){
+  try{
+   const {data,error}=await db.rpc("fa_mirror_resolve_pending",{p_pending_id:pending});
+   if(!error&&data?.ok&&data?.ready&&validUuid(data.league_id)){
+    location.replace(location.pathname+"?lega="+encodeURIComponent(data.league_id));
+    return true;
+   }
+   if(!error&&data&&!data.ok){$("waitingText").textContent="Link Mirror non valido o non più disponibile.";setBadge("SOLA VISIONE · LINK NON VALIDO","bad");return true}
+  }catch{}
+  await new Promise(r=>setTimeout(r,1500));
+ }
+ $("waitingText").textContent="La lega non è ancora pronta. Verifica prima l’email e poi riapri questo link.";setBadge("SOLA VISIONE · LEGA NON ANCORA PRONTA","wait");
+ return true;
+}
 function setBadge(text,kind=""){const b=$("liveBadge");b.textContent=text;b.className="viewerBadge"+(kind?" "+kind:"")}
 function lockInteractions(){document.querySelectorAll("#mirrorView a,#mirrorView button,#mirrorView input,#mirrorView select").forEach(el=>el.tabIndex=-1)}
 function applyView(d){
@@ -113,7 +149,7 @@ function disconnect(){clearTimeout(retry);clearInterval(requestTimer);retry=null
 async function ensureAuth(){const {data:{session}}=await db.auth.getSession();if(session)return;await db.auth.signInAnonymously()}
 async function connect(){
  disconnect();
- if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(leagueId)){$("waitingText").textContent="Link spettatore non valido.";setBadge("SOLA VISIONE · LINK NON VALIDO","bad");return}
+ if(!validUuid(leagueId)){$("waitingText").textContent="Link spettatore non valido.";setBadge("SOLA VISIONE · LINK NON VALIDO","bad");return}
  try{await ensureAuth()}catch{}
  channel=db.channel("fantastica-mirror:"+leagueId)
   .on("broadcast",{event:"MIRROR_VIEW"},x=>applyView(x?.payload||x))
@@ -125,5 +161,8 @@ async function connect(){
   });
 }
 document.addEventListener("click",e=>e.preventDefault(),true);document.addEventListener("submit",e=>e.preventDefault(),true);document.addEventListener("keydown",e=>{if(["Enter"," "].includes(e.key))e.preventDefault()},true);
-connect();
+(async()=>{
+ if(!leagueId){const handled=await resolveEmailMirror();if(handled)return}
+ connect();
+})();
 </script></body></html>
