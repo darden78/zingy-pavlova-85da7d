@@ -1,9 +1,9 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508g-release-guard">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508i-fresh-qr">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
-<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508g";document.head.appendChild(ml)}}catch(e){}})();</script>
+<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508h";document.head.appendChild(ml)}}catch(e){}})();</script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
 .entry{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:100%;max-width:430px;background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox{width:min(430px,100%)}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
@@ -119,9 +119,42 @@ function cookieDel(k){
   document.cookie=k+"=; Max-Age=0; Path=/; SameSite=Lax; Secure";
  }catch(e){}
 }
+function queryLeagueId(){
+ try{
+  var m=location.search.match(/[?&]lid=([^&]+)/);
+  return m?decodeURIComponent(m[1]):null;
+ }catch(e){return null}
+}
+function isFreshAccess(){
+ try{return /(?:[?&])fresh=1(?:&|$)/.test(location.search)}catch(e){return false}
+}
+function rememberedLeagueId(){
+ var v=queryLeagueId();
+ if(v)return v;
+ try{v=localStorage.getItem("fantastica-last-league")}catch(e){}
+ return v||cookieGet("fantastica-last-league")||null;
+}
+function bridgeLeagueToUrl(v){
+ try{
+  var u=new URL(location.href);
+  if(v){u.searchParams.set("lid",v);u.searchParams.delete("fresh")}else{u.searchParams.delete("lid")}
+  history.replaceState(null,"",u.toString());
+ }catch(e){
+  try{
+   var q=location.search.replace(/([?&])lid=[^&]*(&?)/,function(_,a,b){return a==="?"&&b?"?":(a==="?"?"":"" )});
+   q=q.replace(/^&/,"?").replace(/\?&/,"?").replace(/[?&]$/,"");
+   if(v)q+=(q?"&":"?")+"lid="+encodeURIComponent(v);
+   history.replaceState(null,"",location.pathname+q+location.hash);
+  }catch(x){}
+ }
+}
+function rememberParticipantContext(lid,sl){
+ try{localStorage.setItem("fantastica-last-league",lid);localStorage.setItem("fantastica-last-slot",String(sl))}catch(e){}
+ cookieSet("fantastica-last-league",lid);cookieSet("fantastica-last-slot",String(sl));bridgeLeagueToUrl(lid);
+}
 function clearParticipantState(){
  try{localStorage.removeItem("fantastica-last-league");localStorage.removeItem("fantastica-last-slot")}catch(e){}
- cookieDel("fantastica-last-league");cookieDel("fantastica-last-slot");
+ cookieDel("fantastica-last-league");cookieDel("fantastica-last-slot");bridgeLeagueToUrl(null);
 }
 function queryDeviceId(){
  try{
@@ -242,9 +275,12 @@ async function ensureAuth(){
 }
 async function tryDeviceRestore(){
  try{
-  const {data,error}=await db.rpc("fa_restore_participant_by_device",{p_device_id:await getDeviceId()});
-  if(error||!data||!data.ok)return false;
-  leagueId=data.league_id;slot=data.slot;try{localStorage.setItem("fantastica-last-league",leagueId);localStorage.setItem("fantastica-last-slot",String(slot))}catch(e){};cookieSet("fantastica-last-league",leagueId);cookieSet("fantastica-last-slot",String(slot));
+  var targetLeague=rememberedLeagueId();
+  if(!targetLeague)return false;
+  const {data,error}=await db.rpc("fa_restore_participant_by_device_league",{p_device_id:await getDeviceId(),p_league_id:targetLeague});
+  if(error)return false;
+  if(!data||!data.ok){clearParticipantState();return false}
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
   await enterGame();return true;
  }catch(e){return false}
 }
@@ -258,7 +294,7 @@ function showLogin(){
 $("exitBtn").onclick=()=>{stopKeepAwake();clearParticipantState();showLogin()};
 
 async function finishDeviceJoin(data){
- leagueId=data.league_id;slot=data.slot;try{localStorage.setItem("fantastica-last-league",leagueId);localStorage.setItem("fantastica-last-slot",String(slot))}catch(e){};cookieSet("fantastica-last-league",leagueId);cookieSet("fantastica-last-slot",String(slot));
+ leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
  $("loginScreen").classList.add("hidden");$("loginPassword").value="";
  if(data.needs_name){$("nameLeague").textContent=data.league_name;$("reclaimBox").classList.add("hidden");$("newNameBox").classList.remove("hidden");$("nameScreen").classList.remove("hidden");return}
  await enterGame();
@@ -672,6 +708,13 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
  try{
   await withTimeout(ensureAuth(),8000,"Connessione Supabase non disponibile");
   syncServerClock();
+  if(isFreshAccess()){
+   // Apertura proveniente dal QR/installazione: nuovo accesso intenzionale.
+   // Non cancelliamo il Device ID, ma dimentichiamo la vecchia lega.
+   clearParticipantState();
+   showLogin();
+   return;
+  }
   let restored=false;
   try{restored=await withTimeout(tryDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
   if(!restored)showLogin();
@@ -683,5 +726,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508g-release-guard"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508i-fresh-qr"));</script>
 </body></html>
