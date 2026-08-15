@@ -71,6 +71,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v505-mirror";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
+const ua=navigator.userAgent||"";
+const isMobileDevice=/Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const leagueId=new URLSearchParams(location.search).get("lega")||"";
 let channel=null,retry=null,requestTimer=null,waitingFresh=true;
 const chunkTransfers=new Map();
@@ -125,5 +127,9 @@ async function connect(){
   });
 }
 document.addEventListener("click",e=>e.preventDefault(),true);document.addEventListener("submit",e=>e.preventDefault(),true);document.addEventListener("keydown",e=>{if(["Enter"," "].includes(e.key))e.preventDefault()},true);
-connect();
+if(isMobileDevice){
+ $("mirrorView").classList.add("hidden");
+ $("waitingText").textContent="Il Mirror FANTASTICA è disponibile solo da PC.";
+ setBadge("SOLA VISIONE · SOLO PC","bad");
+}else connect();
 </script></body></html>
