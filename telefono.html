@@ -1,11 +1,11 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508i-fresh-qr">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508j-current-device">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
-<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508h";document.head.appendChild(ml)}}catch(e){}})();</script>
+<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508j";document.head.appendChild(ml)}}catch(e){}})();</script>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}.onlineDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#55e28b;margin-right:6px;vertical-align:1px}
 .entry{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:100%;max-width:430px;background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox{width:min(430px,100%)}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
 .pages{position:fixed;top:0;right:0;bottom:0;left:0;width:100vw;max-width:100vw;height:var(--fa-vh,100vh);display:block;overflow:hidden;background:#000;-webkit-overflow-scrolling:auto}.page{display:none;position:absolute;top:0;left:0;right:0;width:100vw;max-width:100vw;height:var(--fa-vh,100vh);min-height:100%;overflow-x:hidden;background:#000}.page.faActive{display:block}#rosterPages{width:100%;height:100%}
 .auctionPage{overflow:hidden;touch-action:pan-x;-webkit-user-select:none;user-select:none}.auctionPage button,.auctionPage input,.auctionPage .app{touch-action:manipulation}.rosterPage{touch-action:pan-x pan-y pinch-zoom;-webkit-user-select:text;user-select:text}.app{width:100%;height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 12px 10px}.app{padding:calc(4px + env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom))}
@@ -284,6 +284,14 @@ async function tryDeviceRestore(){
   await enterGame();return true;
  }catch(e){return false}
 }
+async function tryCurrentDeviceRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_participant_by_current_device",{p_device_id:await getDeviceId()});
+  if(error||!data||!data.ok)return false;
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  await enterGame();return true;
+ }catch(e){return false}
+}
 function showLogin(){
  $("startupScreen").classList.add("hidden");
  league=null;leagueId=null;slot=null;auction=null;slotData=null;slots=[];catalog=[];
@@ -291,7 +299,7 @@ function showLogin(){
  $("pages").classList.add("hidden");$("nameScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
  $("loginPassword").value="";m($("loginMsg"),"");
 }
-$("exitBtn").onclick=()=>{stopKeepAwake();clearParticipantState();showLogin()};
+$("exitBtn").onclick=async()=>{try{await db.rpc("fa_forget_current_device",{p_device_id:await getDeviceId()})}catch(e){}stopKeepAwake();clearParticipantState();showLogin()};
 
 async function finishDeviceJoin(data){
  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
@@ -555,7 +563,7 @@ async function connect(force=false){
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
      rtConnected=true;connectInFlight=false;
-     m($("status"),"🟢 ONLINE","ok");
+     $("status").className="ok";$("status").innerHTML='<span class="onlineDot"></span>ONLINE';
      heartbeat(false);
      await trackPhonePresence();
      requestState();
@@ -708,15 +716,17 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
  try{
   await withTimeout(ensureAuth(),8000,"Connessione Supabase non disponibile");
   syncServerClock();
+  let restored=false;
   if(isFreshAccess()){
-   // Apertura proveniente dal QR/installazione: nuovo accesso intenzionale.
-   // Non cancelliamo il Device ID, ma dimentichiamo la vecchia lega.
+   // QR/reinstallazione: il Device ID può sopravvivere anche quando lo storage della Web App no.
+   // Recuperiamo SOLO l'associazione corrente registrata dal server; se è stata liberata, mostriamo il login.
    clearParticipantState();
-   showLogin();
+   try{restored=await withTimeout(tryCurrentDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
+   if(!restored)showLogin();
    return;
   }
-  let restored=false;
   try{restored=await withTimeout(tryDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
+  if(!restored){try{restored=await withTimeout(tryCurrentDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}}
   if(!restored)showLogin();
  }catch(e){
   $("startupScreen").classList.add("hidden");
@@ -726,5 +736,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508i-fresh-qr"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508j-current-device"));</script>
 </body></html>
