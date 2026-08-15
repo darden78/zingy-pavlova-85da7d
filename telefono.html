@@ -443,6 +443,13 @@ async function heartbeat(force=false){
 }
 setInterval(()=>{if(!document.hidden)heartbeat(false)},20000);
 
+function reportAuctionVisibility(visible){
+ if(!leagueId||!slot||!db)return;
+ try{
+  db.rpc("fa_set_my_auction_visibility",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible}).then(()=>{}).catch(()=>{});
+ }catch(e){}
+}
+
 async function load(){
  if(!leagueId)return;
  const [l,a,s]=await Promise.all([
@@ -629,6 +636,7 @@ async function connect(force=false){
      rtConnected=true;connectInFlight=false;
      $("status").className="ok";$("status").textContent="● ONLINE";
      heartbeat(false);
+     reportAuctionVisibility(true);
      await trackPhonePresence();
      requestState();
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
@@ -757,6 +765,7 @@ function resumeLightSync(forceReconnect=false){
   lastResumeSyncAt=now;
   if(!(await validateParticipant())){await invalidateParticipant();return}
   if(wakeWanted)requestWakeLock(true);
+  reportAuctionVisibility(true);
   heartbeat(false);
   if(forceReconnect){
    rtConnected=false;presenceTracked=false;
@@ -769,11 +778,11 @@ function resumeLightSync(forceReconnect=false){
 }
 document.addEventListener("visibilitychange",()=>{
  if(!document.hidden)resumeLightSync(true);
- else{wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
+ else{reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
 });
 window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted)});
-window.addEventListener("pagehide",()=>{untrackPhonePresence()});
-window.addEventListener("beforeunload",()=>{untrackPhonePresence()});
+window.addEventListener("pagehide",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
+window.addEventListener("beforeunload",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
 
 function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))])}
 (async()=>{

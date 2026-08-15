@@ -12,7 +12,7 @@
 .leagueBtn{width:100%;text-align:left;border:0;background:#303030;color:#fff;border-radius:12px;padding:15px;margin:6px 0;font-size:19px;font-weight:800;cursor:pointer}
 .createGrid{display:grid;grid-template-columns:2fr repeat(2,1fr);gap:10px}.createGrid label{font-size:12px;color:#aaa}.createGrid input{width:100%;padding:10px;border:0;border-radius:9px}.createFull{grid-column:1/-1}.createBtn{grid-column:1/-1;border:0;border-radius:11px;padding:13px;background:#2f8f57;color:#fff;font-weight:900;cursor:pointer}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.top h1{margin:0;flex:1}.top button{border:0;border-radius:9px;padding:9px 12px;background:#333;color:#fff;font-weight:800;cursor:pointer}
-.status{background:#202020;padding:9px 12px;border-radius:9px;margin-bottom:10px}
+.status{background:#202020;padding:9px 12px;border-radius:9px;margin-bottom:10px}.offlineGuard{display:none;background:#4a3511;color:#ffd36a;border:1px solid #805f20;padding:8px 12px;border-radius:9px;margin:-3px 0 10px;font-weight:900;text-align:center}.offlineGuard.show{display:block}
 .workspace{display:grid;grid-template-columns:minmax(245px,.85fr) minmax(630px,2.2fr) minmax(310px,1.05fr);gap:12px;align-items:start}
 .side{height:calc(100vh - 90px);background:#181818;border-radius:14px;padding:10px;overflow:hidden;position:sticky;top:8px}.side h2{font-size:17px;margin:3px 0 7px}
 .center{min-width:0}.hero{background:#202020;border-radius:16px;padding:12px;text-align:center}.currentPlayer{background:#171717;border-radius:12px;padding:10px;margin-bottom:9px;min-height:68px}.currentPlayer .pn{font-size:25px;font-weight:900}.currentPlayer .meta{color:#bbb;font-size:14px}
@@ -87,6 +87,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 <section id="regia" class="hidden">
  <div class="top"><button id="changeLeague">← ESCI REGIA</button><h1>⚽ <span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1><button id="settingsBtn">⚙ IMPOSTAZIONI</button></div>
  <div id="status" class="status">Avvio...</div>
+ <div id="offlineGuard" class="offlineGuard"></div>
  <div class="workspace">
   <aside class="side"><h2>ROSA MIGLIOR OFFERENTE</h2><div id="leaderRoster"></div></aside>
   <main class="center">
@@ -397,6 +398,21 @@ async function loadCore(){
 }
 const presenceSeen=new Set();
 const online=s=>!!s&&presenceSeen.has(Number(s.slot));
+let presenceSnapshotTimer=null,presenceSnapshotBusy=false,lastPresenceSnapshot="";
+function schedulePresenceSnapshot(delay=100){
+ clearTimeout(presenceSnapshotTimer);
+ presenceSnapshotTimer=setTimeout(sendPresenceSnapshot,delay);
+}
+async function sendPresenceSnapshot(){
+ if(!league||presenceSnapshotBusy)return;
+ const arr=[...presenceSeen].sort((a,b)=>a-b),sig=arr.join(",");
+ if(sig===lastPresenceSnapshot)return;
+ presenceSnapshotBusy=true;
+ try{
+  const {data,error}=await db.rpc("fa_regia_presence_snapshot",{p_league_id:league.id,p_online_slots:arr});
+  if(!error&&data?.ok!==false){lastPresenceSnapshot=sig;scheduleLoad(8,false)}
+ }finally{presenceSnapshotBusy=false}
+}
 function syncPhonePresence(){
  if(!channel)return;
  const state=channel.presenceState?.()||{},next=new Set();
@@ -410,7 +426,8 @@ function syncPhonePresence(){
  }
  const changed=next.size!==presenceSeen.size||[...next].some(n=>!presenceSeen.has(n));
  presenceSeen.clear();for(const n of next)presenceSeen.add(n);
- if(changed)render();
+ if(changed){render();schedulePresenceSnapshot(80)}
+ else if(!lastPresenceSnapshot)schedulePresenceSnapshot(80);
 }
 function rosterInfo(slot){
  const ps=catalog.filter(p=>p.assigned_slot===slot),playerSpent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),adjustment=Number(slots.find(s=>s.slot===slot)?.credit_adjustment||0),remain=league.credits_initial-playerSpent+adjustment,spent=league.credits_initial-remain,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
@@ -587,6 +604,17 @@ async function copyMirrorLink(){
  msg($("settingsMsg"),"✓ Link spettatore copiato","ok");
 }
 
+function canStillParticipateInCurrentAuction(s){
+ if(!s||!s.display_name||!auction||auction.status!=="OPEN"||!auction.current_player_id||!s.active||s.abandoned)return false;
+ if(auction.highest_slot===s.slot)return true;
+ const p=currentPlayer();if(!p)return false;
+ const r=rosterInfo(s.slot),roleCount=r.ps.filter(x=>x.role===p.role).length,roleLimit=Number(league["roster_"+p.role.toLowerCase()]||0);
+ const total=Number(league.roster_p+league.roster_d+league.roster_c+league.roster_a),minPrice=Number(league.min_player_price||1);
+ const maxSpend=(Number(league.credits_initial||0)-r.playerSpent+r.adjustment)-Math.max(0,total-r.ps.length-1)*minPrice;
+ return roleCount<roleLimit&&r.ps.length<total&&maxSpend>=minPrice;
+}
+function offlineClosingBlockers(){return slots.filter(s=>canStillParticipateInCurrentAuction(s)&&!online(s))}
+
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
@@ -607,7 +635,10 @@ function render(){
    $("amount").textContent=auction.current_bid;$("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
  }
  $("closed").textContent=auction.status==="SOLD"?"✓ AGGIUDICATO":"";
- $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD";$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
+ const offlineBlockers=offlineClosingBlockers(),offlineNames=offlineBlockers.map(x=>x.display_name);
+ $("offlineGuard").classList.toggle("show",offlineBlockers.length>0&&auction.status==="OPEN");
+ $("offlineGuard").textContent=offlineBlockers.length?`⚠ CHIUSURA BLOCCATA — ${offlineNames.join(", ")} offline`:"";
+ $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.slot<=league.member_limit);
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
@@ -668,7 +699,7 @@ function renderList(){
   const {data,error}=await db.rpc("fa_select_and_start_v481",{p_league_id:league.id,p_player_id:p.id});
   if(error||!data?.ok){
    const er=error?.message||data?.error;
-   alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="PARTECIPANTI_OFFLINE"?"Impossibile iniziare: non sono online tutti i partecipanti richiesti.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
+   alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
    return
   }
   if(data.auto_assigned)msg($("status"),`✓ ${p.name} assegnato automaticamente a ${slotName(data.slot)} per ${data.amount??1} credito` ,"ok");
@@ -762,7 +793,11 @@ $("importList").onclick=async()=>{
 
 $("pauseTimer").onclick=async()=>{
  const {data,error}=await db.rpc("fa_timer_control_v480",{p_league_id:league.id,p_run:!!auction.paused});
- if(error||!data?.ok){alert(error?.message||data?.error);return}
+ if(error||!data?.ok){
+  if(data?.error==="PARTECIPANTI_OFFLINE")alert("Timer bloccato: attendi il rientro di "+((data.names||[]).join(", ")||"tutti i partecipanti necessari")+".");
+  else alert(error?.message||data?.error);
+  return
+ }
  await load(false);
 };
 $("assignNow").onclick=async()=>{
