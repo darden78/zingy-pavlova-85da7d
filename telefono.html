@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508j-current-device">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508k-ipad-session-fallback">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508j";document.head.appendChild(ml)}}catch(e){}})();</script>
@@ -194,9 +194,15 @@ function idbSet(v){
 }
 async function getDeviceId(){
  if(deviceId)return deviceId;
- var qid=queryDeviceId(),legacy=null,stored=null;
+ var qid=queryDeviceId(),legacy=null,stored=null,cookieId=null,idbId=null;
  try{legacy=localStorage.getItem("fantastica-device-id-v474");stored=localStorage.getItem(DEVICE_KEY)}catch(e){}
- var f=qid||stored||legacy||cookieGet(DEVICE_KEY)||await idbGet();
+ cookieId=cookieGet(DEVICE_KEY);
+ // Safari/iOS datati possono lasciare IndexedDB in attesa molto a lungo dopo il ripristino
+ // della Web App. Non permettiamo che questo blocchi il rientro automatico.
+ if(!qid&&!stored&&!legacy&&!cookieId){
+  try{idbId=await Promise.race([idbGet(),new Promise(function(resolve){setTimeout(function(){resolve(null)},600)})])}catch(e){idbId=null}
+ }
+ var f=qid||stored||legacy||cookieId||idbId;
  if(!f){
   var ru=(window.crypto&&typeof window.crypto.randomUUID==="function")?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});
   f="web:"+ru;
@@ -287,6 +293,14 @@ async function tryDeviceRestore(){
 async function tryCurrentDeviceRestore(){
  try{
   const {data,error}=await db.rpc("fa_restore_participant_by_current_device",{p_device_id:await getDeviceId()});
+  if(error||!data||!data.ok)return false;
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  await enterGame();return true;
+ }catch(e){return false}
+}
+async function trySessionRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_participant_by_session",{p_device_id:await getDeviceId()});
   if(error||!data||!data.ok)return false;
   leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
   await enterGame();return true;
@@ -563,7 +577,7 @@ async function connect(force=false){
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
      rtConnected=true;connectInFlight=false;
-     $("status").className="ok";$("status").innerHTML='<span class="onlineDot"></span>ONLINE';
+     $("status").className="ok";$("status").textContent="● ONLINE";
      heartbeat(false);
      await trackPhonePresence();
      requestState();
@@ -718,15 +732,18 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
   syncServerClock();
   let restored=false;
   if(isFreshAccess()){
-   // QR/reinstallazione: il Device ID può sopravvivere anche quando lo storage della Web App no.
-   // Recuperiamo SOLO l'associazione corrente registrata dal server; se è stata liberata, mostriamo il login.
+   // QR/reinstallazione: prova prima il Device ID corrente. Su Safari/iOS datati,
+   // se lo storage della Web App non è disponibile in tempo, usa come fallback
+   // la sessione Supabase già autenticata (solo se identifica un unico partecipante).
    clearParticipantState();
-   try{restored=await withTimeout(tryCurrentDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
+   try{restored=await withTimeout(tryCurrentDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}
+   if(!restored){try{restored=await withTimeout(trySessionRestore(),8000,"Ripristino sessione lento")}catch{}}
    if(!restored)showLogin();
    return;
   }
-  try{restored=await withTimeout(tryDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}
-  if(!restored){try{restored=await withTimeout(tryCurrentDeviceRestore(),5000,"Ripristino dispositivo lento")}catch{}}
+  try{restored=await withTimeout(tryDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}
+  if(!restored){try{restored=await withTimeout(tryCurrentDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}}
+  if(!restored){try{restored=await withTimeout(trySessionRestore(),8000,"Ripristino sessione lento")}catch{}}
   if(!restored)showLogin();
  }catch(e){
   $("startupScreen").classList.add("hidden");
@@ -736,5 +753,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508j-current-device"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508k-ipad-session-fallback"));</script>
 </body></html>
