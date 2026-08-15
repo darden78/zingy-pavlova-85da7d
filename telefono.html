@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508c-legacy">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <link rel="manifest" href="./manifest-phone.webmanifest?v=iphone1">
@@ -58,27 +58,31 @@
 
 <script>
 (function(){
- const startupText=()=>document.getElementById("startupScreen")?.querySelector("p");
- const setStartup=t=>{const e=startupText();if(e)e.textContent=t};
+ window.onerror=function(msg,src,line){try{var p=document.getElementById("startupScreen");var t=p&&p.querySelector("p");if(t&&!p.classList.contains("hidden"))t.textContent="Errore compatibilità browser (riga "+(line||"?")+")."}catch(e){};return false};
+ function startupText(){var e=document.getElementById("startupScreen");return e?e.querySelector("p"):null}
+ function setStartup(t){var e=startupText();if(e)e.textContent=t}
+ function supportsModernSyntax(){try{new Function("var x={a:1}; return x?.a ?? 0;");return true}catch(e){return false}}
  function loadScript(src,ms){
-  return new Promise((resolve,reject)=>{
-   let done=false;const s=document.createElement("script");s.src=src;s.async=true;
-   const finish=(ok,err)=>{if(done)return;done=true;clearTimeout(timer);if(!ok)try{s.remove()}catch{};ok?resolve():reject(err||new Error("SCRIPT_ERROR"))};
-   const timer=setTimeout(()=>finish(false,new Error("SCRIPT_TIMEOUT")),ms);
-   s.onload=()=>finish(true);s.onerror=()=>finish(false,new Error("SCRIPT_ERROR"));
+  return new Promise(function(resolve,reject){
+   var done=false,s=document.createElement("script"),timer; s.src=src;s.async=true;
+   function finish(ok,err){if(done)return;done=true;clearTimeout(timer);if(!ok)try{if(s.parentNode)s.parentNode.removeChild(s)}catch(e){};if(ok)resolve();else reject(err||new Error("SCRIPT_ERROR"))}
+   timer=setTimeout(function(){finish(false,new Error("SCRIPT_TIMEOUT"))},ms);
+   s.onload=function(){finish(true)};s.onerror=function(){finish(false,new Error("SCRIPT_ERROR"))};
    document.head.appendChild(s);
   });
  }
- window.__fantasticaLoadSupabase=async()=>{
+ window.__fantasticaLoadSupabase=async function(){
   if(window.supabase&&window.supabase.createClient)return;
   setStartup("Connessione...");
-  const cdns=[
-   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.3/dist/umd/supabase.js",
-   "https://unpkg.com/@supabase/supabase-js@2.45.3/dist/umd/supabase.js"
+  var legacy=!supportsModernSyntax();
+  var ver=legacy?"2.44.4":"2.45.3";
+  var cdns=[
+   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js",
+   "https://unpkg.com/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js"
   ];
-  let last=null;
-  for(const src of cdns){
-   try{await loadScript(src,4500);if(window.supabase&&window.supabase.createClient)return}catch(e){last=e}
+  var last=null;
+  for(var i=0;i<cdns.length;i++){
+   try{await loadScript(cdns[i],5500);if(window.supabase&&window.supabase.createClient)return}catch(e){last=e}
   }
   setStartup("Connessione non disponibile. Tocca Ricarica in Safari.");
   throw last||new Error("SUPABASE_CLIENT_NON_CARICATO");
@@ -130,7 +134,7 @@ async function getDeviceId(){
  if(deviceId)return deviceId;
  const legacy=localStorage.getItem("fantastica-device-id-v474");
  let f=localStorage.getItem(DEVICE_KEY)||legacy||cookieGet(DEVICE_KEY)||await idbGet();
- if(!f){const ru=(globalThis.crypto&&typeof globalThis.crypto.randomUUID==="function")?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});f="web:"+ru;}
+ if(!f){const ru=(window.crypto&&typeof window.crypto.randomUUID==="function")?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});f="web:"+ru;}
  deviceId=f;
  try{localStorage.setItem(DEVICE_KEY,f);localStorage.setItem("fantastica-device-id-v474",f)}catch{}
  cookieSet(DEVICE_KEY,f);idbSet(f);
@@ -145,7 +149,7 @@ async function syncServerClock(){
   const t0=Date.now();
   const {data}=await db.rpc("fa_server_time");
   const t1=Date.now();
-  if(data?.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2);
+  if(data&&data.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2);
  }catch{}
 }
 setInterval(syncServerClock,30000);
@@ -206,7 +210,7 @@ async function ensureAuth(){
 async function tryDeviceRestore(){
  try{
   const {data,error}=await db.rpc("fa_restore_participant_by_device",{p_device_id:await getDeviceId()});
-  if(error||!data?.ok)return false;
+  if(error||!data||!data.ok)return false;
   leagueId=data.league_id;slot=data.slot;localStorage.setItem("fantastica-last-league",leagueId);
   await enterGame();return true;
  }catch(e){return false}
@@ -245,7 +249,7 @@ $("loginBtn").onclick=async()=>{
   await ensureAuth();m($("loginMsg"),"Accesso...");
   pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
   const {data,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
-  if(error||!data?.ok){m($("loginMsg"),data?.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
+  if(error||!data||!data.ok){m($("loginMsg"),data&&data.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
   if(data.needs_reclaim){showReclaim(data);return}
   await finishDeviceJoin(data);
  }catch(e){m($("loginMsg"),"Errore: "+e.message,"bad")}
@@ -253,7 +257,7 @@ $("loginBtn").onclick=async()=>{
 $("nameBtn").onclick=async()=>{
  const name=$("participantName").value.trim();if(!name)return;
  const {data,error}=await db.rpc("fa_set_my_participant_name",{p_league_id:leagueId,p_name:name});
- if(error||!data?.ok){m($("nameMsg"),"Errore: "+(error?.message||data?.error),"bad");return}
+ if(error||!data||!data.ok){m($("nameMsg"),"Errore: "+((error&&error.message)||(data&&data.error)),"bad");return}
  slot=data.slot;$("nameScreen").classList.add("hidden");await enterGame();
 };
 
@@ -272,7 +276,7 @@ async function heartbeat(force=false){
  heartbeatInFlight=true;lastHeartbeatAt=now;
  try{
   const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
-  if(error||!data?.ok){m($("status"),"Riconnessione...","warn");return false}
+  if(error||!data||!data.ok){m($("status"),"Riconnessione...","warn");return false}
   return true;
  }catch{return false}
  finally{heartbeatInFlight=false}
@@ -289,7 +293,7 @@ async function load(){
  if(!l.data){localStorage.removeItem("fantastica-last-league");showLogin();return}
  league=l.data;auction=a.data;slots=s.data||[];
  let pq=db.from("fa_players").select("id,name,team,role,quotation,assigned_slot,assigned_price").eq("league_id",leagueId);
- if(auction?.current_player_id)pq=pq.or(`assigned_slot.not.is.null,id.eq.${auction.current_player_id}`);
+ if(auction&&auction.current_player_id)pq=pq.or(`assigned_slot.not.is.null,id.eq.${auction.current_player_id}`);
  else pq=pq.not("assigned_slot","is",null);
  const p=await pq;
  const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
@@ -313,8 +317,8 @@ async function loadCore(){
  league=l.data;auction=a.data;slots=s.data||[];slotData=slots.find(x=>x.slot===slot);
  render();
 }
-const slotName=n=>slots.find(x=>x.slot===n)?.display_name||`Posto ${n}`;
-const cp=()=>currentPlayerState||catalog.find(p=>p.id===auction?.current_player_id);
+const slotName=n=>(slots.find(x=>x.slot===n)||{}).display_name||`Posto ${n}`;
+const cp=()=>currentPlayerState||catalog.find(p=>p.id===(auction&&auction.current_player_id));
 function rosterInfo(sl){
  const ps=catalog.filter(p=>p.assigned_slot===sl),sm=slots.find(s=>s.slot===sl);
  const total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
@@ -324,7 +328,7 @@ function rosterInfo(sl){
 }
 function roleCount(sl,role){
  const sm=slots.find(s=>s.slot===sl);
- if(sm?._summary?.role_counts&&sm._summary.role_counts[role]!==undefined)return sm._summary.role_counts[role];
+ if(sm&&sm._summary&&sm._summary.role_counts&&sm._summary.role_counts[role]!==undefined)return sm._summary.role_counts[role];
  return catalog.filter(p=>p.assigned_slot===sl&&p.role===role).length
 }
 function roleLimit(role){return league["roster_"+role.toLowerCase()]}
@@ -343,7 +347,7 @@ async function requestRosters(){
 function render(){
  if(!auction||!slotData)return;$("leagueDisplay").textContent=league.name;$("playerName").textContent=slotData.display_name;
  const player=cp(),own=rosterInfo(slot),best=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
- $("current").textContent=player?`${player.name} · ${player.role} · ${player.team||"—"} · Q ${player.value??"—"}`:"Nessun giocatore selezionato";
+ $("current").textContent=player?`${player.name} · ${player.role} · ${player.team||"—"} · Q ${player.value!=null?player.value:"—"}`:"Nessun giocatore selezionato";
  $("info").textContent=`Offerta: ${auction.current_bid} · ${best}${auction.paused?" · PAUSA":""}`;
  $("finance").textContent=`Crediti ${own.remain} · Spesi ${own.spent} · Rosa ${own.ps.length}/${own.total} · Max ${own.max}`;
 
@@ -365,7 +369,7 @@ function render(){
  else{if(["IN ATTESA DELLA PROSSIMA ASTA","NON PARTECIPI A QUESTA ASTA"].includes($("msg").textContent))m($("msg"),"");$("leave").textContent="ABBANDONA ASTA";$("leave").className="leave"}
 }
 function timerTick(){
- if(!auction?.highest_slot||auction.paused||auction.status!=="OPEN"||!auction.timer_deadline){$("phoneTimer").textContent=auction?.paused?"⏸ PAUSA":"—";return}
+ if(!(auction&&auction.highest_slot)||auction.paused||auction.status!=="OPEN"||!auction.timer_deadline){$("phoneTimer").textContent=(auction&&auction.paused)?"⏸ PAUSA":"—";return}
  const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("phoneTimer").textContent=(left/1000).toFixed(1)+" s";
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;
 }
@@ -391,7 +395,7 @@ function applyRegiaState(d){
   league_id:leagueId,slot:x.slot,display_name:x.display_name,active:!!x.active,abandoned:!!x.abandoned,
   _summary:{spent:Number(x.spent||0),remain:Number(x.remain||0),total:Number(x.total||0),max:Number(x.max||0),count:Number(x.roster_count||0),role_counts:x.role_counts||{P:0,D:0,C:0,A:0}}
  }));
- const rosterCountFromRegia=slots.reduce((n,s)=>n+Number(s._summary?.count||0),0);
+ const rosterCountFromRegia=slots.reduce((n,s)=>n+Number(s._summary&&s._summary.count||0),0);
  const rosterCountLocal=catalog.filter(p=>p.assigned_slot).length;
  if(rosterCountFromRegia!==rosterCountLocal)rosterCacheLoaded=false;
  slotData=slots.find(x=>x.slot===slot);
@@ -447,17 +451,17 @@ async function connect(force=false){
    requestState();
  })
  .on("broadcast",{event:"PHONE_STATE"},payload=>{
-   const d=payload?.payload||payload||{};
+   const d=payload&&payload.payload||payload||{};
    applyRegiaState(d);
  })
  .on("broadcast",{event:"ROSTER_STATE"},payload=>{
-   const d=payload?.payload||payload||{};
+   const d=payload&&payload.payload||payload||{};
    catalog=(d.players||[]).map(p=>({...p}));
    rosterCacheLoaded=true;rosterRequestPending=false;
    renderRosterPages();
  })
  .on("broadcast",{event:"CELEBRATE"},payload=>{
-   const d=payload?.payload||payload||{};
+   const d=payload&&payload.payload||payload||{};
    if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE");
  })
  .subscribe(async st=>{
@@ -475,7 +479,7 @@ async function connect(force=false){
 }
 
 document.addEventListener("pointerdown",()=>{
- try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}
+ try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
  if(wakeWanted&&!document.hidden)requestWakeLock(false);
 },{passive:true});
 
@@ -491,7 +495,7 @@ pagesEl.addEventListener("scroll",()=>{
 
 function eventInsideAuction(ev){
  const el=ev.target instanceof Element?ev.target:null;
- return !!el?.closest(".auctionPage");
+ return !!(el&&el.closest(".auctionPage"));
 }
 document.addEventListener("dblclick",ev=>{
  if(eventInsideAuction(ev)){ev.preventDefault();ev.stopPropagation()}
@@ -510,21 +514,21 @@ const errs={COOLDOWN:"Attendi 1 secondo: l'offerta è appena cambiata.",NON_PART
 async function bid(kind,exact=null){
  if(busy)return;
  busy=true;
- const oldBid=auction?.current_bid||0;
- const optimistic=kind==="PLUS1"?oldBid+1:kind==="PLUS10"?oldBid+10:(exact??oldBid);
+ const oldBid=auction&&auction.current_bid||0;
+ const optimistic=kind==="PLUS1"?oldBid+1:kind==="PLUS10"?oldBid+10:(exact!=null?exact:oldBid);
  if(auction){auction.current_bid=optimistic;auction.highest_slot=slot}
  $("info").textContent=`Offerta: ${optimistic} · ${slotName(slot)}`;
  m($("msg"),"Invio offerta...","warn");
  const {data,error}=await db.rpc("fa_place_bid",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
  busy=false;
  if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
- else if(data?.ok){
+ else if(data&&data.ok){
  if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=true;auction.timer_deadline=null}
  m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");render();
  requestState();
 }
- else if(data?.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
- else{m($("msg"),errs[data?.error]||data?.error,"warn");scheduleLoad(20)}
+ else if(data&&data.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
+ else{m($("msg"),errs[data&&data.error]||(data&&data.error),"warn");scheduleLoad(20)}
 }
 $("plus1").onclick=()=>bid("PLUS1");$("plus10").onclick=()=>bid("PLUS10");
 $("leave").onclick=async()=>{
@@ -535,9 +539,9 @@ $("leave").onclick=async()=>{
  render();
  const {data,error}=await db.rpc("fa_leave_v475",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_rejoin:wasAbandoned});
  if(error)m($("msg"),error.message,"bad");
- else if(data?.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
- else if(data?.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
- else m($("msg"),data?.error,"warn");
+ else if(data&&data.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
+ else if(data&&data.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
+ else m($("msg"),data&&data.error,"warn");
  scheduleLoad(25);
 };
 const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";modal.classList.add("show")};document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
@@ -584,5 +588,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508b-ipad"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=508c-legacy"));</script>
 </body></html>
