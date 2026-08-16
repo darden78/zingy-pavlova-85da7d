@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="508l-wakelock">
+<title>FANTASTICA</title><meta name="theme-color" content="#000000"><meta name="fantastica-build" content="511-timer-device-manual">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508l";document.head.appendChild(ml)}}catch(e){}})();</script>
@@ -36,7 +36,7 @@
 
 <div id="nameScreen" class="entry hidden"><div class="entryBox">
  <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2>
- <div id="reclaimBox" class="hidden"><p><b>Dispositivo non riconosciuto.</b></p><p>Per evitare di entrare con l'account di un altro partecipante, il recupero deve essere autorizzato dalla regia.</p><button id="backToLoginBtn" style="background:#555">TORNA INDIETRO</button></div>
+ <div id="reclaimBox" class="hidden"><p><b>Recupero partecipante</b></p><p>La Regia ha autorizzato uno o più partecipanti a usare un nuovo dispositivo. Seleziona chi sei.</p><div id="reclaimChoices"></div><button id="backToLoginBtn" style="background:#555">TORNA INDIETRO</button></div>
  <div id="newNameBox"><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p><input id="participantName" maxlength="30" placeholder="Il tuo nome"><button id="nameBtn">CONFERMA</button></div>
  <div id="nameMsg"></div>
 </div></div>
@@ -378,7 +378,20 @@ function showReclaim(data){
  $("newNameBox").classList.add("hidden");
  $("reclaimBox").classList.remove("hidden");
  $("nameScreen").classList.remove("hidden");
- m($("nameMsg"),"Chiedi alla regia di liberare il tuo vecchio posto, poi rientra con nome lega e password.","warn");
+ const cand=Array.isArray(data.candidates)?data.candidates:[];
+ $("reclaimChoices").innerHTML=cand.map(x=>`<button data-reclaim-slot="${x.slot}">${x.name}</button>`).join("")+(data.can_join_new?'<button id="joinAsNew" style="background:#315f8a">NUOVO PARTECIPANTE</button>':"");
+ document.querySelectorAll("[data-reclaim-slot]").forEach(b=>b.onclick=()=>claimParticipant(+b.dataset.reclaimSlot));
+ if($("joinAsNew"))$("joinAsNew").onclick=()=>claimParticipant(0);
+ m($("nameMsg"),cand.length>1?"Se ci sono più partecipanti in attesa, scegli il tuo nome.":"Seleziona il partecipante da recuperare.","warn");
+}
+async function claimParticipant(claimSlot){
+ try{
+  m($("nameMsg"),"Associazione dispositivo...");
+  const {data,error}=await db.rpc("fa_join_participant_device_v511",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:claimSlot});
+  if(error||!data||!data.ok){m($("nameMsg"),"Errore: "+((error&&error.message)||(data&&data.error)),"bad");return}
+  $("nameScreen").classList.add("hidden");$("reclaimBox").classList.add("hidden");
+  await finishDeviceJoin(data);
+ }catch(e){m($("nameMsg"),"Errore: "+e.message,"bad")}
 }
 $("backToLoginBtn").onclick=()=>{
  $("nameScreen").classList.add("hidden");
@@ -389,7 +402,7 @@ $("loginBtn").onclick=async()=>{
  try{
   await ensureAuth();m($("loginMsg"),"Accesso...");
   pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
-  const {data,error}=await db.rpc("fa_join_participant_device_v476",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
+  const {data,error}=await db.rpc("fa_join_participant_device_v511",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
   if(error||!data||!data.ok){m($("loginMsg"),data&&data.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
   if(data.needs_reclaim){showReclaim(data);return}
   await finishDeviceJoin(data);
@@ -455,7 +468,7 @@ async function load(){
  const [l,a,s]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",leagueId).order("slot")
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,member_enabled,manual_control").eq("league_id",leagueId).order("slot")
  ]);
  if(!l.data){await invalidateParticipant();return}
  league=l.data;auction=a.data;slots=s.data||[];
@@ -470,7 +483,7 @@ async function load(){
    else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
  }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
- if(!slotData||!slotData.display_name){await invalidateParticipant();return}
+ if(!slotData||!slotData.display_name||slotData.member_enabled===false){await invalidateParticipant();return}
  render();
 }
 async function loadCore(){
@@ -478,7 +491,7 @@ async function loadCore(){
  const [l,a,s]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access").eq("league_id",leagueId).order("slot")
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,member_enabled,manual_control").eq("league_id",leagueId).order("slot")
  ]);
  if(!l.data)return;
  league=l.data;auction=a.data;slots=s.data||[];slotData=slots.find(x=>x.slot===slot);
@@ -503,7 +516,7 @@ function rosterPage(s){
  const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
  for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
 }
-function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(rosterPage).join("");faAfterRosterRender()}
+function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.member_enabled!==false&&s.display_name).map(rosterPage).join("");faAfterRosterRender()}
 async function requestRosters(){
  if(rosterCacheLoaded){renderRosterPages();return}
  if(rosterRequestPending||!(channel&&rtConnected))return;
@@ -566,6 +579,7 @@ function applyRegiaState(d){
  const rosterCountLocal=catalog.filter(p=>p.assigned_slot).length;
  if(rosterCountFromRegia!==rosterCountLocal)rosterCacheLoaded=false;
  slotData=slots.find(x=>x.slot===slot);
+ if(!slotData){invalidateParticipant();return}
  lastRegiaStateAt=Date.now();
  if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
  if(prevPhase!==null&&league.role_phase!==prevPhase){
@@ -733,11 +747,12 @@ async function bid(kind,exact=null){
  busy=false;
  if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
  else if(data&&data.ok){
- if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=true;auction.timer_deadline=null}
+ if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=!!data.paused;auction.timer_deadline=data.timer_deadline||null}
  m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");render();
  requestState();
 }
  else if(data&&data.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
+ else if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant()}
  else{m($("msg"),errs[data&&data.error]||(data&&data.error),"warn");scheduleLoad(20)}
 }
 $("plus1").onclick=()=>bid("PLUS1");$("plus10").onclick=()=>bid("PLUS10");
@@ -751,6 +766,7 @@ $("leave").onclick=async()=>{
  if(error)m($("msg"),error.message,"bad");
  else if(data&&data.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
  else if(data&&data.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
+ else if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return}
  else m($("msg"),data&&data.error,"warn");
  scheduleLoad(25);
 };

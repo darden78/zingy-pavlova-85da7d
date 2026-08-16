@@ -16,8 +16,8 @@
 .workspace{display:grid;grid-template-columns:minmax(245px,.85fr) minmax(630px,2.2fr) minmax(310px,1.05fr);gap:12px;align-items:start}
 .side{height:calc(100vh - 90px);background:#181818;border-radius:14px;padding:10px;overflow:hidden;position:sticky;top:8px}.side h2{font-size:17px;margin:3px 0 7px}
 .center{min-width:0}.hero{background:#202020;border-radius:16px;padding:12px;text-align:center}.currentPlayer{background:#171717;border-radius:12px;padding:10px;margin-bottom:9px;min-height:68px}.currentPlayer .pn{font-size:25px;font-weight:900}.currentPlayer .meta{color:#bbb;font-size:14px}
-.amount{font-size:72px;line-height:.95;font-weight:900}.who{font-size:25px}.timer{font-size:38px;font-weight:900;margin-top:5px}.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}.controls button{border:0;border-radius:10px;padding:9px 13px;color:#fff;font-weight:800;cursor:pointer}.pause{background:#9b6b20}.undo{background:#315f8a}.newAuction{background:#2f8f57}.confirmBuy{background:#8b5fc5}.controls button:disabled{opacity:.35;cursor:default}.eventPos{font-size:12px;color:#999;margin-top:6px}
-.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.p{background:#202020;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #555}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.ps{font-size:11px;margin-top:4px;color:#aaa}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}
+.amount{font-size:72px;line-height:.95;font-weight:900}.who{font-size:25px}.timer{font-size:38px;font-weight:900;margin-top:5px}.timerModeBadge{display:inline-block;margin-top:5px;padding:4px 9px;border-radius:999px;background:#151515;border:1px solid #444;color:#bbb;font-size:11px;font-weight:900;letter-spacing:.3px}.timerModeBadge.auto{border-color:#9a7426;color:#ffd36a}.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}.controls button{border:0;border-radius:10px;padding:9px 13px;color:#fff;font-weight:800;cursor:pointer}.pause{background:#9b6b20}.undo{background:#315f8a}.newAuction{background:#2f8f57}.confirmBuy{background:#8b5fc5}.controls button:disabled{opacity:.35;cursor:default}.eventPos{font-size:12px;color:#999;margin-top:6px}
+.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.p{background:#202020;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #555}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.dot.manual{background:#ffc857}.ps{font-size:11px;margin-top:4px;color:#aaa}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}.manualState{color:#ffc857}.manualCtl{margin-top:6px;width:100%;border:0;border-radius:7px;padding:5px 7px;background:#9a7426;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
 table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;overflow:hidden;font-size:12px}th,td{padding:7px;border-bottom:1px solid #333;text-align:left}
 .rosterHead{font-size:14px;color:#bbb;line-height:1.35;margin-bottom:7px}.rosterName{font-size:24px;font-weight:900}.rosterStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 9px;margin:7px 0;font-size:13px}
 .roleBlock{margin-top:6px}.roleTitle{font-size:13px;font-weight:900;color:#ddd;border-bottom:1px solid #333;margin-bottom:2px}.rosterRow{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:clamp(11px,1.45vh,15px);line-height:1.35;white-space:nowrap;min-height:18px;align-items:center}.rosterRow span:first-child{overflow:hidden;text-overflow:ellipsis}.rosterRow.manageable{cursor:pointer;border-radius:6px;padding:2px 4px}.rosterRow.manageable:hover{background:#303030;outline:1px solid #555}.emptyLine{color:#555}
@@ -25,8 +25,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .roleFilters{display:flex;gap:4px;margin-bottom:6px}.roleFilters button{flex:1;border:0;border-radius:7px;padding:6px;background:#2c2c2c;color:#fff;font-weight:800;cursor:pointer}.roleFilters button.active{background:#2f8f57}
 .playerList{height:calc(100vh - 300px);overflow:auto}.listRow{display:grid;grid-template-columns:1fr 30px 30px;gap:4px;align-items:center;border-bottom:1px solid #292929;padding:5px 2px;cursor:pointer}.listRow:hover{background:#242424}.listName{font-size:12px;font-weight:800}.listMeta{font-size:10px;color:#aaa}.editBtn{border:0;border-radius:6px;background:#444;color:#fff;height:27px;cursor:pointer}.assigned{opacity:.45}.modifiedMark{color:#ffc857}
 .importBox{background:#202020;border-radius:10px;padding:8px;margin-bottom:7px}.importBox input[type=file]{width:100%;font-size:11px}.importActions{display:flex;gap:5px;margin-top:5px}.importActions input{min-width:0;flex:1;padding:6px;background:#2b2b2b;color:#fff;border:0;border-radius:7px}.importActions button{border:0;border-radius:7px;background:#315f8a;color:#fff;font-weight:800;padding:6px 8px}
-.settingsPanel{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50}.settingsPanel.show{display:flex}.settingsBox{width:min(590px,94vw);max-height:92vh;overflow:auto;background:#202020;border-radius:15px;padding:18px}.settingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.settingsGrid label{font-size:12px;color:#bbb}.settingsGrid input{width:100%;padding:9px;border:0;border-radius:8px}.full{grid-column:1/-1}.settingsActions{display:flex;gap:8px;margin-top:12px}.settingsActions button{flex:1;padding:11px;border:0;border-radius:9px;font-weight:900}.saveSettings{background:#2f8f57;color:#fff}.closeSettings{background:#444;color:#fff}.danger{background:#8b3030!important;color:#fff}
-.linkBox{background:#202020;border-radius:12px;padding:10px;margin-top:12px}.linkRow{display:grid;grid-template-columns:90px 1fr 72px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.linkRow code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bbb;font-size:11px}.copyLink{border:0;border-radius:7px;padding:7px;background:#315f8a;color:#fff;font-weight:800;cursor:pointer}.manageRow{display:grid;grid-template-columns:1fr 80px 70px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.manageRow button{border:0;border-radius:7px;padding:6px;color:#fff}.rename{background:#315f8a}.release{background:#8b3030}
+.settingsPanel{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50}.settingsPanel.show{display:flex}.settingsBox{width:min(590px,94vw);max-height:92vh;overflow:auto;background:#202020;border-radius:15px;padding:18px}.settingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.settingsGrid label{font-size:12px;color:#bbb}.settingsGrid input,.settingsGrid select{width:100%;padding:9px;border:0;border-radius:8px}.full{grid-column:1/-1}.settingsActions{display:flex;gap:8px;margin-top:12px}.settingsActions button{flex:1;padding:11px;border:0;border-radius:9px;font-weight:900}.saveSettings{background:#2f8f57;color:#fff}.closeSettings{background:#444;color:#fff}.danger{background:#8b3030!important;color:#fff}
+.linkBox{background:#202020;border-radius:12px;padding:10px;margin-top:12px}.linkRow{display:grid;grid-template-columns:90px 1fr 72px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.linkRow code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bbb;font-size:11px}.copyLink{border:0;border-radius:7px;padding:7px;background:#315f8a;color:#fff;font-weight:800;cursor:pointer}.manageRow{display:grid;grid-template-columns:minmax(110px,1fr) 76px 104px 92px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.manageRow button{border:0;border-radius:7px;padding:6px;color:#fff;font-size:11px;font-weight:800;cursor:pointer}.manageMeta{font-size:10px;color:#aaa;margin-top:2px}.rename{background:#315f8a}.deviceAction{background:#6c5a2a}.manualAction{background:#9a7426}.manualAction.on{background:#28764b}.excludedBox{margin-top:12px;padding-top:8px;border-top:1px solid #444}.excludedBox h4{margin:4px 0;color:#ffc857}.excludedRow{display:grid;grid-template-columns:1fr 80px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #333}.excludedRow button{border:0;border-radius:7px;padding:6px;background:#315f8a;color:#fff;font-weight:800;cursor:pointer}.memberPick{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #333;background:#181818}.memberPick input{transform:scale(1.25)}.memberPick small{color:#aaa}
 .rosterModal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:900}.rosterModal.show{display:flex}.rosterModalBox{position:relative;width:min(560px,94vw);max-height:88vh;overflow:auto;background:#202020;border-radius:16px;padding:18px;box-shadow:0 18px 60px #000}.rosterModalBox h2{margin:0 0 8px;font-size:27px}.rosterModalBox p{color:#bbb}.rosterModalActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.rosterModalActions button,.rosterChoice{border:0;border-radius:11px;padding:12px 16px;color:#fff;font-weight:900;cursor:pointer;background:#315f8a}.rosterModalActions .dangerAction{background:#8b3030}.rosterModalActions .swapAction{background:#8b5fc5}.rosterModalActions .neutralAction{background:#444}.rosterChoice{display:block;width:100%;text-align:left;margin:7px 0;background:#303030}.rosterChoice:hover{background:#3a3a3a}.refundInput{width:100%;padding:12px;border:0;border-radius:9px;background:#111;color:#fff;font-size:22px;font-weight:900}.selectionHint{background:#4f3f19;color:#ffd978;border-radius:9px;padding:8px 10px;margin-bottom:8px;font-weight:800}.rosterModalClose{position:absolute;top:8px;right:10px;width:34px;height:34px;border:0;border-radius:50%;background:#3a3a3a;color:#fff;font-size:24px;line-height:30px;font-weight:900;cursor:pointer}.rosterModalClose:hover{background:#555}.rosterRow.outOfList{background:#4a2020!important;outline:1px solid #a84b4b;color:#ffd0d0}.outListTag{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:5px;background:#8b3030;color:#fff;font-size:9px;font-weight:900;vertical-align:1px}.outListWarning{margin:10px 0;padding:9px;border-radius:9px;background:#4a2020;color:#ffd0d0;font-weight:900}
 @media(max-width:1250px){.workspace{grid-template-columns:240px 1fr}.rightSide{grid-column:1/-1;position:static;height:70vh}.players{grid-template-columns:repeat(3,1fr)}}
 
@@ -93,7 +93,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
   <main class="center">
    <div class="hero">
     <div id="currentPlayer" class="currentPlayer"><div class="pn">Seleziona un giocatore dal listone</div></div>
-    <div>OFFERTA ATTUALE</div><div id="amount" class="amount">0</div><div id="who" class="who">Nessun offerente</div><div id="timer" class="timer">—</div><div id="closed"></div>
+    <div>OFFERTA ATTUALE</div><div id="amount" class="amount">0</div><div id="who" class="who">Nessun offerente</div><div id="timer" class="timer">—</div><div id="timerModeBadge" class="timerModeBadge">TIMER: MANUALE</div><div id="closed"></div>
     <div class="controls">
      <button id="prevEvent" class="undo">◀ EVENTO PRECEDENTE</button>
      <button id="pauseTimer" class="pause">▶ AVVIA TIMER</button>
@@ -132,6 +132,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
   <div class="full"><label>Nome lega</label><input id="setName"></div>
   <div><label>Partecipanti lega</label><input id="setMembers" type="number" min="2" max="12"></div>
   <div><label>Timer (s)</label><input id="setDuration" type="number" min="1" max="600"></div>
+  <div><label>Modalità timer</label><select id="setTimerMode"><option value="MANUAL">Manuale</option><option value="AUTO">Automatico</option></select></div>
   <div><label>Crediti iniziali</label><input id="setCredits" type="number" min="1"></div>
   <div><label>Portieri</label><input id="setP" type="number" min="0"></div>
   <div><label>Difensori</label><input id="setD" type="number" min="0"></div>
@@ -226,7 +227,7 @@ $("celebrate").onclick=e=>{if(e.target.id==="celebrate"&&!lastComplete)$("celebr
 function roleOrderValues(cls){return [...document.querySelectorAll(cls)].map(x=>x.value)}
 function validRoleOrder(a){return a.length===4&&new Set(a).size===4&&["P","D","C","A"].every(x=>a.includes(x))}
 function fillRoleSelects(cls,order){document.querySelectorAll(cls).forEach((s,i)=>{s.innerHTML=["P","D","C","A"].map(r=>`<option ${r===order[i]?"selected":""}>${r}</option>`).join("")})}
-function eligibleSlotsFor(role){if(!league||!role)return[];const lim=league["roster_"+role.toLowerCase()];return slots.filter(s=>s.slot<=league.member_limit&&s.display_name).filter(s=>catalog.filter(p=>p.assigned_slot===s.slot&&p.role===role).length<lim)}
+function eligibleSlotsFor(role){if(!league||!role)return[];const lim=league["roster_"+role.toLowerCase()];return slots.filter(s=>s.member_enabled!==false&&s.display_name).filter(s=>catalog.filter(p=>p.assigned_slot===s.slot&&p.role===role).length<lim)}
 async function checkProgress(){
  if(progressBusy||!league)return;progressBusy=true;
  try{
@@ -370,7 +371,7 @@ async function load(runProgress=true){
  const [l,a,s,b,p]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30),
   db.from("fa_players").select("*").eq("league_id",league.id)
  ]);
@@ -392,7 +393,7 @@ async function loadCore(){
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30)
  ]);
  if(l.error||a.error||s.error||b.error)return;
@@ -469,7 +470,7 @@ function phoneStatePayload(){
    id:p.id,name:p.name,team:p.team,role:p.role,value:p.value??p.quotation??null,
    quotation:p.quotation??p.value??null,assigned_slot:p.assigned_slot,assigned_price:p.assigned_price
   }:null,
-  participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(phoneParticipantState)
+  participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(phoneParticipantState)
  };
 }
 async function pushPhoneState(){
@@ -617,7 +618,7 @@ function canStillParticipateInCurrentAuction(s){
  const maxSpend=(Number(league.credits_initial||0)-r.playerSpent+r.adjustment)-Math.max(0,total-r.ps.length-1)*minPrice;
  return roleCount<roleLimit&&r.ps.length<total&&maxSpend>=minPrice;
 }
-function offlineClosingBlockers(){return slots.filter(s=>canStillParticipateInCurrentAuction(s)&&!online(s))}
+function offlineClosingBlockers(){return slots.filter(s=>canStillParticipateInCurrentAuction(s)&&!s.manual_control&&!online(s))}
 
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
@@ -644,9 +645,12 @@ function render(){
  $("offlineGuard").textContent=offlineBlockers.length?`⚠ CHIUSURA BLOCCATA — ${offlineNames.join(", ")} offline`:"";
  $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
- const visible=slots.filter(s=>s.slot<=league.member_limit);
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot;return `<div class="p" data-slot="${s.slot}"><span class="dot ${online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":s.active?"in":""}">${hi?"MAGGIORE OFFERENTE":s.abandoned?"ABBANDONATO":s.active?"IN GARA":"NON IN GARA"}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>`:""}</div>`}).join("");
- document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=()=>{selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
+ const visible=slots.filter(s=>s.member_enabled!==false);
+ const tm=(league.timer_mode||"MANUAL").toUpperCase();
+ $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control;const state=hi?(manual?"MAGGIORE OFFERENTE · MANUALE":"MAGGIORE OFFERENTE"):s.abandoned?"ABBANDONATO":manual?"GESTIONE MANUALE":s.active?"IN GARA":"NON IN GARA";return `<div class="p" data-slot="${s.slot}"><span class="dot ${manual?"manual":online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":manual?"manualState":s.active?"in":""}">${state}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
+ document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
+ document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
  const hist=syncHistoryOffset(),histTotal=hist.length;
  $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
@@ -946,31 +950,68 @@ function showRepairConfirmStep(){
  $("repairConfirm").onclick=async()=>{const btn=$("repairConfirm");btn.disabled=true;msg($("repairStepMsg"),"Preparazione mercato di riparazione...","warn");try{const {data,error}=await db.rpc("fa_start_repair_market",{p_league_id:league.id,p_backup:repairDraft.backup,p_source:repairDraft.listSource,p_players:repairDraft.listPlayers,p_bonus:repairDraft.bonus,p_auction_mode:repairDraft.auctionMode});if(error||!data?.ok)throw new Error(error?.message||data?.error||"Operazione non riuscita");closeRosterModal();$("settingsPanel").classList.remove("show");selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;if($("listSource"))$("listSource").value=repairDraft.listSource;await load(false);msg($("status"),`✓ Mercato di riparazione preparato · +${data.bonus} crediti · ${data.out_of_list} giocatori FUORI LISTONE`,"ok")}catch(e){btn.disabled=false;msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
 }
 
-$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";refreshMirrorLink();$("settingsPanel").classList.add("show")};
+function chooseMemberSlots(candidates,required,title,description,allowEmpty=false){
+ return new Promise(resolve=>{
+  if(required<=0){resolve([]);return}
+  if(candidates.length<required){alert("Non ci sono abbastanza posti disponibili per questa modifica.");resolve(null);return}
+  const rows=candidates.map(s=>`<label class="memberPick"><input type="checkbox" data-member-pick="${s.slot}"><span><b>${s.display_name?escHtml(s.display_name):`Nuovo posto libero (slot ${s.slot})`}</b><br><small>${s.display_name?`Rosa conservata: ${rosterInfo(s.slot).ps.length} giocatori`:"Nessun partecipante associato"}</small></span></label>`).join("");
+  showRosterModal(`<h2>${title}</h2><p>${description}</p><p>Devi selezionare <b>${required}</b> voce${required===1?"":"i"}.</p>${rows}<div id="memberPickMsg"></div><div class="rosterModalActions"><button id="memberPickConfirm" class="swapAction">CONFERMA</button><button id="memberPickCancel" class="neutralAction">ANNULLA</button></div>`);
+  $("memberPickCancel").onclick=()=>{closeRosterModal();resolve(null)};
+  $("rosterModalX").onclick=()=>{closeRosterModal();resolve(null)};
+  $("memberPickConfirm").onclick=()=>{const picked=[...document.querySelectorAll("[data-member-pick]:checked")].map(x=>+x.dataset.memberPick);if(picked.length!==required){msg($("memberPickMsg"),`Seleziona esattamente ${required} voce${required===1?"":"i"}.`,"bad");return}closeRosterModal();resolve(picked)};
+ });
+}
+
+function manualBidError(er){return er==="COOLDOWN"?"Attendi un istante prima del rilancio.":er==="SUPERA_MASSIMO"?"L'offerta supera il massimo spendibile.":er==="MAGGIORE_OFFERENTE_NON_PUO_ABBANDONARE"?"Il maggiore offerente non può abbandonare.":er||"Operazione non riuscita"}
+function showManualAuction(slotNo){
+ const s=slots.find(x=>x.slot===slotNo);if(!s?.display_name||!s.manual_control)return;
+ const active=auction?.status==="OPEN"&&auction?.current_player_id&&s.active;
+ const hi=auction?.highest_slot===slotNo;
+ const leaveText=s.abandoned?"RIPRENDI ASTA":"ABBANDONA ASTA";
+ showRosterModal(`<h2>${escHtml(s.display_name)} — MANUALE</h2><p>${active?`Offerta attuale: <b>${auction.current_bid}</b> · ${auction.highest_slot?escHtml(slotName(auction.highest_slot)):"nessun offerente"}`:"Il partecipante non è attualmente in un'asta attiva."}</p><div class="rosterModalActions"><button id="manualPlus1" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>+1</button><button id="manualPlus10" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>+10</button><button id="manualExact" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>IMPORTO</button><button id="manualLeave" class="${s.abandoned?"swapAction":"dangerAction"}" ${active&&!hi||s.abandoned&&active?"":"disabled"}>${leaveText}</button></div><div id="manualBidMsg"></div>`);
+ const bid=async(kind,exact=null)=>{const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:slotNo,p_kind:kind,p_exact:exact});if(error||!data?.ok){msg($("manualBidMsg"),manualBidError(error?.message||data?.error),"bad");return}await load(false);showManualAuction(slotNo)};
+ $("manualPlus1").onclick=()=>bid("PLUS1");$("manualPlus10").onclick=()=>bid("PLUS10");$("manualExact").onclick=()=>{const v=prompt("Importo esatto:",String((auction?.current_bid||0)+1));if(v===null)return;const n=Number(v);if(!Number.isInteger(n)){msg($("manualBidMsg"),"Inserisci un importo intero.","bad");return}bid("EXACT",n)};
+ $("manualLeave").onclick=async()=>{const {data,error}=await db.rpc("fa_leave_manual_v511",{p_league_id:league.id,p_slot:slotNo,p_rejoin:!!s.abandoned});if(error||!data?.ok){msg($("manualBidMsg"),manualBidError(error?.message||data?.error),"bad");return}await load(false);showManualAuction(slotNo)};
+}
+
+$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setTimerMode").value=league.timer_mode||"MANUAL";$("setTimerMode").disabled=auction?.status==="OPEN"&&!!auction?.current_player_id;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";refreshMirrorLink();renderManage();$("settingsPanel").classList.add("show")};
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
 $("copyMirrorLink").onclick=copyMirrorLink;
 $("repairMarketBtn").onclick=startRepairWizard;
 $("saveSettings").onclick=async()=>{
- if(+$("setMembers").value<2||+$("setMembers").value>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
+ const target=+$("setMembers").value;
+ if(target<2||target>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
- const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:+$("setMembers").value,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord};
- const {data,error}=await db.rpc("fa_set_full_settings_v485",args);if(error||!data?.ok)msg($("settingsMsg"),"Errore: "+(error?.message||data?.error),"bad");else{msg($("settingsMsg"),"✓ Salvato","ok");await load()}
+ if(target!==league.member_limit&&auction?.status==="OPEN"&&auction?.current_player_id){msg($("settingsMsg"),"Concludi l'asta del giocatore corrente prima di cambiare il numero dei partecipanti.","bad");return}
+ let disableSlots=[],enableSlots=[];
+ if(target<league.member_limit){
+   const named=slots.filter(s=>s.member_enabled!==false&&s.display_name),need=Math.max(0,named.length-target);
+   if(need>0){const picked=await chooseMemberSlots(named,need,"RIDUCI PARTECIPANTI",`Seleziona ${need} partecipant${need===1?"e":"i"} da escludere. Rosa e crediti resteranno conservati.`);if(!picked)return;disableSlots=picked}
+ }else if(target>league.member_limit){
+   const diff=target-league.member_limit,disabled=slots.filter(s=>s.member_enabled===false);
+   const excluded=disabled.filter(s=>s.display_name);
+   if(excluded.length){const picked=await chooseMemberSlots(disabled,diff,"AUMENTA PARTECIPANTI",`Scegli quali posti riattivare. Le voci con una rosa conservata possono tornare in lega; i posti liberi accetteranno un nuovo partecipante.`,true);if(!picked)return;enableSlots=picked}
+ }
+ const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:target,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord,p_timer_mode:$("setTimerMode").value,p_disable_slots:disableSlots,p_enable_slots:enableSlots};
+ const {data,error}=await db.rpc("fa_set_full_settings_v511",args);
+ if(error||!data?.ok){const er=error?.message||data?.error;msg($("settingsMsg"),"Errore: "+(er==="CAMBIO_TIMER_DURANTE_ASTA"?"la modalità timer si cambia solo tra un'asta e la successiva.":er),"bad");return}
+ msg($("settingsMsg"),"✓ Salvato — funzioni nuove DA TESTARE","ok");await load();renderManage();
 };
 
 
 function exportRows(){
- return slots.filter(s=>s.slot<=league.member_limit&&s.display_name).flatMap(s=>{
+ return slots.filter(s=>s.member_enabled!==false&&s.display_name).flatMap(s=>{
   const r=rosterInfo(s.slot);
   return r.ps.map(p=>({"Partecipante":s.display_name,"Ruolo":p.role,"Giocatore":p.name,"Squadra":p.team||"","Quotazione":p.value??"","Prezzo pagato":p.assigned_price||0,"Crediti residui":r.remain}));
  });
 }
 function exportFantasticaData(){
- return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:r.ps.map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,in_current_list:p.in_current_list!==false}))}})};
+ return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:r.ps.map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,in_current_list:p.in_current_list!==false}))}})};
 }
 function escHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function exportPdfHtml(){
  let h=`<!doctype html><html><head><meta charset="utf-8"><title>FANTASTICA - ${escHtml(league.name)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#111}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}</style></head><body><h1>FANTASTICA — ${escHtml(league.name)}</h1>`;
- for(const s of slots.filter(s=>s.slot<=league.member_limit&&s.display_name)){
+ for(const s of slots.filter(s=>s.member_enabled!==false&&s.display_name)){
   const r=rosterInfo(s.slot);
   h+=`<div class="team"><h2>${escHtml(s.display_name)} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${[...r.ps].sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${escHtml(p.role)}</td><td>${escHtml(p.name)}</td><td>${escHtml(p.team||"")}</td><td>${p.assigned_price||0}</td></tr>`).join("")}</table></div>`;
  }
@@ -1015,9 +1056,12 @@ async function exportAllFiles(){
 $("exportAll").onclick=e=>{e.stopPropagation();exportAllFiles()};
 
 function renderManage(){
- $("managePlayers").innerHTML=slots.filter(s=>s.slot<=league.member_limit&&s.display_name).map(s=>`<div class="manageRow"><span>${s.display_name}</span><button class="rename" data-ren="${s.slot}">RINOMINA</button><button class="release" data-rel="${s.slot}">LIBERA</button></div>`).join("")||"Nessun partecipante.";
- document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.ren),n=prompt("Nuovo nome:",s.display_name);if(n?.trim()){await db.rpc("fa_rename_slot",{p_league_id:league.id,p_slot:s.slot,p_name:n.trim()});await load()}});
- document.querySelectorAll("[data-rel]").forEach(b=>b.onclick=async()=>{if(confirm("Liberare il posto?")){await db.rpc("fa_release_slot",{p_league_id:league.id,p_slot:+b.dataset.rel});await load()}});
+ const active=slots.filter(s=>s.member_enabled!==false&&s.display_name),excluded=slots.filter(s=>s.member_enabled===false&&s.display_name);
+ $("managePlayers").innerHTML=active.map(s=>`<div class="manageRow"><span><b>${escHtml(s.display_name)}</b><div class="manageMeta">${s.manual_control?"GESTIONE MANUALE":s.device_reclaim_open?"IN ATTESA DI NUOVO DISPOSITIVO":online(s)?"DISPOSITIVO ONLINE":"DISPOSITIVO OFFLINE"}</div></span><button class="rename" data-ren="${s.slot}">RINOMINA</button><button class="deviceAction" data-device="${s.slot}">CAMBIA DISP.</button><button class="manualAction ${s.manual_control?"on":""}" data-manual="${s.slot}">${s.manual_control?"STOP MANUALE":"MANUALE"}</button></div>`).join("")||"Nessun partecipante.";
+ if(excluded.length)$("managePlayers").insertAdjacentHTML("beforeend",`<div class="excludedBox"><h4>ESCLUSI — ROSE CONSERVATE</h4>${excluded.map(s=>`<div class="excludedRow"><span>${escHtml(s.display_name)} <small>· ${rosterInfo(s.slot).ps.length} giocatori</small></span><button data-ren="${s.slot}">RINOMINA</button></div>`).join("")}</div>`);
+ document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.ren),n=prompt("Nuovo nome:",s.display_name);if(n?.trim()){const {data,error}=await db.rpc("fa_rename_slot",{p_league_id:league.id,p_slot:s.slot,p_name:n.trim()});if(error||!data?.ok){alert(error?.message||data?.error);return}await load();renderManage()}});
+ document.querySelectorAll("[data-device]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.device);if(!confirm(`Scollegare il dispositivo di ${s.display_name}?\nIl partecipante e la sua rosa restano invariati. Il nuovo dispositivo potrà recuperare questo nome dopo il login.`))return;const {data,error}=await db.rpc("fa_detach_participant_device_v511",{p_league_id:league.id,p_slot:s.slot});if(error||!data?.ok){alert(error?.message||data?.error);return}const manual=confirm(`${s.display_name} resterà senza dispositivo.\n\nOK = gestiscilo MANUALMENTE dalla Regia\nANNULLA = lascialo OFFLINE finché non entra col nuovo dispositivo`);if(manual){const r=await db.rpc("fa_set_participant_manual_v511",{p_league_id:league.id,p_slot:s.slot,p_manual:true});if(r.error||!r.data?.ok){alert(r.error?.message||r.data?.error);return}}await load(false);renderManage();msg($("settingsMsg"),`✓ ${s.display_name}: dispositivo scollegato${manual?" · GESTIONE MANUALE":" · OFFLINE"} — DA TESTARE`,"warn")});
+ document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.manual),toManual=!s.manual_control;const text=toManual?`Passare ${s.display_name} in GESTIONE MANUALE?\nL'eventuale dispositivo associato verrà scollegato.`:`Terminare la gestione manuale di ${s.display_name}?\nResterà senza dispositivo finché non effettua il recupero.`;if(!confirm(text))return;const {data,error}=await db.rpc("fa_set_participant_manual_v511",{p_league_id:league.id,p_slot:s.slot,p_manual:toManual});if(error||!data?.ok){alert(error?.message||data?.error);return}await load(false);renderManage();msg($("settingsMsg"),`✓ ${s.display_name}: ${toManual?"GESTIONE MANUALE":"GESTIONE MANUALE TERMINATA"} — DA TESTARE`,"warn")});
 }
 $("deleteLeague").onclick=async()=>{if(!confirm(`Cancellare definitivamente "${league.name}"?`))return;const pwd=prompt("Inserisci la password della lega per confermare:");if(pwd===null)return;if(!confirm("Ultima conferma: operazione irreversibile."))return;const {data,error}=await db.rpc("fa_delete_league",{p_league_id:league.id,p_password:pwd});if(error||!data?.ok){alert(data?.error==="PASSWORD_ERRATA"?"Password errata.":(error?.message||data?.error));return}$("settingsPanel").classList.remove("show");$("changeLeague").click()};
 

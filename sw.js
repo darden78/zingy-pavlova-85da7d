@@ -1,4 +1,4 @@
-const CACHE="fantastica-v508n-mirror-email-pc";
+const CACHE="fantastica-v511-timer-device-manual-20260816";
 const ASSETS=["./","./index.html","./telefono.html","./verify.html","./installa.html","./qr-installa.png","./pc.html","./spettatore.html","./config.js","./manifest.webmanifest","./manifest-phone.webmanifest","./manifest-pc.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./installa.html"];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
