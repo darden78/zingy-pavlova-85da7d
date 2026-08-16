@@ -1,10 +1,10 @@
 {
-  "name": "FANTASTICA - Regia",
+  "name": "FANTASTICA",
   "short_name": "FANTASTICA",
   "start_url": "/zingy-pavlova-85da7d/pc.html",
   "display": "standalone",
-  "background_color": "#0e0e0e",
-  "theme_color": "#101010",
+  "background_color": "#031a33",
+  "theme_color": "#031a33",
   "icons": [
     {
       "src": "/zingy-pavlova-85da7d/icon-192.png",

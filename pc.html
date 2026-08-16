@@ -575,7 +575,7 @@ function mirrorPublicUrl(){
  return league?`${PUBLIC_BASE_URL}/spettatore.html?lega=${encodeURIComponent(league.id)}`:"";
 }
 function mirrorPartState(){
- const right=document.querySelector("#regia .rightSide"),top=document.querySelector("#regia .top"),controls=document.querySelector("#regia .controls"),celebrate=$("celebrate");
+ const right=document.querySelector("#regia .rightSide"),top=document.querySelector("#regia .regiaHeader"),controls=document.querySelector("#regia .controls"),celebrate=$("celebrate"),offlineGuard=$("offlineGuard");
  return{
   top:top?.innerHTML||"",
   status:{html:$("status")?.innerHTML||"",className:$("status")?.className||""},
@@ -584,7 +584,9 @@ function mirrorPartState(){
   amount:$("amount")?.textContent||"",
   who:$("who")?.textContent||"",
   timer:$("timer")?.textContent||"—",
+  timerModeBadge:{text:$("timerModeBadge")?.textContent||"",className:$("timerModeBadge")?.className||"timerModeBadge"},
   closed:$("closed")?.textContent||"",
+  offlineGuard:{html:offlineGuard?.innerHTML||"",className:offlineGuard?.className||"offlineGuard"},
   controls:controls?.innerHTML||"",
   eventPos:$("eventPos")?.textContent||"",
   players:$("players")?.innerHTML||"",
