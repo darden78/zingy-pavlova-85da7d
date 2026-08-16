@@ -459,14 +459,8 @@ async function load(runProgress=true){
   db.from("fa_players").select("*").eq("league_id",league.id)
  ]);
  if(l.error||a.error||s.error||b.error||p.error){msg($("status"),"Errore lettura database","bad");return}
- const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  render();
- if(prevPhase!==null&&league.role_phase!==prevPhase){
-   const repair=league.auction_session==="REPAIR";
-   if(league.auction_complete&&!prevComplete)showCelebration(repair?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`${repair?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE"} PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
- }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -960,7 +954,11 @@ async function connect(){
    })
    .on("broadcast",{event:"CELEBRATE"},payload=>{
       const d=payload?.payload||payload||{};
-      if(d.message)showParticipantCelebration(d.message);
+      if(d.message){
+        if(d.kind==="GLOBAL_COMPLETE")showCelebration(d.message,true);
+        else if(d.kind==="GLOBAL_ROLE_COMPLETE")showCelebration(d.message,false);
+        else showParticipantCelebration(d.message);
+      }
       scheduleLoad(8);
    })
 .on("presence",{event:"sync"},()=>{syncPhonePresence()})

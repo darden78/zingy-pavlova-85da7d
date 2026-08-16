@@ -128,7 +128,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 <div id="mirrorCelebrate" class="celebrate"></div>
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v513-mirror";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v514-celebrations";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 const ua=navigator.userAgent||"";
 const isMobileDevice=/Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
@@ -136,6 +136,13 @@ const leagueId=new URLSearchParams(location.search).get("lega")||"";
 let channel=null,retry=null,requestTimer=null,waitingFresh=true;
 const chunkTransfers=new Map();
 function setBadge(text,kind=""){const b=$("liveBadge");b.textContent=text;b.className="viewerBadge"+(kind?" "+kind:"")}
+let mirrorCelebrating=false;
+function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faMirrorAudio=window.__faMirrorAudio||new C();return window.__faMirrorAudio}
+function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
+function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
+function syncCelebrationSound(className){const visible=String(className||"").split(/\s+/).includes("show");if(visible&&!mirrorCelebrating)fireworksSound();mirrorCelebrating=visible}
+function unlockMirrorAudio(){try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}}
+document.addEventListener("pointerdown",unlockMirrorAudio,{passive:true});document.addEventListener("keydown",unlockMirrorAudio,{passive:true});
 function lockInteractions(){document.querySelectorAll("#mirrorView a,#mirrorView button,#mirrorView input,#mirrorView select").forEach(el=>el.tabIndex=-1)}
 function applyView(d){
  if(!d||d.league_id!==leagueId)return;
@@ -155,7 +162,7 @@ function applyView(d){
  if(Object.prototype.hasOwnProperty.call(p,"players"))$("players").innerHTML=p.players;
  if(Object.prototype.hasOwnProperty.call(p,"log"))$("log").innerHTML=p.log;
  if(Object.prototype.hasOwnProperty.call(p,"rightSide"))$("mirrorRight").innerHTML=p.rightSide;
- if(Object.prototype.hasOwnProperty.call(p,"celebrate")){$("mirrorCelebrate").innerHTML=p.celebrate?.html||"";$("mirrorCelebrate").className=p.celebrate?.className||"celebrate"}
+ if(Object.prototype.hasOwnProperty.call(p,"celebrate")){const cls=p.celebrate?.className||"celebrate";$("mirrorCelebrate").innerHTML=p.celebrate?.html||"";$("mirrorCelebrate").className=cls;syncCelebrationSound(cls)}
  waitingFresh=false;clearInterval(requestTimer);requestTimer=null;
  $("mirrorWaiting").classList.add("hidden");setBadge("SOLA VISIONE · LIVE");lockInteractions();
 }

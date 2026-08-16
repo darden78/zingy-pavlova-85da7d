@@ -495,12 +495,7 @@ async function load(){
  if(auction&&auction.current_player_id)pq=pq.or(`assigned_slot.not.is.null,id.eq.${auction.current_player_id}`);
  else pq=pq.not("assigned_slot","is",null);
  const p=await pq;
- const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
  catalog=p.data||[];slotData=slots.find(x=>x.slot===slot);
- if(prevPhase!==null&&league.role_phase!==prevPhase){
-   if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
- }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(!slotData||!slotData.display_name||slotData.member_enabled===false){await invalidateParticipant();return}
  render();
@@ -558,7 +553,7 @@ function render(){
  ["plus1","plus10","exact"].forEach(id=>{$(id).disabled=!active;$(id).classList.toggle("disabled",!active)});
 
  const auctionPrepared=!!auction.current_player_id&&anyActive;
- if(league.auction_complete){m($("msg"),"FINE DELLE ASTE","ok");$("leave").textContent="ASTE CONCLUSE";$("leave").className="leave disabled"}
+ if(league.auction_complete){const done=league.auction_session==="REPAIR"?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE";m($("msg"),done,"ok");$("leave").textContent=league.auction_session==="REPAIR"?"MERCATO CONCLUSO":"ASTE CONCLUSE";$("leave").className="leave disabled"}
  else if(rolePhaseComplete){m($("msg"),`HAI COMPLETATO ${roleArticle(league.active_role)} ${roleNames[league.active_role]||league.active_role} — IN ATTESA`,"warn");$("leave").textContent="RUOLO COMPLETATO";$("leave").className="leave disabled roleWait"}
  else if(auction.status==="SOLD"){m($("msg"),"✓ AGGIUDICATO","ok");$("leave").textContent="ASTA TERMINATA";$("leave").className="leave disabled"}
  else if(!auctionPrepared){m($("msg"),"IN ATTESA DELLA PROSSIMA ASTA","warn");$("leave").textContent="IN ATTESA";$("leave").className="leave disabled"}
@@ -586,7 +581,6 @@ function scheduleLoad(ms=12,full=false){
 function showRt(payload){lastRtAt=Date.now()}
 function applyRegiaState(d){
  if(!d||!d.league||!d.auction)return;
- const prevPhase=lastRolePhase,prevRole=lastKnownRole,prevComplete=lastComplete;
  league={...(league||{}),...d.league};
  auction={...(auction||{}),...d.auction};
  currentPlayerState=d.current_player||null;
@@ -601,10 +595,6 @@ function applyRegiaState(d){
  if(!slotData){invalidateParticipant();return}
  lastRegiaStateAt=Date.now();
  if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
- if(prevPhase!==null&&league.role_phase!==prevPhase){
-   if(league.auction_complete&&!prevComplete)showCelebration("FINE DELLE ASTE",true);
-   else if(prevRole&&prevRole!==league.active_role)showCelebration(`FINE DELLE ASTE PER ${roleArticle(prevRole)} ${roleNames[prevRole]||prevRole}`,false);
- }
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(slotData){render();renderRosterPages()}
 }
@@ -662,7 +652,7 @@ async function connect(force=false){
  })
  .on("broadcast",{event:"CELEBRATE"},payload=>{
    const d=payload&&payload.payload||payload||{};
-   if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE");
+   if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE"||d.kind==="GLOBAL_COMPLETE");
  })
  .subscribe(async st=>{
    if(st==="SUBSCRIBED"){
