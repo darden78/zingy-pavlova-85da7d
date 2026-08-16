@@ -1,9 +1,18 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA - Regia</title>
-<meta name="theme-color" content="#101010"><link rel="icon" href="./icon-192.png">
+<title>FANTASTICA</title>
+<meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
+<script>
+(function(){
+ try{
+  var ua=navigator.userAgent||"";
+  var mobileOS=/Android|iPhone|iPad|iPod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  if(mobileOS){location.replace("./gioca.html"+location.search+location.hash);}
+ }catch(e){}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#0e0e0e;color:#fff;font-family:Arial,sans-serif}button,input,select{font:inherit}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
@@ -13,11 +22,10 @@
 .createGrid{display:grid;grid-template-columns:2fr repeat(2,1fr);gap:10px}.createGrid label{font-size:12px;color:#aaa}.createGrid input{width:100%;padding:10px;border:0;border-radius:9px}.createFull{grid-column:1/-1}.createBtn{grid-column:1/-1;border:0;border-radius:11px;padding:13px;background:#2f8f57;color:#fff;font-weight:900;cursor:pointer}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.top h1{margin:0;flex:1}.top button{border:0;border-radius:9px;padding:9px 12px;background:#333;color:#fff;font-weight:800;cursor:pointer}
 .status{background:#202020;padding:9px 12px;border-radius:9px;margin-bottom:10px}.offlineGuard{display:none;background:#4a3511;color:#ffd36a;border:1px solid #805f20;padding:8px 12px;border-radius:9px;margin:-3px 0 10px;font-weight:900;text-align:center}.offlineGuard.show{display:block}
-.workspace{display:grid;grid-template-columns:minmax(245px,.85fr) minmax(630px,2.2fr) minmax(310px,1.05fr);gap:12px;align-items:start}
+.workspace{display:grid;grid-template-columns:minmax(245px,.85fr) minmax(700px,2.3fr) minmax(330px,1.08fr);gap:12px;align-items:start}
 .side{height:calc(100vh - 90px);background:#181818;border-radius:14px;padding:10px;overflow:hidden;position:sticky;top:8px}.side h2{font-size:17px;margin:3px 0 7px}
-.center{min-width:0}.hero{background:#202020;border-radius:16px;padding:12px;text-align:center}.currentPlayer{background:#171717;border-radius:12px;padding:10px;margin-bottom:9px;min-height:68px}.currentPlayer .pn{font-size:25px;font-weight:900}.currentPlayer .meta{color:#bbb;font-size:14px}
-.amount{font-size:72px;line-height:.95;font-weight:900}.who{font-size:25px}.timer{font-size:38px;font-weight:900;margin-top:5px}.timerModeBadge{display:inline-block;margin-top:5px;padding:4px 9px;border-radius:999px;background:#151515;border:1px solid #444;color:#bbb;font-size:11px;font-weight:900;letter-spacing:.3px}.timerModeBadge.auto{border-color:#9a7426;color:#ffd36a}.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}.controls button{border:0;border-radius:10px;padding:9px 13px;color:#fff;font-weight:800;cursor:pointer}.pause{background:#9b6b20}.undo{background:#315f8a}.newAuction{background:#2f8f57}.confirmBuy{background:#8b5fc5}.controls button:disabled{opacity:.35;cursor:default}.eventPos{font-size:12px;color:#999;margin-top:6px}
-.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}.p{background:#202020;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #555}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.dot.manual{background:#ffc857}.ps{font-size:11px;margin-top:4px;color:#aaa}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}.manualState{color:#ffc857}.manualCtl{margin-top:6px;width:100%;border:0;border-radius:7px;padding:5px 7px;background:#9a7426;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
+.center{min-width:0}.hero{background:#1b2432;border-radius:18px;padding:12px;border:1px solid #27344a}.currentPlayer{background:#111927;border-radius:14px;padding:12px;margin-bottom:10px;min-height:74px;border:1px solid #263246}.currentPlayer .pn{font-size:25px;font-weight:900}.currentPlayer .meta{color:#b3bfd2;font-size:14px}.heroMain{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,1fr);gap:10px;align-items:stretch}.offerPanel,.timerPanel{background:#0f1723;border-radius:14px;border:1px solid #263246}.offerPanel{padding:16px 18px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}.offerLabel{font-size:13px;font-weight:900;letter-spacing:.8px;color:#91a3bf;margin-bottom:6px}.amount{font-size:84px;line-height:.9;font-weight:900;color:#fff}.who{font-size:24px;color:#e5edf7;margin-top:8px}.timerPanel{padding:14px 12px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:182px}.timerTitle{font-size:13px;font-weight:900;letter-spacing:.7px;color:#91a3bf;margin-bottom:8px}.timer{font-size:44px;font-weight:900;margin-top:4px;color:#fff}.timerModeBadge{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:999px;background:#151d2a;border:1px solid #42516a;color:#c7d1df;font-size:11px;font-weight:900;letter-spacing:.3px}.timerModeBadge.auto{border-color:#9a7426;color:#ffd36a}.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}.controls button{border:0;border-radius:10px;padding:10px 14px;color:#fff;font-weight:800;cursor:pointer}.pause{background:#9b6b20}.undo{background:#315f8a}.newAuction{background:#2f8f57}.confirmBuy{background:#8b5fc5}.controls button:disabled{opacity:.35;cursor:default}.eventPos{font-size:12px;color:#9eb0cb;margin-top:6px;text-align:center}
+.players{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.p{background:#1b2432;border:1px solid #27344a;border-radius:10px;padding:9px;cursor:pointer}.p:hover{outline:1px solid #5f738f}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;background:#e74c3c}.dot.on{background:#49dd82}.dot.manual{background:#ffc857}.ps{font-size:11px;margin-top:4px;color:#aab6c8}.high{color:#ffd166}.ab{color:#ff7777}.in{color:#55e28b}.manualState{color:#ffc857}.manualCtl{margin-top:6px;width:100%;border:0;border-radius:7px;padding:5px 7px;background:#9a7426;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
 table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;overflow:hidden;font-size:12px}th,td{padding:7px;border-bottom:1px solid #333;text-align:left}
 .rosterHead{font-size:14px;color:#bbb;line-height:1.35;margin-bottom:7px}.rosterName{font-size:24px;font-weight:900}.rosterStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 9px;margin:7px 0;font-size:13px}
 .roleBlock{margin-top:6px}.roleTitle{font-size:13px;font-weight:900;color:#ddd;border-bottom:1px solid #333;margin-bottom:2px}.rosterRow{display:grid;grid-template-columns:1fr auto;gap:8px;font-size:clamp(11px,1.45vh,15px);line-height:1.35;white-space:nowrap;min-height:18px;align-items:center}.rosterRow span:first-child{overflow:hidden;text-overflow:ellipsis}.rosterRow.manageable{cursor:pointer;border-radius:6px;padding:2px 4px}.rosterRow.manageable:hover{background:#303030;outline:1px solid #555}.emptyLine{color:#555}
@@ -38,6 +46,58 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 .installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}.installInvite button{display:inline-block;margin:8px 0 0 7px;border:0;color:#fff;background:#315f8a;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer}
 .repairInvite{margin-top:18px;background:#171717;border:1px solid #56451f;border-radius:12px;padding:14px;text-align:center}.repairInvite p{color:#bbb;font-size:12px;margin:8px 0}.repairBtn{border:0;border-radius:10px;padding:11px 15px;background:#9a7426;color:#fff;font-weight:900;cursor:pointer}.repairField{display:block;margin:12px 0;text-align:left}.repairField label{display:block;font-size:12px;color:#bbb;margin-bottom:5px}.repairField input,.repairField select{width:100%;padding:11px;border:0;border-radius:9px;background:#111;color:#fff}.repairSummary{background:#151515;border-radius:10px;padding:11px;margin:12px 0;text-align:left;line-height:1.55}.repairModeBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.repairModeBtns button{border:0;border-radius:11px;padding:14px;background:#315f8a;color:#fff;font-weight:900;cursor:pointer}.repairModeBtns button.role{background:#8b5fc5}
+
+
+/* ===== NUOVA REGIA BLU - layout approvato ===== */
+#regia{--fa-panel:#062c55;--fa-panel2:#08345f;--fa-line:#15518a;--fa-muted:#aec2d8;--fa-green:#39cd74;--fa-yellow:#ffb000;--fa-blue:#0b62b0;min-height:calc(100vh - 28px);padding:2px;background:linear-gradient(135deg,#02152a 0%,#052b51 100%);border-radius:10px}
+#regia .regiaHeader{margin:0 0 10px;padding:0 2px}
+#regia .regiaHeaderMain{display:flex;align-items:center;gap:16px;min-height:52px;padding:5px 8px 8px;border-bottom:1px solid rgba(79,142,199,.28)}
+#regia .appIdentity{display:flex;align-items:center;gap:9px;white-space:nowrap}#regia .appMark{font-size:25px}#regia .appTitle{font-size:27px;font-weight:950;letter-spacing:.4px}#regia .headerDivider{width:1px;height:34px;background:#194e7b}
+#regia .leagueTitle{display:flex;align-items:center;gap:8px;flex:1;margin:0;font-size:24px;font-weight:900}#regia .headerSettings,#regia .headerExit{border:1px solid #185589;border-radius:8px;background:#082e53;color:#fff;font-weight:850;cursor:pointer}#regia .headerSettings{padding:10px 15px}#regia .headerExit{padding:8px 14px;background:#0a3a67}
+#regia .regiaHeaderSub{display:flex;align-items:center;gap:11px;margin-top:7px;padding:5px 8px;background:#072946;border:1px solid #123f69;border-radius:8px}#regia .status{flex:1;margin:0;padding:4px 8px;background:transparent;color:var(--fa-muted);font-size:13px}#regia .status.ok{color:#65e99a}#regia .status.warn{color:#ffd166}#regia .status.bad{color:#ff8585}
+#regia .offlineGuard{margin:0 5px 10px;background:#513813;border-color:#926722}
+#regia .workspace{grid-template-columns:minmax(285px,.82fr) minmax(700px,2.25fr) minmax(340px,1fr);gap:12px;align-items:stretch;padding:0 5px 5px}
+#regia .side{height:calc(100vh - 128px);min-height:650px;padding:14px;background:linear-gradient(180deg,#07325f 0%,#042645 100%);border:1px solid var(--fa-line);border-radius:8px;box-shadow:none;top:8px}#regia .side h2{font-size:16px;margin:1px 0 13px;letter-spacing:.2px}#regia .leftSide{overflow:auto}#regia .rightSide{display:flex;flex-direction:column;overflow:hidden}#regia .rightSide #listView,#regia .rightSide #selectedRosterView{min-height:0;flex:1;overflow:hidden}#regia .rightSide #selectedRosterView:not(.hidden){overflow:auto}
+#regia .center{min-width:0;display:flex;flex-direction:column;gap:10px}#regia .hero{padding:0;background:transparent;border:0;border-radius:8px}#regia .heroMain{display:grid;grid-template-columns:minmax(0,2fr) minmax(230px,1fr);gap:10px;align-items:stretch}
+#regia .offerZone,#regia .timerPanel{background:linear-gradient(180deg,#073561,#052a4e);border:1px solid var(--fa-line);border-radius:8px}#regia .offerZone{padding:12px}#regia .currentPlayer{background:transparent;border:0;border-bottom:1px solid rgba(113,164,209,.20);border-radius:0;padding:1px 8px 10px;margin:0;min-height:63px}#regia .currentPlayer .pn{font-size:27px}#regia .currentPlayer .meta{color:#c0d0df;font-size:14px;margin-top:3px}
+#regia .offerPanel{padding:13px 10px 10px;background:transparent;border:0}#regia .offerLabel,#regia .timerTitle{font-size:14px;font-weight:850;letter-spacing:.3px;color:#f1f6fc}#regia .amount{font-size:78px;line-height:1;color:var(--fa-yellow);margin:4px 0 2px}#regia .offerBy{font-size:11px;color:#c9d6e4;margin-top:2px}#regia .who{font-size:22px;font-weight:850;color:#fff;margin-top:3px}
+#regia .timerPanel{padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:286px}#regia .timer{font-size:72px;line-height:1;font-weight:950;color:var(--fa-green);margin:24px 0 16px;white-space:nowrap}#regia .timerModeBadge{margin:0;padding:0;background:transparent;border:0;color:#bcd0e4;font-size:13px}#regia .timerModeBadge.auto{border:0;color:var(--fa-green)}#regia #closed{color:#65e99a;font-weight:900;margin-top:5px;min-height:0}
+#regia .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}#regia .controls button{min-height:43px;border:1px solid rgba(88,153,214,.42);border-radius:7px;padding:9px 10px;font-size:13px}#regia .undo{background:linear-gradient(180deg,#0b67b9,#094e8d)}#regia .pause{background:linear-gradient(180deg,#e49c08,#b97200)}#regia .newAuction{background:linear-gradient(180deg,#35bd6c,#1e904e)}#regia .eventPos{margin-top:3px;color:#7895b1;text-align:center}
+#regia .players{grid-template-columns:repeat(4,1fr);gap:8px;margin-top:0}#regia .p{min-height:104px;background:linear-gradient(180deg,#07325d,#052846);border:1px solid #104b7e;border-radius:8px;padding:10px}#regia .p:hover{outline:1px solid #2d78b9}#regia .ps{color:#b8cbe0;line-height:1.5}#regia .dot{background:#8b99a8}#regia .dot.on{background:var(--fa-green)}#regia .dot.manual{background:var(--fa-yellow)}
+#regia .logCard{background:linear-gradient(180deg,#062c51,#042541);border:1px solid var(--fa-line);border-radius:8px;padding:9px 12px 12px;min-height:150px}#regia .logCard h3{font-size:14px;margin:0 0 7px}#regia table{background:transparent;border-radius:0}#regia th,#regia td{border-bottom:1px solid rgba(103,150,193,.23);padding:7px 8px}#regia th{color:#c7d7e8;font-weight:500}
+#regia .rosterHead{color:#bdcce0}#regia .rosterName{font-size:27px}#regia .rosterStats{grid-template-columns:repeat(2,1fr);gap:6px 10px}#regia .roleTitle{border-bottom:1px solid rgba(105,150,191,.33)}#regia .rosterRow.manageable:hover{background:#0b3c6b;outline:1px solid #1c5f98}#regia .emptyLine{color:#496b8b}
+#regia .rightTop{margin-bottom:9px}#regia .rightTop h2{margin:0}#regia .rightTop button{background:#0a3b69;border:1px solid #17588d}#regia .importBox{background:#0a365f;border:1px solid #124a7d;border-radius:7px}#regia .importActions input,#regia .listControls input,#regia .listControls select{background:#0b3a65;color:#fff;border:1px solid #154d7b}#regia .importActions button{background:#0d67b4}#regia .roleFilters button{background:#0a3964;border:1px solid #144a76}#regia .roleFilters button.active{background:#29a55a}#regia .playerList{height:calc(100vh - 330px);min-height:430px}#regia .listRow{border-bottom:1px solid rgba(93,139,181,.25);padding:7px 2px}#regia .listRow:hover{background:#0a355d}#regia .listMeta{color:#a9bed5}#regia .editBtn{background:#174e7b}
+#regia .phaseBadge{display:inline-block;margin-left:4px;padding:6px 13px;border-radius:8px;background:#063b39;border:1px solid #0c5a55;color:#52e899;font-size:12px;font-weight:850}
+@media(max-width:1250px){#regia .workspace{grid-template-columns:240px 1fr}#regia .rightSide{grid-column:1/-1;position:static;height:70vh;min-height:0}#regia .players{grid-template-columns:repeat(3,1fr)}}
+
+
+/* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
+#leagueHome{max-width:900px;padding-top:3vh}
+#leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
+#leagueHome .authTabs{background:#061b31;border:1px solid #123f67;border-radius:13px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.28)}
+#leagueHome .authTabs button{background:transparent;border:1px solid transparent;border-radius:9px;color:#a9bed5;padding:13px 14px}
+#leagueHome .authTabs button.active{background:#0a3e6e;border-color:#17619a;color:#fff;box-shadow:inset 0 0 0 1px rgba(95,174,232,.08)}
+#leagueHome .homeCard{background:linear-gradient(180deg,#082a4b 0%,#06243f 100%);border:1px solid #145282;border-radius:14px;box-shadow:0 18px 48px rgba(0,0,0,.32);padding:22px}
+#leagueHome .homeCard h2{margin:0 0 15px;font-size:28px;letter-spacing:.4px}
+#leagueHome .authForm label,#leagueHome .createGrid label{color:#aac2d9;font-weight:700}
+#leagueHome .authForm input,#leagueHome .createGrid input,#leagueHome .authForm select,#leagueHome .createGrid select{background:#071d34;color:#fff;border:1px solid #174b75;outline:none}
+#leagueHome .authForm input:focus,#leagueHome .createGrid input:focus,#leagueHome .authForm select:focus,#leagueHome .createGrid select:focus{border-color:#2b85c9;box-shadow:0 0 0 3px rgba(43,133,201,.14)}
+#leagueHome .authAction,#leagueHome .createBtn{background:linear-gradient(180deg,#1fa85a,#168447);border:1px solid #38bb70;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+#leagueHome .roleModeBox{background:#061d35;border:1px solid #12456f;border-radius:10px;padding:11px}
+
+.settingsPanel{background:rgba(1,10,20,.84);backdrop-filter:blur(6px)}
+.settingsBox{width:min(650px,94vw);background:linear-gradient(180deg,#082f54 0%,#06233f 100%);border:1px solid #175b91;border-radius:16px;padding:20px;box-shadow:0 26px 80px rgba(0,0,0,.52)}
+.settingsBox>h2{margin:0 0 16px;font-size:29px}.settingsBox>h3{margin:22px 0 8px;padding-top:13px;border-top:1px solid rgba(89,145,191,.28)}
+.settingsGrid label{color:#aec6dc;font-weight:700}.settingsGrid input,.settingsGrid select{background:#071d34;color:#fff;border:1px solid #174d78;outline:none}.settingsGrid input:focus,.settingsGrid select:focus{border-color:#2b85c9;box-shadow:0 0 0 3px rgba(43,133,201,.14)}
+.settingsActions button{border:1px solid rgba(255,255,255,.08);cursor:pointer}.saveSettings{background:#188c4d;color:#fff}.closeSettings{background:#164d78;color:#fff}.danger{background:#9a3434!important}
+.linkBox,.installInvite,.repairInvite{background:#071e36!important;border:1px solid #164b75!important;border-radius:12px!important}.installInvite p,.repairInvite p{color:#aec2d4!important}.copyLink,.installInvite button{background:#1266a6!important}.repairBtn{background:#a87916!important}
+.manageRow,.excludedRow{border-bottom:1px solid rgba(92,142,183,.25)}.manageMeta{color:#a9bed5}.rename{background:#14649f}.deviceAction{background:#8d6f22}.manualAction{background:#a87916}.manualAction.on{background:#218b52}.excludedBox{border-top-color:#315c7d}.excludedBox h4{color:#ffcc55}
+
+.rosterModal{background:rgba(1,10,20,.86);backdrop-filter:blur(6px)}
+.rosterModalBox{background:linear-gradient(180deg,#082f54 0%,#06233f 100%);border:1px solid #175b91;border-radius:16px;box-shadow:0 26px 80px rgba(0,0,0,.58);color:#fff}
+.rosterModalBox h2{color:#fff}.rosterModalBox p{color:#b6cadc}.rosterModalClose{background:#0c426d;border:1px solid #1a5c8f}.rosterModalClose:hover{background:#155b91}
+.rosterModalActions button,.rosterChoice{background:#1465a2;border:1px solid #2478b8}.rosterModalActions .dangerAction{background:#9a3434;border-color:#bb4e4e}.rosterModalActions .swapAction{background:#7752b8;border-color:#946ed0}.rosterModalActions .neutralAction{background:#164d78;border-color:#28658e}.rosterChoice{background:#0b3a63}.rosterChoice:hover{background:#104a7d}.refundInput,.repairField input,.repairField select{background:#071d34!important;color:#fff!important;border:1px solid #174d78!important}.repairSummary{background:#071e36;border:1px solid #164b75}.selectionHint{background:#5a4513;color:#ffda74;border:1px solid #866820}.outListWarning{background:#552323;border:1px solid #9c4545}.memberPick{background:#071e36;border-bottom-color:#174b75}
+
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -45,7 +105,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <div class="authTabs"><button id="tabLogin" class="active">ENTRA IN UNA LEGA</button><button id="tabCreate">CREA NUOVA LEGA</button></div>
 
  <div id="loginCard" class="homeCard authForm">
-  <h2>Accesso regia</h2>
+  <h2>Accesso FANTASTICA</h2>
   <label>Nome lega</label><input id="loginLeague" autocomplete="off">
   <label>Password</label><input id="loginPassword" type="password">
   <button id="loginLeagueBtn" class="authAction">ENTRA</button>
@@ -85,28 +145,51 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 </section>
 
 <section id="regia" class="hidden">
- <div class="top"><button id="changeLeague">← ESCI REGIA</button><h1>⚽ <span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1><button id="settingsBtn">⚙ IMPOSTAZIONI</button></div>
- <div id="status" class="status">Avvio...</div>
+ <header class="regiaHeader">
+  <div class="regiaHeaderMain">
+   <div class="appIdentity"><span class="appMark">⚽</span><span class="appTitle">FANTASTICA</span></div>
+   <div class="headerDivider"></div>
+   <h1 class="leagueTitle"><span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1>
+   <button id="settingsBtn" class="headerSettings">⚙ IMPOSTAZIONI</button>
+  </div>
+  <div class="regiaHeaderSub"><button id="changeLeague" class="headerExit">← ESCI FANTASTICA</button><div id="status" class="status">Avvio...</div></div>
+ </header>
  <div id="offlineGuard" class="offlineGuard"></div>
  <div class="workspace">
-  <aside class="side"><h2>ROSA MIGLIOR OFFERENTE</h2><div id="leaderRoster"></div></aside>
+  <aside class="side leftSide"><h2>🏆 MIGLIOR OFFERTA ATTUALE</h2><div id="leaderRoster"></div></aside>
   <main class="center">
    <div class="hero">
-    <div id="currentPlayer" class="currentPlayer"><div class="pn">Seleziona un giocatore dal listone</div></div>
-    <div>OFFERTA ATTUALE</div><div id="amount" class="amount">0</div><div id="who" class="who">Nessun offerente</div><div id="timer" class="timer">—</div><div id="timerModeBadge" class="timerModeBadge">TIMER: MANUALE</div><div id="closed"></div>
+    <div class="heroMain">
+     <div class="offerZone">
+      <div id="currentPlayer" class="currentPlayer"><div class="pn">Seleziona un giocatore dal listone</div></div>
+      <div class="offerPanel">
+       <div class="offerLabel">OFFERTA ATTUALE</div>
+       <div id="amount" class="amount">0</div>
+       <div class="offerBy">DI</div>
+       <div id="who" class="who">Nessun offerente</div>
+      </div>
+     </div>
+     <div class="timerPanel">
+      <div class="timerTitle">TIMER</div>
+      <div id="timer" class="timer">—</div>
+      <div id="timerModeBadge" class="timerModeBadge">TIMER: MANUALE</div>
+     </div>
+    </div>
+    <div id="closed"></div>
     <div class="controls">
      <button id="prevEvent" class="undo">◀ EVENTO PRECEDENTE</button>
      <button id="pauseTimer" class="pause">▶ AVVIA TIMER</button>
-     <button id="assignNow" class="newAuction">✓ ASSEGNA ASTA</button>
+     <button id="assignNow" class="newAuction">＋ ASSEGNA ASTA</button>
      <button id="nextEvent" class="undo">EVENTO SUCCESSIVO ▶</button>
     </div><div id="eventPos" class="eventPos"></div>
    </div>
    <div id="players" class="players"></div>
-   <h3>ULTIMI RILANCI</h3>
-   <table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table>
+   <section class="logCard"><h3>ULTIMI RILANCI</h3>
+    <table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table>
+   </section>
   </main>
   <aside class="side rightSide">
-   <div class="rightTop"><h2 id="rightTitle" style="flex:1">LISTONE</h2><button id="showList">LISTONE</button></div>
+   <div class="rightTop"><h2 id="rightTitle" style="flex:1">LISTONE</h2><button id="showList" class="hidden">TORNA AL LISTONE</button></div>
    <div id="listView">
     <div class="importBox">
      <input id="listFile" type="file" accept=".csv,.xlsx,.xls">
@@ -150,7 +233,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
 
  <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
- <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare la Regia in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
+ <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare FANTASTICA in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
  <div class="repairInvite"><h3>Mercato di riparazione</h3><p>Ripristina il backup dell’asta precedente, carica il nuovo listone e aggiungi i fantacrediti destinati alla riparazione.</p><button id="repairMarketBtn" class="repairBtn" type="button">MERCATO DI RIPARAZIONE</button></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
@@ -661,9 +744,9 @@ function render(){
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
  if(!auction?.highest_slot){$("timer").textContent="—";return}
- if(auction.paused){$("timer").textContent="⏸ "+((auction.paused_remaining_ms||league.duration_seconds*1000)/1000).toFixed(1)+" s";return}
+ if(auction.paused){$("timer").textContent=((auction.paused_remaining_ms||league.duration_seconds*1000)/1000).toFixed(1);return}
  if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent="—";return}
- const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1)+" s";
+ const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1);
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
 }
 setInterval(timer,100);
@@ -731,8 +814,8 @@ async function editPlayer(id){
 }
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
 $("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
-$("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";renderList()};
-function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks()}
+$("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
+function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks()}
 
 function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Un giocatore fuori dal listone corrente può essere soltanto liberato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
 function closeRosterModal(){$("rosterModal").classList.remove("show");$("rosterModalBox").innerHTML=""}
@@ -758,7 +841,7 @@ function showRosterSwapMenu(id){
  $("backRoster").onclick=()=>openRosterPlayer(id);$("swapFree").onclick=()=>beginSwapWithFree(id);$("swapRoster").onclick=()=>chooseOtherRoster(id);
 }
 function beginSwapWithFree(id){
- const p=catalog.find(x=>x.id===id);if(!p)return;closeRosterModal();rosterSwapSourceId=id;rosterSwapMode="free";selectedRosterSlot=null;roleFilter="";$("searchPlayer").value="";$("showAssigned").checked=false;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent=`SCAMBIA ${p.name} — SCEGLI ${p.role} LIBERO`;renderList();
+ const p=catalog.find(x=>x.id===id);if(!p)return;closeRosterModal();rosterSwapSourceId=id;rosterSwapMode="free";selectedRosterSlot=null;roleFilter="";$("searchPlayer").value="";$("showAssigned").checked=false;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent=`SCAMBIA ${p.name} — SCEGLI ${p.role} LIBERO`;$("showList").classList.remove("hidden");renderList();
 }
 function chooseOtherRoster(id){
  const p=catalog.find(x=>x.id===id);if(!p)return;const other=slots.filter(s=>s.display_name&&s.slot!==p.assigned_slot&&catalog.some(x=>x.in_current_list!==false&&x.assigned_slot===s.slot&&x.role===p.role));
@@ -1010,7 +1093,8 @@ function exportFantasticaData(){
 }
 function escHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function exportPdfHtml(){
- let h=`<!doctype html><html><head><meta charset="utf-8"><title>FANTASTICA - ${escHtml(league.name)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#111}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}</style></head><body><h1>FANTASTICA — ${escHtml(league.name)}</h1>`;
+ let h=`<!doctype html><html><head><meta charset="utf-8"><title>FANTASTICA - ${escHtml(league.name)}</title><style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#111}h1{text-align:center}.team{page-break-inside:avoid;margin:22px 0}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}
+</style></head><body><h1>FANTASTICA — ${escHtml(league.name)}</h1>`;
  for(const s of slots.filter(s=>s.member_enabled!==false&&s.display_name)){
   const r=rosterInfo(s.slot);
   h+=`<div class="team"><h2>${escHtml(s.display_name)} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${[...r.ps].sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${escHtml(p.role)}</td><td>${escHtml(p.name)}</td><td>${escHtml(p.team||"")}</td><td>${p.assigned_price||0}</td></tr>`).join("")}</table></div>`;
@@ -1060,7 +1144,7 @@ function renderManage(){
  $("managePlayers").innerHTML=active.map(s=>`<div class="manageRow"><span><b>${escHtml(s.display_name)}</b><div class="manageMeta">${s.manual_control?"GESTIONE MANUALE":s.device_reclaim_open?"IN ATTESA DI NUOVO DISPOSITIVO":online(s)?"DISPOSITIVO ONLINE":"DISPOSITIVO OFFLINE"}</div></span><button class="rename" data-ren="${s.slot}">RINOMINA</button><button class="deviceAction" data-device="${s.slot}">CAMBIA DISP.</button><button class="manualAction ${s.manual_control?"on":""}" data-manual="${s.slot}">${s.manual_control?"STOP MANUALE":"MANUALE"}</button></div>`).join("")||"Nessun partecipante.";
  if(excluded.length)$("managePlayers").insertAdjacentHTML("beforeend",`<div class="excludedBox"><h4>ESCLUSI — ROSE CONSERVATE</h4>${excluded.map(s=>`<div class="excludedRow"><span>${escHtml(s.display_name)} <small>· ${rosterInfo(s.slot).ps.length} giocatori</small></span><button data-ren="${s.slot}">RINOMINA</button></div>`).join("")}</div>`);
  document.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.ren),n=prompt("Nuovo nome:",s.display_name);if(n?.trim()){const {data,error}=await db.rpc("fa_rename_slot",{p_league_id:league.id,p_slot:s.slot,p_name:n.trim()});if(error||!data?.ok){alert(error?.message||data?.error);return}await load();renderManage()}});
- document.querySelectorAll("[data-device]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.device);if(!confirm(`Scollegare il dispositivo di ${s.display_name}?\nIl partecipante e la sua rosa restano invariati. Il nuovo dispositivo potrà recuperare questo nome dopo il login.`))return;const {data,error}=await db.rpc("fa_detach_participant_device_v511",{p_league_id:league.id,p_slot:s.slot});if(error||!data?.ok){alert(error?.message||data?.error);return}const manual=confirm(`${s.display_name} resterà senza dispositivo.\n\nOK = gestiscilo MANUALMENTE dalla Regia\nANNULLA = lascialo OFFLINE finché non entra col nuovo dispositivo`);if(manual){const r=await db.rpc("fa_set_participant_manual_v511",{p_league_id:league.id,p_slot:s.slot,p_manual:true});if(r.error||!r.data?.ok){alert(r.error?.message||r.data?.error);return}}await load(false);renderManage();msg($("settingsMsg"),`✓ ${s.display_name}: dispositivo scollegato${manual?" · GESTIONE MANUALE":" · OFFLINE"} — DA TESTARE`,"warn")});
+ document.querySelectorAll("[data-device]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.device);if(!confirm(`Scollegare il dispositivo di ${s.display_name}?\nIl partecipante e la sua rosa restano invariati. Il nuovo dispositivo potrà recuperare questo nome dopo il login.`))return;const {data,error}=await db.rpc("fa_detach_participant_device_v511",{p_league_id:league.id,p_slot:s.slot});if(error||!data?.ok){alert(error?.message||data?.error);return}const manual=confirm(`${s.display_name} resterà senza dispositivo.\n\nOK = gestiscilo MANUALMENTE da FANTASTICA\nANNULLA = lascialo OFFLINE finché non entra col nuovo dispositivo`);if(manual){const r=await db.rpc("fa_set_participant_manual_v511",{p_league_id:league.id,p_slot:s.slot,p_manual:true});if(r.error||!r.data?.ok){alert(r.error?.message||r.data?.error);return}}await load(false);renderManage();msg($("settingsMsg"),`✓ ${s.display_name}: dispositivo scollegato${manual?" · GESTIONE MANUALE":" · OFFLINE"} — DA TESTARE`,"warn")});
  document.querySelectorAll("[data-manual]").forEach(b=>b.onclick=async()=>{const s=slots.find(x=>x.slot===+b.dataset.manual),toManual=!s.manual_control;const text=toManual?`Passare ${s.display_name} in GESTIONE MANUALE?\nL'eventuale dispositivo associato verrà scollegato.`:`Terminare la gestione manuale di ${s.display_name}?\nResterà senza dispositivo finché non effettua il recupero.`;if(!confirm(text))return;const {data,error}=await db.rpc("fa_set_participant_manual_v511",{p_league_id:league.id,p_slot:s.slot,p_manual:toManual});if(error||!data?.ok){alert(error?.message||data?.error);return}await load(false);renderManage();msg($("settingsMsg"),`✓ ${s.display_name}: ${toManual?"GESTIONE MANUALE":"GESTIONE MANUALE TERMINATA"} — DA TESTARE`,"warn")});
 }
 $("deleteLeague").onclick=async()=>{if(!confirm(`Cancellare definitivamente "${league.name}"?`))return;const pwd=prompt("Inserisci la password della lega per confermare:");if(pwd===null)return;if(!confirm("Ultima conferma: operazione irreversibile."))return;const {data,error}=await db.rpc("fa_delete_league",{p_league_id:league.id,p_password:pwd});if(error||!data?.ok){alert(data?.error==="PASSWORD_ERRATA"?"Password errata.":(error?.message||data?.error));return}$("settingsPanel").classList.remove("show");$("changeLeague").click()};
