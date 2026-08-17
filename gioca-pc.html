@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FANTASTICA - Gioca da PC</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;background:#061326;overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+    body{display:flex;align-items:center;justify-content:center}
+    #gioca{min-width:260px;min-height:90px;padding:18px 42px;border:2px solid #2fa8ff;border-radius:18px;background:#0a2e59;color:#fff;font-size:34px;font-weight:900;letter-spacing:1px;cursor:pointer;box-shadow:0 0 22px rgba(47,168,255,.35)}
+    #msg{position:fixed;left:16px;right:16px;bottom:24px;text-align:center;color:#fff;font-size:14px;display:none}
+  </style>
+</head>
+<body>
+  <button id="gioca" type="button">GIOCA</button>
+  <div id="msg"></div>
+<script>
+(function(){
+  function targetUrl(){
+    var src=new URLSearchParams(location.search);
+    var dst=new URLSearchParams();
+    if(src.get('did')) dst.set('did',src.get('did'));
+    dst.set('fresh',src.get('fresh')||'1');
+    return './gioca.html?'+dst.toString();
+  }
+  document.getElementById('gioca').addEventListener('click',function(){
+    var availW=screen.availWidth||1366, availH=screen.availHeight||768;
+    var width=Math.round(Math.min(360,Math.max(245,availW*0.24)));
+    var desired=Math.round(width*2.05);
+    var height=Math.round(Math.min(availH-40,Math.max(650,desired)));
+    var left=Math.max(0,availW-width-8);
+    var top=Math.max(0,Math.round((availH-height)/2));
+    var features=['popup=yes','width='+width,'height='+height,'left='+left,'top='+top,'resizable=yes','scrollbars=no'].join(',');
+    var w=window.open(targetUrl(),'FANTASTICA_GIOCATORE',features);
+    if(!w){var m=document.getElementById('msg');m.textContent='Consenti i popup per questo sito e premi di nuovo GIOCA.';m.style.display='block';return;}
+    try{w.focus()}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
