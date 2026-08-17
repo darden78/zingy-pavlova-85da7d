@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport3-20260817">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -112,7 +112,7 @@ html.fa-ios.fa-ios-portrait .row button{flex:1 0 0!important;height:100%!importa
 html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 </style>
 <script>
-/* FANTASTICA_APPLE_LAYOUT_20260817C
+/* FANTASTICA_APPLE_LAYOUT_20260817D
    Nessun orientation lock su Apple. In portrait manteniamo le misure approvate;
    in landscape lasciamo ruotare normalmente il sistema e il CSS responsive. */
 (function(){
@@ -122,9 +122,11 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
  var de=document.documentElement;
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
  function isPortrait(){
-  try{return window.matchMedia&&window.matchMedia("(orientation: portrait)").matches}catch(e){}
+  /* Sui vecchi iPad window.orientation si aggiorna prima e in modo piu affidabile
+     delle media query durante landscape -> portrait. */
   var o=typeof window.orientation==="number"?Math.abs(window.orientation)%180:null;
   if(o!==null)return o===0;
+  try{if(window.matchMedia)return window.matchMedia("(orientation: portrait)").matches}catch(e){}
   return (window.innerHeight||0)>=(window.innerWidth||0);
  }
  function screenSides(){
@@ -186,13 +188,38 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
    window.scrollTo(0,0);
   }catch(e){}
  }
+ function forceIPadStyleReparse(){
+  /* Alcuni iPad Mini con WebKit datato mantengono le metriche CSS/flex della
+     precedente orientation anche quando il viewport e gia tornato portrait.
+     Riparsiamo lo stylesheet senza ricaricare la pagina: sessione, realtime e
+     identita del partecipante restano intatti. */
+  try{
+   var st=document.querySelector("head style");
+   if(!st)return;
+   var clone=st.cloneNode(true);
+   st.parentNode.replaceChild(clone,st);
+   void de.offsetHeight;
+   updateAppleLayout();
+   forceAppleReflow();
+  }catch(e){}
+ }
  function refreshAppleLayout(){
   updateAppleLayout();
   [80,260,650,1100,1700].forEach(function(ms){setTimeout(function(){updateAppleLayout();if(ms>=650)forceAppleReflow()},ms)});
  }
  refreshAppleLayout();
  window.addEventListener("resize",refreshAppleLayout);
- window.addEventListener("orientationchange",function(){refreshAppleLayout();setTimeout(forceAppleReflow,900);setTimeout(forceAppleReflow,1800)});
+ window.addEventListener("orientationchange",function(){
+  refreshAppleLayout();
+  setTimeout(forceAppleReflow,900);
+  setTimeout(function(){
+   updateAppleLayout();
+   if(/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)){
+    if(isPortrait())forceIPadStyleReparse();
+   }
+  },1250);
+  setTimeout(function(){updateAppleLayout();forceAppleReflow()},2100);
+ });
  if(window.visualViewport)window.visualViewport.addEventListener("resize",refreshAppleLayout);
  document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshAppleLayout()});
 })();
