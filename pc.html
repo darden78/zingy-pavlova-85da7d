@@ -211,6 +211,90 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .rosterModalBox h2{color:#fff}.rosterModalBox p{color:#b6cadc}.rosterModalClose{background:#0c426d;border:1px solid #1a5c8f}.rosterModalClose:hover{background:#155b91}
 .rosterModalActions button,.rosterChoice{background:#1465a2;border:1px solid #2478b8}.rosterModalActions .dangerAction{background:#9a3434;border-color:#bb4e4e}.rosterModalActions .swapAction{background:#7752b8;border-color:#946ed0}.rosterModalActions .neutralAction{background:#164d78;border-color:#28658e}.rosterChoice{background:#0b3a63}.rosterChoice:hover{background:#104a7d}.refundInput,.repairField input,.repairField select{background:#071d34!important;color:#fff!important;border:1px solid #174d78!important}.repairSummary{background:#071e36;border:1px solid #164b75}.selectionHint{background:#5a4513;color:#ffda74;border:1px solid #866820}.outListWarning{background:#552323;border:1px solid #9c4545}.memberPick{background:#071e36;border-bottom-color:#174b75}
 
+
+/* ===== ADATTAMENTO AUTOMATICO 4-12 PARTECIPANTI =====
+   Nessuno scroll nella griglia partecipanti: la Regia compatta prima
+   cronologia e pannelli informativi, poi dimensiona le schede sulle righe reali. */
+#regia .players{
+  overflow:visible;
+  align-content:start;
+}
+#regia.faPlayers2 .players,
+#regia.faPlayers3 .players{
+  grid-auto-rows:var(--fa-player-row-h,auto);
+}
+#regia.faPlayers2 .p,
+#regia.faPlayers3 .p{
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+  display:block;
+}
+
+/* 5-8 partecipanti: due righe, cronologia più bassa e testata centrale compatta. */
+#regia.faPlayers2 .hero{padding:9px}
+#regia.faPlayers2 .timerPanel{min-height:clamp(155px,22vh,190px);padding:7px 9px}
+#regia.faPlayers2 .timer{font-size:clamp(42px,5.8vh,58px);margin:6px 0}
+#regia.faPlayers2 .currentPlayer{min-height:40px;padding:5px 7px}
+#regia.faPlayers2 .currentPlayer .pn{font-size:clamp(18px,1.8vw,22px)}
+#regia.faPlayers2 .amount{font-size:clamp(44px,6vh,60px)}
+#regia.faPlayers2 .who{font-size:17px;margin-top:2px}
+#regia.faPlayers2 .controls{margin-top:5px;gap:5px}
+#regia.faPlayers2 .controls button{min-height:31px;padding:5px 6px}
+#regia.faPlayers2:not(.hasManualPlayers) .logCard{min-height:64px}
+#regia.faPlayers2 .p{padding:5px 7px}
+#regia.faPlayers2 .ps{font-size:9px;line-height:1.22;margin-top:2px}
+#regia.faPlayers2 .manualCtl{margin-top:3px;padding:3px 5px;font-size:9px}
+
+/* 9-12 partecipanti: tre righe. La cronologia cede quasi tutto lo spazio. */
+#regia.faPlayers3 .center{gap:6px}
+#regia.faPlayers3 .hero{padding:7px}
+#regia.faPlayers3 .heroMain{gap:7px}
+#regia.faPlayers3 .timerPanel{min-height:112px;padding:5px 7px}
+#regia.faPlayers3 .timer{font-size:38px;margin:3px 0}
+#regia.faPlayers3 .timerTitle{font-size:10px;margin-bottom:2px}
+#regia.faPlayers3 .timerModeBadge{font-size:9px;margin-top:4px;padding:4px 7px}
+#regia.faPlayers3 .offerZone{padding:5px 7px}
+#regia.faPlayers3 .currentPlayer{min-height:30px;padding:2px 5px 4px;margin-bottom:5px}
+#regia.faPlayers3 .currentPlayer .pn{font-size:17px}
+#regia.faPlayers3 .currentPlayer .meta{font-size:10px;margin-top:1px}
+#regia.faPlayers3 .offerPanel{padding:4px 7px}
+#regia.faPlayers3 .offerLabel{font-size:10px;margin-bottom:0}
+#regia.faPlayers3 .amount{font-size:38px}
+#regia.faPlayers3 .offerBy{font-size:8px;margin-top:0}
+#regia.faPlayers3 .who{font-size:14px;margin-top:0}
+#regia.faPlayers3 .controls{margin-top:4px;gap:4px}
+#regia.faPlayers3 .controls button{min-height:28px;padding:3px 5px;font-size:9px}
+#regia.faPlayers3 .eventPos{font-size:9px;margin-top:1px}
+#regia.faPlayers3:not(.hasManualPlayers) .logCard{min-height:44px;padding-top:5px;padding-bottom:5px}
+#regia.faPlayers3:not(.hasManualPlayers) .logCard h3{font-size:11px;margin-bottom:3px}
+#regia.faPlayers3 .p{padding:4px 6px;border-radius:7px}
+#regia.faPlayers3 .p>b{font-size:11px;line-height:1.05}
+#regia.faPlayers3 .dot{width:12px;height:12px;margin-right:5px;vertical-align:-2px}
+#regia.faPlayers3 .ps{font-size:8px;line-height:1.15;margin-top:2px}
+#regia.faPlayers3 .manualCtl{margin-top:2px;padding:2px 4px;font-size:8px;line-height:1.05}
+
+/* Con gestione manuale attiva, il pannello comandi resta prioritario,
+   ma anche 8/12 schede devono rimanere tutte visibili. */
+#regia.hasManualPlayers.faPlayers2 .center{grid-template-rows:auto auto minmax(205px,1fr)}
+#regia.hasManualPlayers.faPlayers2 .logCard{min-height:205px}
+#regia.hasManualPlayers.faPlayers3 .center{grid-template-rows:auto auto minmax(185px,1fr)}
+#regia.hasManualPlayers.faPlayers3 .logCard{min-height:185px}
+#regia.hasManualPlayers.faPlayers3 .timerPanel{min-height:102px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionPanel{gap:4px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionHead{min-height:25px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionTitle{font-size:13px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat{padding:4px 5px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat small{font-size:8px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat b{font-size:13px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionActions button{min-height:30px;padding:5px 4px;font-size:10px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionLeader{padding:5px;font-size:10px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionMsg{min-height:12px;font-size:9px}
+#regia.hasManualPlayers.faPlayers3 .manualExactDisplay{font-size:20px;min-height:34px;padding:3px 6px}
+#regia.hasManualPlayers.faPlayers3 .manualExactHint{font-size:8px;line-height:1.15}
+#regia.hasManualPlayers.faPlayers3 .manualKeypad{gap:4px}
+#regia.hasManualPlayers.faPlayers3 .manualKeypad button{font-size:12px;padding:2px 3px}
+
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -835,6 +919,33 @@ function rosterHTML(slot,compact=true){
  for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
  return h;
 }
+
+function updateParticipantLayout(visibleCount){
+ const reg=$("regia");
+ if(!reg)return;
+ const rows=Math.max(1,Math.ceil(Math.max(1,Number(visibleCount)||1)/4));
+ reg.classList.toggle("faPlayers2",rows===2);
+ reg.classList.toggle("faPlayers3",rows>=3);
+ reg.dataset.playerRows=String(rows);
+ requestAnimationFrame(fitParticipantCards);
+}
+function fitParticipantCards(){
+ const reg=$("regia"),center=reg?.querySelector(".center"),hero=reg?.querySelector(".hero"),players=$("players");
+ if(!reg||!center||!hero||!players||reg.classList.contains("hidden"))return;
+ const count=players.children.length;
+ const rows=Math.max(1,Math.ceil(Math.max(1,count)/4));
+ if(rows<=1){reg.style.removeProperty("--fa-player-row-h");return}
+ const manual=reg.classList.contains("hasManualPlayers");
+ const reserve=manual?(rows>=3?185:205):(rows>=3?44:64);
+ const gaps=8*2+6*Math.max(0,rows-1);
+ const room=center.clientHeight-hero.offsetHeight-reserve-gaps;
+ const minH=manual?(rows>=3?66:72):(rows>=3?56:64);
+ const maxH=rows>=3?78:94;
+ const h=Math.max(minH,Math.min(maxH,Math.floor(room/rows)));
+ reg.style.setProperty("--fa-player-row-h",h+"px");
+}
+window.addEventListener("resize",()=>requestAnimationFrame(fitParticipantCards));
+
 function render(){
  $("leagueName").textContent=league.name;
  const phase=phaseText(league);
@@ -854,7 +965,7 @@ function render(){
  $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.member_enabled!==false);
- const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",hasManualPlayers);
+ const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",hasManualPlayers);updateParticipantLayout(visible.length);
  const tm=(league.timer_mode||"MANUAL").toUpperCase();
  $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control;const state=hi?(manual?"MAGGIORE OFFERENTE · MANUALE":"MAGGIORE OFFERENTE"):s.abandoned?"ABBANDONATO":manual?"GESTIONE MANUALE":s.active?"IN GARA":"NON IN GARA";return `<div class="p" data-slot="${s.slot}"><span class="dot ${manual?"manual":online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":manual?"manualState":s.active?"in":""}">${state}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
@@ -866,7 +977,7 @@ function render(){
  $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
  $("nextEvent").disabled=historyOffset<=0;
  if($("importList"))$("importList").textContent=catalog.some(p=>p.in_current_list!==false)?"AGGIORNA":"IMPORTA";renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
- if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
+ if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);requestAnimationFrame(fitParticipantCards);
 }
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
@@ -1196,8 +1307,8 @@ function renderManualAuctionPanel(slotNo){
  const currentAmount=auction?.highest_slot?auction.current_bid:"—";
  const r=rosterInfo(Number(slotNo));
  if(manualExactMode){
-  const shown=manualExactValue||"0";
-  p.innerHTML=`<div class="manualAuctionHead"><div class="manualAuctionTitle">${escHtml(s.display_name)} — OFFERTA LIBERA</div><button id="manualPanelClose" class="manualAuctionClose">CHIUDI</button></div><div class="manualExactBox"><div class="manualExactLeft"><div class="manualExactDisplay">${escHtml(shown)}</div><div class="manualExactHint">Offerta attuale: <b>${currentAmount}</b><br>Massimo spendibile: <b>${r.max}</b><br>Puoi anche usare la tastiera del PC.</div><div id="manualBidMsg" class="manualAuctionMsg ${manualPanelMessageClass}">${escHtml(manualPanelMessage)}</div></div><div class="manualKeypad"><button data-manual-key="1">1</button><button data-manual-key="2">2</button><button data-manual-key="3">3</button><button data-manual-key="C">C</button><button data-manual-key="4">4</button><button data-manual-key="5">5</button><button data-manual-key="6">6</button><button data-manual-key="B">⌫</button><button data-manual-key="7">7</button><button data-manual-key="8">8</button><button data-manual-key="9">9</button><button data-manual-key="0">0</button><button id="manualExactCancel" class="manualCancel">ANNULLA</button><button id="manualExactSend" class="manualSend">INVIA</button></div></div>`;
+  const shown=manualExactValue;
+  p.innerHTML=`<div class="manualAuctionHead"><div class="manualAuctionTitle">${escHtml(s.display_name)} — OFFERTA LIBERA</div><button id="manualPanelClose" class="manualAuctionClose">CHIUDI</button></div><div class="manualExactBox"><div class="manualExactLeft"><div class="manualExactDisplay">${shown?escHtml(shown):"&nbsp;"}</div><div class="manualExactHint">Offerta attuale: <b>${currentAmount}</b><br>Massimo spendibile: <b>${r.max}</b><br>Puoi anche usare la tastiera del PC.</div><div id="manualBidMsg" class="manualAuctionMsg ${manualPanelMessageClass}">${escHtml(manualPanelMessage)}</div></div><div class="manualKeypad"><button data-manual-key="1">1</button><button data-manual-key="2">2</button><button data-manual-key="3">3</button><button data-manual-key="C">C</button><button data-manual-key="4">4</button><button data-manual-key="5">5</button><button data-manual-key="6">6</button><button data-manual-key="B">⌫</button><button data-manual-key="7">7</button><button data-manual-key="8">8</button><button data-manual-key="9">9</button><button data-manual-key="0">0</button><button id="manualExactCancel" class="manualCancel">ANNULLA</button><button id="manualExactSend" class="manualSend">INVIA</button></div></div>`;
   $("manualPanelClose").onclick=closeManualAuctionPanel;
   $("manualExactCancel").onclick=()=>{manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";renderManualAuctionPanel(slotNo)};
   document.querySelectorAll("[data-manual-key]").forEach(b=>b.onclick=()=>manualExactKey(b.dataset.manualKey));
@@ -1213,7 +1324,7 @@ function renderManualAuctionPanel(slotNo){
   manualPanelMessage=`✓ Offerta ${data.amount??exact??""} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";
   await load(false);
  };
- $("manualPlus1").onclick=()=>bid("PLUS1");$("manualPlus10").onclick=()=>bid("PLUS10");$("manualExact").onclick=()=>{manualExactMode=true;manualExactValue=String((auction?.current_bid||0)+1);manualPanelMessage="";manualPanelMessageClass="";renderManualAuctionPanel(slotNo)};
+ $("manualPlus1").onclick=()=>bid("PLUS1");$("manualPlus10").onclick=()=>bid("PLUS10");$("manualExact").onclick=()=>{manualExactMode=true;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";renderManualAuctionPanel(slotNo)};
  const leaveBtn=$("manualLeave");if(leaveBtn)leaveBtn.onclick=async()=>{const {data,error}=await db.rpc("fa_leave_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_rejoin:!!s.abandoned});if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}manualPanelMessage=s.abandoned?"✓ Partecipante rientrato nell'asta":"✓ Partecipante fuori dall'asta";manualPanelMessageClass="ok";await load(false)};
 }
 function manualExactKey(key){
@@ -1222,7 +1333,7 @@ function manualExactKey(key){
  renderManualAuctionPanel(manualAuctionSlot);
 }
 async function manualSendExact(slotNo){
- const n=Number(manualExactValue);if(!Number.isInteger(n)||n<0){manualPanelMessage="Inserisci un importo intero valido.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
+ if(manualExactValue===""){manualPanelMessage="Inserisci un importo.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}const n=Number(manualExactValue);if(!Number.isInteger(n)||n<0){manualPanelMessage="Inserisci un importo intero valido.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
  const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:"EXACT",p_exact:n});
  if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
  manualPanelMessage=`✓ Offerta ${data.amount??n} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";await load(false);
