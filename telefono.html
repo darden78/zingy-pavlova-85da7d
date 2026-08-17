@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-viewport-fix-20260817">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport3-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -86,17 +86,30 @@ html.fa-ios.fa-ios-portrait .leave{margin-top:var(--fa-ios-gap)!important;min-he
 /* Il messaggio non deve occupare spazio tra i tre comandi principali. */
 html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
 
-/* ===== FIX VIEWPORT iPAD LEGACY 2026-08-17D =====
-   Sui vecchi iPad in modalita' Home/standalone, window.innerHeight puo' restare
-   temporaneamente agganciato all'altezza landscape dopo il ritorno in portrait.
-   Su Apple non usiamo quindi un'altezza JS congelata: i contenitori principali
-   vengono ancorati ai quattro bordi del viewport reale. */
-html.fa-ios,html.fa-ios body{height:100%!important;min-height:0!important}
-html.fa-ios body{position:static!important;overflow:hidden!important}
-html.fa-ios .pages{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
-html.fa-ios .page{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
-html.fa-ios .modal{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
+/* ===== FANTASTICA IPAD LEGACY VIEWPORT FIX 2026-08-17E =====
+   Sui vecchi iPad WebKit puo' lasciare innerHeight con la misura landscape
+   dopo il ritorno in portrait. Usiamo quindi dimensioni esplicite ricavate
+   dallo schermo e non lasciamo il body come fixed containing block. */
+html.fa-ios,html.fa-ios body{width:var(--fa-vw,100%)!important;height:var(--fa-vh,100%)!important;min-height:var(--fa-vh,100%)!important;overflow:hidden!important}
+html.fa-ios body{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important}
+html.fa-ios .pages{position:absolute!important;inset:0!important;width:var(--fa-vw,100%)!important;max-width:none!important;height:var(--fa-vh,100%)!important;min-height:0!important}
+html.fa-ios .page{position:absolute!important;inset:0!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important}
 html.fa-ios .app{height:100%!important;min-height:0!important}
+html.fa-ios .modal{position:absolute!important;inset:0!important;width:100%!important;height:var(--fa-vh,100%)!important;min-height:0!important;max-height:none!important}
+
+/* Ricalcolo rigido del layout portrait su vecchi iPad: evita che il flex mantenga
+   le altezze compresse della precedente visualizzazione landscape. */
+html.fa-ios.fa-ios-portrait .app{display:flex!important;flex-direction:column!important}
+html.fa-ios.fa-ios-portrait .topline,
+html.fa-ios.fa-ios-portrait .league,
+html.fa-ios.fa-ios-portrait .name,
+html.fa-ios.fa-ios-portrait #info,
+html.fa-ios.fa-ios-portrait #finance{flex:0 0 auto!important}
+html.fa-ios.fa-ios-portrait .main{flex:0 0 auto!important;min-height:var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .big{flex:0 0 var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .row{flex:0 0 var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important;min-height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .row button{flex:1 0 0!important;height:100%!important;min-height:100%!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 </style>
 <script>
 /* FANTASTICA_APPLE_LAYOUT_20260817C
@@ -108,10 +121,45 @@ html.fa-ios .app{height:100%!important;min-height:0!important}
  if(!ios)return;
  var de=document.documentElement;
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+ function isPortrait(){
+  try{return window.matchMedia&&window.matchMedia("(orientation: portrait)").matches}catch(e){}
+  var o=typeof window.orientation==="number"?Math.abs(window.orientation)%180:null;
+  if(o!==null)return o===0;
+  return (window.innerHeight||0)>=(window.innerWidth||0);
+ }
+ function screenSides(){
+  var sw=Number(window.screen&&window.screen.width)||0,sh=Number(window.screen&&window.screen.height)||0;
+  return {short:Math.min(sw,sh),long:Math.max(sw,sh)};
+ }
+ function savedInsetKey(sides,kind){return "fa-ios-vp-inset-"+kind+"-"+sides.short+"x"+sides.long}
+ function readSavedInset(sides,kind){try{var v=parseFloat(localStorage.getItem(savedInsetKey(sides,kind)));return isFinite(v)?v:null}catch(e){return null}}
+ function saveInset(sides,kind,v){try{if(isFinite(v)&&v>=0&&v<160)localStorage.setItem(savedInsetKey(sides,kind),String(v))}catch(e){}}
+ function appleViewport(){
+  var portrait=isPortrait();
+  var rawW=window.innerWidth||document.documentElement.clientWidth||0;
+  var rawH=window.innerHeight||document.documentElement.clientHeight||0;
+  var sides=screenSides();
+  if(!sides.short||!sides.long)return {portrait:portrait,w:rawW,h:rawH};
+  var kind=portrait?"p":"l";
+  var expectedW=portrait?sides.short:sides.long;
+  var screenH=portrait?sides.long:sides.short;
+  var inset=readSavedInset(sides,kind);
+  var plausible=portrait ? (rawH>rawW*1.12) : (rawW>rawH*1.12);
+  if(plausible&&screenH>=rawH){
+   var learned=screenH-rawH;
+   if(learned>=0&&learned<160){inset=learned;saveInset(sides,kind,learned)}
+  }
+  if(inset===null)inset=0;
+  return {portrait:portrait,w:Math.max(1,expectedW),h:Math.max(1,screenH-inset)};
+ }
+ function applyAppleViewport(){
+  var v=appleViewport();
+  de.style.setProperty("--fa-vw",v.w+"px");
+  de.style.setProperty("--fa-vh",v.h+"px");
+  return v;
+ }
  function updateAppleLayout(){
-  var w=window.innerWidth||document.documentElement.clientWidth||0;
-  var h=window.innerHeight||document.documentElement.clientHeight||0;
-  var portrait=h>=w;
+  var v=applyAppleViewport(),w=v.w,h=v.h,portrait=v.portrait;
   de.classList.toggle("fa-ios-portrait",portrait);
   de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
   if(!portrait)return;
@@ -126,10 +174,27 @@ html.fa-ios .app{height:100%!important;min-height:0!important}
   de.style.setProperty("--fa-ios-blue-h",blue+"px");
   de.style.setProperty("--fa-ios-red-h",red+"px");
  }
- updateAppleLayout();
- window.addEventListener("resize",function(){setTimeout(updateAppleLayout,40)});
- window.addEventListener("orientationchange",function(){setTimeout(updateAppleLayout,120)});
- document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateAppleLayout,40)});
+ function forceAppleReflow(){
+  try{
+   var p=document.getElementById("pages");
+   if(!p||p.classList.contains("hidden"))return;
+   var old=p.style.display;
+   p.style.display="none";
+   void p.offsetHeight;
+   p.style.display=old||"";
+   void de.offsetHeight;
+   window.scrollTo(0,0);
+  }catch(e){}
+ }
+ function refreshAppleLayout(){
+  updateAppleLayout();
+  [80,260,650,1100,1700].forEach(function(ms){setTimeout(function(){updateAppleLayout();if(ms>=650)forceAppleReflow()},ms)});
+ }
+ refreshAppleLayout();
+ window.addEventListener("resize",refreshAppleLayout);
+ window.addEventListener("orientationchange",function(){refreshAppleLayout();setTimeout(forceAppleReflow,900);setTimeout(forceAppleReflow,1800)});
+ if(window.visualViewport)window.visualViewport.addEventListener("resize",refreshAppleLayout);
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshAppleLayout()});
 })();
 </script>
 
@@ -771,12 +836,8 @@ document.addEventListener("pointerdown",()=>{
 const pagesEl=$("pages");
 function syncViewportHeight(){
  try{
-  /* Su iPhone/iPad lasciamo che position:fixed + inset seguano il viewport reale.
-     Evita il vecchio bug iPad in cui innerHeight resta quello landscape. */
-  if(document.documentElement.classList.contains("fa-ios")){
-   document.documentElement.style.removeProperty("--fa-vh");
-   return;
-  }
+  /* Su Apple --fa-vh e --fa-vw sono gestiti dal layout dedicato sopra. */
+  if(document.documentElement.classList.contains("fa-ios"))return;
   document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px");
  }catch(e){}
 }
