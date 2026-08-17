@@ -713,7 +713,7 @@ function roleCount(sl,role){
 }
 function roleLimit(role){return league["roster_"+role.toLowerCase()]}
 function rosterPage(s){
- const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
+ const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri / trascina per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
  for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
 }
 function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.member_enabled!==false&&s.display_name).map(rosterPage).join("");faAfterRosterRender()}
@@ -917,6 +917,59 @@ pagesEl.addEventListener("touchend",function(ev){
  faTouchX=faTouchY=null;faGestureLock=null;
 },{passive:false});
 pagesEl.addEventListener("touchcancel",function(){faTouchX=faTouchY=null;faGestureLock=null},{passive:true});
+
+/* PC: stessa navigazione delle rose con trascinamento orizzontale del mouse
+   e swipe orizzontale da trackpad. Non interviene sui touch di telefono/tablet. */
+var faMouseStartX=null,faMouseStartY=null,faMousePointerId=null,faMouseDragged=false,faSuppressClick=false,faWheelAt=0;
+function faDesktopTargetIndex(dx){
+ var target=dx<0?faPageIndex+1:faPageIndex-1;
+ if(target>0)requestRosters();
+ faActivatePage(target);
+}
+pagesEl.addEventListener("pointerdown",function(ev){
+ if(ev.pointerType!=="mouse"&&ev.pointerType!=="pen")return;
+ if(ev.button!==0)return;
+ faMouseStartX=ev.clientX;faMouseStartY=ev.clientY;faMousePointerId=ev.pointerId;faMouseDragged=false;
+ try{pagesEl.setPointerCapture(ev.pointerId)}catch(e){}
+},{passive:true});
+pagesEl.addEventListener("pointermove",function(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faMouseDragged=true;
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
+function faEndDesktopSwipe(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(faMouseDragged&&Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faDesktopTargetIndex(dx);
+  faSuppressClick=true;
+  setTimeout(function(){faSuppressClick=false},80);
+  if(ev.cancelable)ev.preventDefault();
+ }
+ try{pagesEl.releasePointerCapture(ev.pointerId)}catch(e){}
+ faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+}
+pagesEl.addEventListener("pointerup",faEndDesktopSwipe,{passive:false});
+pagesEl.addEventListener("pointercancel",function(ev){
+ if(ev.pointerId===faMousePointerId){
+  faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+ }
+},{passive:true});
+pagesEl.addEventListener("click",function(ev){
+ if(faSuppressClick){ev.preventDefault();ev.stopPropagation();faSuppressClick=false}
+},true);
+pagesEl.addEventListener("wheel",function(ev){
+ var now=Date.now();
+ if(now-faWheelAt<320)return;
+ if(Math.abs(ev.deltaX)>28&&Math.abs(ev.deltaX)>Math.abs(ev.deltaY)*1.15){
+  faWheelAt=now;
+  faDesktopTargetIndex(-ev.deltaX);
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
 
 function eventInsideAuction(ev){
  const el=ev.target instanceof Element?ev.target:null;
