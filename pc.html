@@ -212,88 +212,193 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .rosterModalActions button,.rosterChoice{background:#1465a2;border:1px solid #2478b8}.rosterModalActions .dangerAction{background:#9a3434;border-color:#bb4e4e}.rosterModalActions .swapAction{background:#7752b8;border-color:#946ed0}.rosterModalActions .neutralAction{background:#164d78;border-color:#28658e}.rosterChoice{background:#0b3a63}.rosterChoice:hover{background:#104a7d}.refundInput,.repairField input,.repairField select{background:#071d34!important;color:#fff!important;border:1px solid #174d78!important}.repairSummary{background:#071e36;border:1px solid #164b75}.selectionHint{background:#5a4513;color:#ffda74;border:1px solid #866820}.outListWarning{background:#552323;border:1px solid #9c4545}.memberPick{background:#071e36;border-bottom-color:#174b75}
 
 
-/* ===== ADATTAMENTO AUTOMATICO 4-12 PARTECIPANTI =====
-   Nessuno scroll nella griglia partecipanti: la Regia compatta prima
-   cronologia e pannelli informativi, poi dimensiona le schede sulle righe reali. */
+
+/* ===== LAYOUT PARTECIPANTI DEFINITIVO A 3 FASCE =====
+   1-4  : cronologia normale
+   5-8  : cronologia ridotta al solo titolo
+   9-12 : cronologia minima al solo titolo
+   La riga dei partecipanti occupa SEMPRE tutto lo spazio restante.
+   Se esistono partecipanti in gestione manuale, il terzo pannello viene
+   riservato ai comandi manuali; resta comunque visibile una sola console
+   alla volta, mentre tutti i manuali continuano ad avere pallino giallo. */
+
 #regia .players{
-  overflow:visible;
-  align-content:start;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+  align-content:stretch;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  grid-auto-rows:unset;
 }
-#regia.faPlayers2 .players,
-#regia.faPlayers3 .players{
-  grid-auto-rows:var(--fa-player-row-h,auto);
-}
-#regia.faPlayers2 .p,
-#regia.faPlayers3 .p{
+#regia .p{
+  min-width:0;
   min-height:0;
   height:100%;
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+#regia .p>b{
   display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#regia .manualCtl{margin-top:auto}
+
+/* 1-4 partecipanti: una riga e cronologia completa. */
+#regia.faPlayers1 .center{
+  grid-template-rows:auto minmax(0,1fr) minmax(118px,18vh);
+}
+#regia.faPlayers1 .players{
+  grid-template-rows:minmax(0,1fr);
 }
 
-/* 5-8 partecipanti: due righe, cronologia più bassa e testata centrale compatta. */
-#regia.faPlayers2 .hero{padding:9px}
-#regia.faPlayers2 .timerPanel{min-height:clamp(155px,22vh,190px);padding:7px 9px}
-#regia.faPlayers2 .timer{font-size:clamp(42px,5.8vh,58px);margin:6px 0}
-#regia.faPlayers2 .currentPlayer{min-height:40px;padding:5px 7px}
-#regia.faPlayers2 .currentPlayer .pn{font-size:clamp(18px,1.8vw,22px)}
-#regia.faPlayers2 .amount{font-size:clamp(44px,6vh,60px)}
-#regia.faPlayers2 .who{font-size:17px;margin-top:2px}
-#regia.faPlayers2 .controls{margin-top:5px;gap:5px}
-#regia.faPlayers2 .controls button{min-height:31px;padding:5px 6px}
-#regia.faPlayers2:not(.hasManualPlayers) .logCard{min-height:64px}
+/* 5-8 partecipanti: due righe; la cronologia cede quasi tutto lo spazio. */
+#regia.faPlayers2 .center{
+  grid-template-rows:auto minmax(0,1fr) 34px;
+  gap:7px;
+}
+#regia.faPlayers2 .players{
+  grid-template-rows:repeat(2,minmax(0,1fr));
+}
+#regia.faPlayers2:not(.hasManualPlayers) .logCard{
+  min-height:0;
+  padding:6px 9px;
+}
+#regia.faPlayers2:not(.hasManualPlayers) .logCard h3{
+  margin:0;
+  font-size:12px;
+  line-height:20px;
+}
+#regia.faPlayers2:not(.hasManualPlayers) .logScroll{display:none}
+#regia.faPlayers2 .timerPanel{min-height:142px;padding:6px 8px}
+#regia.faPlayers2 .timer{font-size:clamp(38px,5.2vh,50px);margin:4px 0}
+#regia.faPlayers2 .timerTitle{font-size:10px;margin-bottom:2px}
+#regia.faPlayers2 .timerModeBadge{font-size:9px;margin-top:4px;padding:4px 7px}
+#regia.faPlayers2 .offerZone{padding:6px 8px}
+#regia.faPlayers2 .currentPlayer{min-height:36px;padding:3px 6px 5px;margin-bottom:5px}
+#regia.faPlayers2 .currentPlayer .pn{font-size:18px}
+#regia.faPlayers2 .currentPlayer .meta{font-size:10px;margin-top:1px}
+#regia.faPlayers2 .offerPanel{padding:5px 8px}
+#regia.faPlayers2 .offerLabel{font-size:10px;margin-bottom:1px}
+#regia.faPlayers2 .amount{font-size:42px}
+#regia.faPlayers2 .offerBy{font-size:8px;margin-top:0}
+#regia.faPlayers2 .who{font-size:15px;margin-top:1px}
+#regia.faPlayers2 .controls{margin-top:4px;gap:5px}
+#regia.faPlayers2 .controls button{min-height:29px;padding:4px 5px;font-size:9px}
+#regia.faPlayers2 .eventPos{font-size:9px;margin-top:1px}
 #regia.faPlayers2 .p{padding:5px 7px}
-#regia.faPlayers2 .ps{font-size:9px;line-height:1.22;margin-top:2px}
-#regia.faPlayers2 .manualCtl{margin-top:3px;padding:3px 5px;font-size:9px}
+#regia.faPlayers2 .p>b{font-size:11px;line-height:1.08}
+#regia.faPlayers2 .ps{font-size:9px;line-height:1.18;margin-top:2px}
+#regia.faPlayers2 .manualCtl{padding:3px 5px;font-size:8px;line-height:1.05}
 
-/* 9-12 partecipanti: tre righe. La cronologia cede quasi tutto lo spazio. */
-#regia.faPlayers3 .center{gap:6px}
-#regia.faPlayers3 .hero{padding:7px}
-#regia.faPlayers3 .heroMain{gap:7px}
-#regia.faPlayers3 .timerPanel{min-height:112px;padding:5px 7px}
-#regia.faPlayers3 .timer{font-size:38px;margin:3px 0}
-#regia.faPlayers3 .timerTitle{font-size:10px;margin-bottom:2px}
-#regia.faPlayers3 .timerModeBadge{font-size:9px;margin-top:4px;padding:4px 7px}
-#regia.faPlayers3 .offerZone{padding:5px 7px}
-#regia.faPlayers3 .currentPlayer{min-height:30px;padding:2px 5px 4px;margin-bottom:5px}
-#regia.faPlayers3 .currentPlayer .pn{font-size:17px}
-#regia.faPlayers3 .currentPlayer .meta{font-size:10px;margin-top:1px}
-#regia.faPlayers3 .offerPanel{padding:4px 7px}
-#regia.faPlayers3 .offerLabel{font-size:10px;margin-bottom:0}
-#regia.faPlayers3 .amount{font-size:38px}
-#regia.faPlayers3 .offerBy{font-size:8px;margin-top:0}
-#regia.faPlayers3 .who{font-size:14px;margin-top:0}
-#regia.faPlayers3 .controls{margin-top:4px;gap:4px}
-#regia.faPlayers3 .controls button{min-height:28px;padding:3px 5px;font-size:9px}
-#regia.faPlayers3 .eventPos{font-size:9px;margin-top:1px}
-#regia.faPlayers3:not(.hasManualPlayers) .logCard{min-height:44px;padding-top:5px;padding-bottom:5px}
-#regia.faPlayers3:not(.hasManualPlayers) .logCard h3{font-size:11px;margin-bottom:3px}
-#regia.faPlayers3 .p{padding:4px 6px;border-radius:7px}
-#regia.faPlayers3 .p>b{font-size:11px;line-height:1.05}
-#regia.faPlayers3 .dot{width:12px;height:12px;margin-right:5px;vertical-align:-2px}
-#regia.faPlayers3 .ps{font-size:8px;line-height:1.15;margin-top:2px}
-#regia.faPlayers3 .manualCtl{margin-top:2px;padding:2px 4px;font-size:8px;line-height:1.05}
+/* 9-12 partecipanti: tre righe; cronologia ridotta al minimo assoluto. */
+#regia.faPlayers3 .center{
+  grid-template-rows:auto minmax(0,1fr) 28px;
+  gap:5px;
+}
+#regia.faPlayers3 .players{
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  gap:5px;
+}
+#regia.faPlayers3:not(.hasManualPlayers) .logCard{
+  min-height:0;
+  padding:4px 8px;
+}
+#regia.faPlayers3:not(.hasManualPlayers) .logCard h3{
+  margin:0;
+  font-size:10px;
+  line-height:18px;
+}
+#regia.faPlayers3:not(.hasManualPlayers) .logScroll{display:none}
+#regia.faPlayers3 .heroMain{gap:6px}
+#regia.faPlayers3 .timerPanel{min-height:102px;padding:4px 6px}
+#regia.faPlayers3 .timer{font-size:34px;margin:2px 0}
+#regia.faPlayers3 .timerTitle{font-size:9px;margin-bottom:1px}
+#regia.faPlayers3 .timerModeBadge{font-size:8px;margin-top:2px;padding:3px 6px}
+#regia.faPlayers3 .offerZone{padding:4px 6px}
+#regia.faPlayers3 .currentPlayer{min-height:26px;padding:1px 4px 3px;margin-bottom:3px}
+#regia.faPlayers3 .currentPlayer .pn{font-size:15px}
+#regia.faPlayers3 .currentPlayer .meta{font-size:8px;margin-top:0}
+#regia.faPlayers3 .offerPanel{padding:3px 6px}
+#regia.faPlayers3 .offerLabel{font-size:8px;margin-bottom:0}
+#regia.faPlayers3 .amount{font-size:34px}
+#regia.faPlayers3 .offerBy{font-size:7px;margin-top:0}
+#regia.faPlayers3 .who{font-size:12px;margin-top:0}
+#regia.faPlayers3 .controls{margin-top:3px;gap:3px}
+#regia.faPlayers3 .controls button{min-height:25px;padding:2px 4px;font-size:8px}
+#regia.faPlayers3 .eventPos{font-size:8px;margin-top:0}
+#regia.faPlayers3 .p{padding:3px 5px;border-radius:6px}
+#regia.faPlayers3 .p>b{font-size:10px;line-height:1.02}
+#regia.faPlayers3 .dot{width:11px;height:11px;margin-right:4px;vertical-align:-2px}
+#regia.faPlayers3 .ps{font-size:8px;line-height:1.08;margin-top:1px}
+#regia.faPlayers3 .manualCtl{padding:2px 4px;font-size:7px;line-height:1}
 
-/* Con gestione manuale attiva, il pannello comandi resta prioritario,
-   ma anche 8/12 schede devono rimanere tutte visibili. */
-#regia.hasManualPlayers.faPlayers2 .center{grid-template-rows:auto auto minmax(205px,1fr)}
-#regia.hasManualPlayers.faPlayers2 .logCard{min-height:205px}
-#regia.hasManualPlayers.faPlayers3 .center{grid-template-rows:auto auto minmax(185px,1fr)}
-#regia.hasManualPlayers.faPlayers3 .logCard{min-height:185px}
-#regia.hasManualPlayers.faPlayers3 .timerPanel{min-height:102px}
+/* ===== GESTIONE MANUALE =====
+   Più partecipanti possono essere manuali contemporaneamente (tutti gialli
+   e tutti equivalenti a ONLINE per Offline Guard), ma la console visualizza
+   un solo partecipante alla volta. Il pannello comandi sostituisce la
+   cronologia e ha una quota fissa sufficiente, SENZA scroll. */
+
+#regia.hasManualPlayers.faPlayers1 .center{
+  grid-template-rows:auto minmax(0,1fr) 255px;
+}
+#regia.hasManualPlayers.faPlayers2 .center{
+  grid-template-rows:auto minmax(0,1fr) 240px;
+}
+#regia.hasManualPlayers.faPlayers3 .center{
+  grid-template-rows:auto minmax(0,1fr) 230px;
+}
+#regia.hasManualPlayers .logCard{
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+}
+#regia.hasManualPlayers .manualAuctionPanel{
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+#regia.hasManualPlayers.faPlayers2 .timerPanel{min-height:122px}
+#regia.hasManualPlayers.faPlayers3 .timerPanel{min-height:86px}
+#regia.hasManualPlayers.faPlayers3 .timer{font-size:30px}
+#regia.hasManualPlayers.faPlayers3 .currentPlayer{min-height:22px}
+#regia.hasManualPlayers.faPlayers3 .currentPlayer .pn{font-size:13px}
+#regia.hasManualPlayers.faPlayers3 .amount{font-size:29px}
+#regia.hasManualPlayers.faPlayers3 .controls button{min-height:22px;font-size:7px}
 #regia.hasManualPlayers.faPlayers3 .manualAuctionPanel{gap:4px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionHead{min-height:25px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionTitle{font-size:13px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat{padding:4px 5px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat small{font-size:8px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat b{font-size:13px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionActions button{min-height:30px;padding:5px 4px;font-size:10px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionLeader{padding:5px;font-size:10px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionMsg{min-height:12px;font-size:9px}
-#regia.hasManualPlayers.faPlayers3 .manualExactDisplay{font-size:20px;min-height:34px;padding:3px 6px}
-#regia.hasManualPlayers.faPlayers3 .manualExactHint{font-size:8px;line-height:1.15}
-#regia.hasManualPlayers.faPlayers3 .manualKeypad{gap:4px}
-#regia.hasManualPlayers.faPlayers3 .manualKeypad button{font-size:12px;padding:2px 3px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionHead{min-height:23px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionTitle{font-size:12px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionClose{padding:3px 7px;font-size:9px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStatus{gap:4px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat{padding:3px 4px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat small{font-size:7px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionStat b{font-size:12px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionActions{gap:4px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionActions button{min-height:27px;padding:3px;font-size:8px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionLeader{padding:4px;font-size:8px}
+#regia.hasManualPlayers.faPlayers3 .manualAuctionMsg{min-height:10px;font-size:8px}
+#regia.hasManualPlayers.faPlayers3 .manualExactBox{gap:5px}
+#regia.hasManualPlayers.faPlayers3 .manualExactDisplay{font-size:18px;min-height:30px;padding:2px 5px}
+#regia.hasManualPlayers.faPlayers3 .manualExactHint{font-size:7px;line-height:1.08}
+#regia.hasManualPlayers.faPlayers3 .manualKeypad{gap:3px}
+#regia.hasManualPlayers.faPlayers3 .manualKeypad button{font-size:10px;padding:1px 2px;min-height:0}
+
+/* Su monitor bassi riduciamo ancora solo le zone informative,
+   mai la visibilità delle righe partecipanti o la console manuale. */
+@media(max-height:720px){
+ #regia.faPlayers2 .timerPanel{min-height:112px}
+ #regia.faPlayers3 .timerPanel{min-height:78px}
+ #regia.faPlayers2 .amount{font-size:36px}
+ #regia.faPlayers3 .amount{font-size:27px}
+ #regia.faPlayers2 .controls button{min-height:25px}
+ #regia.faPlayers3 .controls button{min-height:20px}
+ #regia.hasManualPlayers.faPlayers1 .center{grid-template-rows:auto minmax(0,1fr) 235px}
+ #regia.hasManualPlayers.faPlayers2 .center{grid-template-rows:auto minmax(0,1fr) 225px}
+ #regia.hasManualPlayers.faPlayers3 .center{grid-template-rows:auto minmax(0,1fr) 215px}
+}
 
 </style></head><body>
 <div class="wrap">
@@ -921,30 +1026,13 @@ function rosterHTML(slot,compact=true){
 }
 
 function updateParticipantLayout(visibleCount){
- const reg=$("regia");
- if(!reg)return;
- const rows=Math.max(1,Math.ceil(Math.max(1,Number(visibleCount)||1)/4));
- reg.classList.toggle("faPlayers2",rows===2);
- reg.classList.toggle("faPlayers3",rows>=3);
- reg.dataset.playerRows=String(rows);
- requestAnimationFrame(fitParticipantCards);
+ const reg=$("regia");if(!reg)return;
+ const n=Math.max(1,Number(visibleCount)||1);
+ reg.classList.toggle("faPlayers1",n<=4);
+ reg.classList.toggle("faPlayers2",n>=5&&n<=8);
+ reg.classList.toggle("faPlayers3",n>=9);
+ reg.dataset.playerBand=n<=4?"1-4":n<=8?"5-8":"9-12";
 }
-function fitParticipantCards(){
- const reg=$("regia"),center=reg?.querySelector(".center"),hero=reg?.querySelector(".hero"),players=$("players");
- if(!reg||!center||!hero||!players||reg.classList.contains("hidden"))return;
- const count=players.children.length;
- const rows=Math.max(1,Math.ceil(Math.max(1,count)/4));
- if(rows<=1){reg.style.removeProperty("--fa-player-row-h");return}
- const manual=reg.classList.contains("hasManualPlayers");
- const reserve=manual?(rows>=3?185:205):(rows>=3?44:64);
- const gaps=8*2+6*Math.max(0,rows-1);
- const room=center.clientHeight-hero.offsetHeight-reserve-gaps;
- const minH=manual?(rows>=3?66:72):(rows>=3?56:64);
- const maxH=rows>=3?78:94;
- const h=Math.max(minH,Math.min(maxH,Math.floor(room/rows)));
- reg.style.setProperty("--fa-player-row-h",h+"px");
-}
-window.addEventListener("resize",()=>requestAnimationFrame(fitParticipantCards));
 
 function render(){
  $("leagueName").textContent=league.name;
@@ -977,7 +1065,7 @@ function render(){
  $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
  $("nextEvent").disabled=historyOffset<=0;
  if($("importList"))$("importList").textContent=catalog.some(p=>p.in_current_list!==false)?"AGGIORNA":"IMPORTA";renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
- if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);requestAnimationFrame(fitParticipantCards);
+ if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
 }
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
