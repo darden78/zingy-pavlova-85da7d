@@ -119,6 +119,51 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 #regia .manualKeypad button{border:1px solid #236a9f;border-radius:8px;background:#0c4c7b;color:#fff;font-weight:900;font-size:17px;min-height:35px;cursor:pointer}
 #regia .manualKeypad .manualSend{grid-column:3/5;background:#218b52;border-color:#38ad70}
 #regia .manualKeypad .manualCancel{grid-column:1/3;background:#5f3a72;border-color:#7b5790}
+#regia.hasManualPlayers .center{grid-template-rows:auto auto minmax(240px,1fr)}
+#regia.hasManualPlayers .heroMain{align-items:stretch}
+#regia.hasManualPlayers .timerPanel{min-height:145px;padding:7px 9px}
+#regia.hasManualPlayers .timer{font-size:clamp(40px,5.6vh,56px);margin:6px 0 5px}
+#regia.hasManualPlayers .timerTitle{font-size:11px;margin-bottom:3px}
+#regia.hasManualPlayers .timerModeBadge{font-size:10px}
+#regia.hasManualPlayers .offerZone{padding:6px 8px}
+#regia.hasManualPlayers .currentPlayer{min-height:38px;padding:0 6px 5px}
+#regia.hasManualPlayers .currentPlayer .pn{font-size:clamp(18px,2vw,22px)}
+#regia.hasManualPlayers .currentPlayer .meta{font-size:11px;margin-top:1px}
+#regia.hasManualPlayers .offerPanel{padding:5px 8px 4px}
+#regia.hasManualPlayers .offerLabel{font-size:11px;margin-bottom:1px}
+#regia.hasManualPlayers .amount{font-size:clamp(43px,5.8vh,58px);margin:1px 0}
+#regia.hasManualPlayers .who{font-size:16px;margin-top:1px}
+#regia.hasManualPlayers .offerBy{font-size:9px;margin-top:0}
+#regia.hasManualPlayers .controls{gap:6px;margin-top:5px}
+#regia.hasManualPlayers .controls button{min-height:32px;padding:5px 7px;font-size:clamp(9px,.75vw,11px)}
+#regia.hasManualPlayers .eventPos{font-size:10px;margin-top:1px}
+#regia.hasManualPlayers .logCard{min-height:240px}
+#regia.hasManualPlayers .manualAuctionPanel{overflow:hidden;gap:6px}
+#regia.hasManualPlayers .manualAuctionHead{min-height:30px}
+#regia.hasManualPlayers .manualAuctionTitle{font-size:15px}
+#regia.hasManualPlayers .manualAuctionClose{padding:5px 9px}
+#regia.hasManualPlayers .manualAuctionStat{padding:5px 7px}
+#regia.hasManualPlayers .manualAuctionStat b{font-size:16px}
+#regia.hasManualPlayers .manualAuctionActions button{padding:8px 6px;min-height:36px}
+#regia.hasManualPlayers .manualAuctionMsg{min-height:16px;font-size:11px}
+#regia.hasManualPlayers .manualExactBox{grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:7px;min-height:0;height:100%;overflow:hidden}
+#regia.hasManualPlayers .manualExactLeft{gap:5px;overflow:hidden}
+#regia.hasManualPlayers .manualExactDisplay{font-size:25px;min-height:42px;padding:5px 8px}
+#regia.hasManualPlayers .manualExactHint{font-size:10px;line-height:1.25}
+#regia.hasManualPlayers .manualKeypad{grid-template-rows:repeat(4,minmax(0,1fr));height:100%;overflow:hidden}
+#regia.hasManualPlayers .manualKeypad button{min-height:0;height:100%;font-size:15px;padding:3px 4px}
+@media(max-height:720px){
+ #regia.hasManualPlayers .center{grid-template-rows:auto auto minmax(215px,1fr)}
+ #regia.hasManualPlayers .timerPanel{min-height:128px;padding:5px 7px}
+ #regia.hasManualPlayers .timer{font-size:40px;margin:3px 0}
+ #regia.hasManualPlayers .currentPlayer{min-height:32px;padding-bottom:3px}
+ #regia.hasManualPlayers .currentPlayer .pn{font-size:17px}
+ #regia.hasManualPlayers .amount{font-size:40px}
+ #regia.hasManualPlayers .controls button{min-height:29px;padding:4px 5px}
+ #regia.hasManualPlayers .logCard{min-height:215px}
+ #regia.hasManualPlayers .manualAuctionStatus{gap:5px}
+ #regia.hasManualPlayers .manualAuctionActions{gap:5px}
+}
 @media(max-height:760px){#regia .manualAuctionPanel{gap:5px}#regia .manualAuctionStat{padding:5px 7px}#regia .manualAuctionStat b{font-size:15px}#regia .manualAuctionActions button{padding:7px 5px}#regia .manualExactDisplay{font-size:23px;min-height:40px;padding:5px 8px}#regia .manualKeypad button{min-height:30px;font-size:15px}}
 
 #regia .rightSide #listView{display:flex;flex-direction:column;min-height:0}
@@ -809,6 +854,7 @@ function render(){
  $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.member_enabled!==false);
+ const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",hasManualPlayers);
  const tm=(league.timer_mode||"MANUAL").toUpperCase();
  $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control;const state=hi?(manual?"MAGGIORE OFFERENTE · MANUALE":"MAGGIORE OFFERENTE"):s.abandoned?"ABBANDONATO":manual?"GESTIONE MANUALE":s.active?"IN GARA":"NON IN GARA";return `<div class="p" data-slot="${s.slot}"><span class="dot ${manual?"manual":online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":manual?"manualState":s.active?"in":""}">${state}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
