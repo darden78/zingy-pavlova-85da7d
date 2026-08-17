@@ -96,6 +96,31 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 #regia .logCard h3{flex:0 0 auto}
 #regia .logScroll{flex:1 1 auto;min-height:0;overflow:auto}
 #regia .logScroll table{width:100%}
+#regia .manualAuctionPanel{height:100%;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:2px 1px}
+#regia .manualAuctionHead{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+#regia .manualAuctionTitle{font-size:16px;font-weight:900;flex:1;color:#fff}
+#regia .manualAuctionClose{border:1px solid #2c6d9f;border-radius:8px;background:#0b4774;color:#fff;font-weight:900;padding:6px 10px;cursor:pointer}
+#regia .manualAuctionStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;flex:0 0 auto}
+#regia .manualAuctionStat{background:#071e36;border:1px solid #164f7c;border-radius:8px;padding:7px 9px;text-align:center;min-width:0}
+#regia .manualAuctionStat small{display:block;color:#9fb8cf;font-size:10px;font-weight:800;margin-bottom:2px}
+#regia .manualAuctionStat b{display:block;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#regia .manualAuctionActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;flex:0 0 auto}
+#regia .manualAuctionActions button{border:1px solid #2779b8;border-radius:9px;background:#1465a2;color:#fff;font-weight:900;padding:10px 7px;cursor:pointer}
+#regia .manualAuctionActions button.manualDanger{background:#a52f36;border-color:#c94c53}
+#regia .manualAuctionActions button.manualResume{background:#248153;border-color:#36a66e}
+#regia .manualAuctionActions button:disabled{opacity:.32;cursor:default}
+#regia .manualAuctionLeader{grid-column:1/-1;background:#4b3b0d;border:1px solid #8c6c18;border-radius:8px;color:#ffd76a;font-weight:900;text-align:center;padding:7px}
+#regia .manualAuctionMsg{min-height:18px;text-align:center;font-weight:900;font-size:12px;flex:0 0 auto}
+#regia .manualExactBox{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(240px,1.3fr);gap:9px;min-height:0;flex:1 1 auto}
+#regia .manualExactLeft{display:flex;flex-direction:column;gap:7px;min-height:0}
+#regia .manualExactDisplay{background:#020d19;border:1px solid #1a639c;border-radius:9px;padding:8px 10px;font-size:28px;font-weight:900;text-align:right;min-height:48px}
+#regia .manualExactHint{color:#a9c2d8;font-size:11px;line-height:1.35}
+#regia .manualKeypad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;min-height:0}
+#regia .manualKeypad button{border:1px solid #236a9f;border-radius:8px;background:#0c4c7b;color:#fff;font-weight:900;font-size:17px;min-height:35px;cursor:pointer}
+#regia .manualKeypad .manualSend{grid-column:3/5;background:#218b52;border-color:#38ad70}
+#regia .manualKeypad .manualCancel{grid-column:1/3;background:#5f3a72;border-color:#7b5790}
+@media(max-height:760px){#regia .manualAuctionPanel{gap:5px}#regia .manualAuctionStat{padding:5px 7px}#regia .manualAuctionStat b{font-size:15px}#regia .manualAuctionActions button{padding:7px 5px}#regia .manualExactDisplay{font-size:23px;min-height:40px;padding:5px 8px}#regia .manualKeypad button{min-height:30px;font-size:15px}}
+
 #regia .rightSide #listView{display:flex;flex-direction:column;min-height:0}
 #regia .playerList{height:auto;min-height:0;flex:1 1 auto}
 @media(max-height:800px){
@@ -227,8 +252,11 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
     </div><div id="eventPos" class="eventPos"></div>
    </div>
    <div id="players" class="players"></div>
-   <section class="logCard"><h3>ULTIMI RILANCI</h3>
-    <div class="logScroll"><table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table></div>
+   <section class="logCard">
+    <div id="manualAuctionPanel" class="manualAuctionPanel hidden"></div>
+    <div id="logHistory" style="display:flex;flex-direction:column;min-height:0;height:100%"><h3>ULTIMI RILANCI</h3>
+     <div class="logScroll"><table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table></div>
+    </div>
    </section>
   </main>
   <aside class="side rightSide">
@@ -314,6 +342,7 @@ function phaseText(l=league){
 function roleArticle(r){return r==="A"?"GLI":"I"}
 const serverNow=()=>Date.now()+serverOffset;
 let historyOffset=0;
+let manualAuctionSlot=null,manualExactMode=false,manualExactValue="",manualPanelMessage="",manualPanelMessageClass="";
 function currentAuctionBidHistory(){
  const ordered=[...bids].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
  const out=[];
@@ -791,6 +820,7 @@ function render(){
  $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
  $("nextEvent").disabled=historyOffset<=0;
  if($("importList"))$("importList").textContent=catalog.some(p=>p.in_current_list!==false)?"AGGIORNA":"IMPORTA";renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
+ if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
 }
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
@@ -1101,16 +1131,64 @@ function chooseMemberSlots(candidates,required,title,description,allowEmpty=fals
 }
 
 function manualBidError(er){return er==="COOLDOWN"?"Attendi un istante prima del rilancio.":er==="SUPERA_MASSIMO"?"L'offerta supera il massimo spendibile.":er==="MAGGIORE_OFFERENTE_NON_PUO_ABBANDONARE"?"Il maggiore offerente non può abbandonare.":er||"Operazione non riuscita"}
-function showManualAuction(slotNo){
- const s=slots.find(x=>x.slot===slotNo);if(!s?.display_name||!s.manual_control)return;
- const active=auction?.status==="OPEN"&&auction?.current_player_id&&s.active;
- const hi=auction?.highest_slot===slotNo;
- const leaveText=s.abandoned?"RIPRENDI ASTA":"ABBANDONA ASTA";
- showRosterModal(`<h2>${escHtml(s.display_name)} — MANUALE</h2><p>${active?`Offerta attuale: <b>${auction.current_bid}</b> · ${auction.highest_slot?escHtml(slotName(auction.highest_slot)):"nessun offerente"}`:"Il partecipante non è attualmente in un'asta attiva."}</p><div class="rosterModalActions"><button id="manualPlus1" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>+1</button><button id="manualPlus10" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>+10</button><button id="manualExact" class="swapAction" ${active&&!s.abandoned?"":"disabled"}>IMPORTO</button><button id="manualLeave" class="${s.abandoned?"swapAction":"dangerAction"}" ${active&&!hi||s.abandoned&&active?"":"disabled"}>${leaveText}</button></div><div id="manualBidMsg"></div>`);
- const bid=async(kind,exact=null)=>{const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:slotNo,p_kind:kind,p_exact:exact});if(error||!data?.ok){msg($("manualBidMsg"),manualBidError(error?.message||data?.error),"bad");return}await load(false);showManualAuction(slotNo)};
- $("manualPlus1").onclick=()=>bid("PLUS1");$("manualPlus10").onclick=()=>bid("PLUS10");$("manualExact").onclick=()=>{const v=prompt("Importo esatto:",String((auction?.current_bid||0)+1));if(v===null)return;const n=Number(v);if(!Number.isInteger(n)){msg($("manualBidMsg"),"Inserisci un importo intero.","bad");return}bid("EXACT",n)};
- $("manualLeave").onclick=async()=>{const {data,error}=await db.rpc("fa_leave_manual_v511",{p_league_id:league.id,p_slot:slotNo,p_rejoin:!!s.abandoned});if(error||!data?.ok){msg($("manualBidMsg"),manualBidError(error?.message||data?.error),"bad");return}await load(false);showManualAuction(slotNo)};
+function closeManualAuctionPanel(){
+ manualAuctionSlot=null;manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";
+ const p=$("manualAuctionPanel"),h=$("logHistory");if(p){p.classList.add("hidden");p.innerHTML=""}if(h)h.style.display="flex";
 }
+function showManualAuction(slotNo){
+ manualAuctionSlot=Number(slotNo);manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";
+ renderManualAuctionPanel(manualAuctionSlot);
+}
+function renderManualAuctionPanel(slotNo){
+ const p=$("manualAuctionPanel"),h=$("logHistory");if(!p||!h)return;
+ const s=slots.find(x=>x.slot===Number(slotNo));
+ if(!s?.display_name||!s.manual_control){closeManualAuctionPanel();return}
+ manualAuctionSlot=Number(slotNo);h.style.display="none";p.classList.remove("hidden");
+ const active=auction?.status==="OPEN"&&auction?.current_player_id&&s.active;
+ const hi=auction?.highest_slot===Number(slotNo);
+ const currentWho=auction?.highest_slot?escHtml(slotName(auction.highest_slot)):"Nessuno";
+ const currentAmount=auction?.highest_slot?auction.current_bid:"—";
+ const r=rosterInfo(Number(slotNo));
+ if(manualExactMode){
+  const shown=manualExactValue||"0";
+  p.innerHTML=`<div class="manualAuctionHead"><div class="manualAuctionTitle">${escHtml(s.display_name)} — OFFERTA LIBERA</div><button id="manualPanelClose" class="manualAuctionClose">CHIUDI</button></div><div class="manualExactBox"><div class="manualExactLeft"><div class="manualExactDisplay">${escHtml(shown)}</div><div class="manualExactHint">Offerta attuale: <b>${currentAmount}</b><br>Massimo spendibile: <b>${r.max}</b><br>Puoi anche usare la tastiera del PC.</div><div id="manualBidMsg" class="manualAuctionMsg ${manualPanelMessageClass}">${escHtml(manualPanelMessage)}</div></div><div class="manualKeypad"><button data-manual-key="1">1</button><button data-manual-key="2">2</button><button data-manual-key="3">3</button><button data-manual-key="C">C</button><button data-manual-key="4">4</button><button data-manual-key="5">5</button><button data-manual-key="6">6</button><button data-manual-key="B">⌫</button><button data-manual-key="7">7</button><button data-manual-key="8">8</button><button data-manual-key="9">9</button><button data-manual-key="0">0</button><button id="manualExactCancel" class="manualCancel">ANNULLA</button><button id="manualExactSend" class="manualSend">INVIA</button></div></div>`;
+  $("manualPanelClose").onclick=closeManualAuctionPanel;
+  $("manualExactCancel").onclick=()=>{manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";renderManualAuctionPanel(slotNo)};
+  document.querySelectorAll("[data-manual-key]").forEach(b=>b.onclick=()=>manualExactKey(b.dataset.manualKey));
+  $("manualExactSend").onclick=()=>manualSendExact(slotNo);
+  return;
+ }
+ const leave=s.abandoned?`<button id="manualLeave" class="manualResume" ${active?"":"disabled"}>RIPRENDI ASTA</button>`:hi?`<div class="manualAuctionLeader">MAGGIORE OFFERENTE — ABBANDONA ASTA non disponibile</div>`:`<button id="manualLeave" class="manualDanger" ${active?"":"disabled"}>ABBANDONA ASTA</button>`;
+ p.innerHTML=`<div class="manualAuctionHead"><div class="manualAuctionTitle">${escHtml(s.display_name)} — COMANDI MANUALI</div><button id="manualPanelClose" class="manualAuctionClose">CHIUDI</button></div><div class="manualAuctionStatus"><div class="manualAuctionStat"><small>OFFERTA ATTUALE</small><b>${currentAmount}</b></div><div class="manualAuctionStat"><small>MIGLIOR OFFERENTE</small><b>${currentWho}</b></div><div class="manualAuctionStat"><small>MAX ${escHtml(s.display_name)}</small><b>${r.max}</b></div></div><div class="manualAuctionActions"><button id="manualPlus1" ${active&&!s.abandoned?"":"disabled"}>+1</button><button id="manualPlus10" ${active&&!s.abandoned?"":"disabled"}>+10</button><button id="manualExact" ${active&&!s.abandoned?"":"disabled"}>OFFERTA LIBERA</button>${leave}</div><div id="manualBidMsg" class="manualAuctionMsg ${manualPanelMessageClass}">${escHtml(manualPanelMessage)}</div>`;
+ $("manualPanelClose").onclick=closeManualAuctionPanel;
+ const bid=async(kind,exact=null)=>{
+  const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:kind,p_exact:exact});
+  if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
+  manualPanelMessage=`✓ Offerta ${data.amount??exact??""} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";
+  await load(false);
+ };
+ $("manualPlus1").onclick=()=>bid("PLUS1");$("manualPlus10").onclick=()=>bid("PLUS10");$("manualExact").onclick=()=>{manualExactMode=true;manualExactValue=String((auction?.current_bid||0)+1);manualPanelMessage="";manualPanelMessageClass="";renderManualAuctionPanel(slotNo)};
+ const leaveBtn=$("manualLeave");if(leaveBtn)leaveBtn.onclick=async()=>{const {data,error}=await db.rpc("fa_leave_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_rejoin:!!s.abandoned});if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}manualPanelMessage=s.abandoned?"✓ Partecipante rientrato nell'asta":"✓ Partecipante fuori dall'asta";manualPanelMessageClass="ok";await load(false)};
+}
+function manualExactKey(key){
+ if(!manualExactMode||manualAuctionSlot===null)return;
+ if(key==="C")manualExactValue="";else if(key==="B")manualExactValue=manualExactValue.slice(0,-1);else if(/^\d$/.test(key)){manualExactValue=(manualExactValue==="0"?"":manualExactValue)+key;if(manualExactValue.length>7)manualExactValue=manualExactValue.slice(0,7)}
+ renderManualAuctionPanel(manualAuctionSlot);
+}
+async function manualSendExact(slotNo){
+ const n=Number(manualExactValue);if(!Number.isInteger(n)||n<0){manualPanelMessage="Inserisci un importo intero valido.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
+ const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:"EXACT",p_exact:n});
+ if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
+ manualPanelMessage=`✓ Offerta ${data.amount??n} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";await load(false);
+}
+window.addEventListener("keydown",e=>{
+ if(!manualExactMode||manualAuctionSlot===null)return;
+ if(/^\d$/.test(e.key)){e.preventDefault();manualExactKey(e.key)}
+ else if(e.key==="Backspace"){e.preventDefault();manualExactKey("B")}
+ else if(e.key==="Delete"){e.preventDefault();manualExactKey("C")}
+ else if(e.key==="Escape"){e.preventDefault();manualExactMode=false;manualExactValue="";renderManualAuctionPanel(manualAuctionSlot)}
+ else if(e.key==="Enter"){e.preventDefault();manualSendExact(manualAuctionSlot)}
+});
 
 $("settingsBtn").onclick=async()=>{
  $("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setTimerMode").value=league.timer_mode||"MANUAL";
