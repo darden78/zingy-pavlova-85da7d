@@ -71,6 +71,49 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 @media(max-width:1250px){#regia .workspace{grid-template-columns:240px 1fr}#regia .rightSide{grid-column:1/-1;position:static;height:70vh;min-height:0}#regia .players{grid-template-columns:repeat(3,1fr)}}
 
 
+
+/* ===== FIX ADATTAMENTO MONITOR / SCALING WINDOWS ===== */
+#regia{height:calc(100vh - 28px);min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#regia .regiaHeader{flex:0 0 auto}
+#regia .offlineGuard{flex:0 0 auto}
+#regia .workspace{flex:1 1 auto;height:auto;min-height:0;width:100%;grid-template-columns:clamp(205px,20vw,310px) minmax(0,1fr) clamp(245px,24vw,360px);gap:10px;overflow:hidden}
+#regia .side{height:100%;min-height:0;position:static;top:auto}
+#regia .leftSide{min-width:0}
+#regia .rightSide{grid-column:auto;height:100%;min-height:0;position:static}
+#regia .center{height:100%;min-height:0;overflow:hidden;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:8px}
+#regia .heroMain{grid-template-columns:minmax(0,2fr) minmax(180px,1fr)}
+#regia .timerPanel{min-height:clamp(205px,31vh,286px);padding:clamp(10px,1.8vh,16px) 10px}
+#regia .timer{font-size:clamp(48px,7vh,72px);margin:clamp(10px,2.5vh,24px) 0 clamp(9px,2vh,16px)}
+#regia .amount{font-size:clamp(54px,7.5vh,78px)}
+#regia .currentPlayer{min-height:clamp(48px,7vh,63px);padding-bottom:clamp(6px,1.2vh,10px)}
+#regia .currentPlayer .pn{font-size:clamp(20px,2.2vw,27px)}
+#regia .controls{gap:7px;margin-top:7px}
+#regia .controls button{min-height:38px;padding:7px 8px;font-size:clamp(10px,.82vw,13px)}
+#regia .players{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;min-height:0}
+#regia .p{min-width:0;min-height:clamp(70px,9.5vh,104px);padding:clamp(6px,1vh,10px)}
+#regia .ps{font-size:clamp(9px,1.15vh,11px);line-height:1.35}
+#regia .logCard{min-height:0;height:100%;overflow:hidden;display:flex;flex-direction:column;padding:8px 10px}
+#regia .logCard h3{flex:0 0 auto}
+#regia .logScroll{flex:1 1 auto;min-height:0;overflow:auto}
+#regia .logScroll table{width:100%}
+#regia .rightSide #listView{display:flex;flex-direction:column;min-height:0}
+#regia .playerList{height:auto;min-height:0;flex:1 1 auto}
+@media(max-height:800px){
+ #regia .regiaHeaderMain{min-height:44px;padding-top:3px;padding-bottom:5px}
+ #regia .regiaHeaderSub{margin-top:4px;padding-top:3px;padding-bottom:3px}
+ #regia .appTitle{font-size:23px}#regia .appMark{font-size:22px}#regia .leagueTitle{font-size:20px}
+ #regia .offerZone{padding:8px}#regia .offerPanel{padding:8px 8px 6px}
+ #regia .who{font-size:18px}#regia .offerLabel,#regia .timerTitle{font-size:12px}
+ #regia .p{min-height:66px}#regia .manualCtl{padding:3px 5px}
+}
+@media(max-width:1050px){
+ #regia .workspace{grid-template-columns:190px minmax(0,1fr) 230px;gap:7px}
+ #regia .side{padding:9px}#regia .side h2{font-size:13px;margin-bottom:8px}
+ #regia .heroMain{grid-template-columns:minmax(0,2fr) minmax(160px,1fr);gap:7px}
+ #regia .controls{gap:5px}#regia .controls button{padding-left:5px;padding-right:5px}
+ #regia .rosterName{font-size:21px}#regia .rosterStats{font-size:11px}
+}
+
 /* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
 #leagueHome{max-width:900px;padding-top:3vh}
 #leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
@@ -185,7 +228,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
    </div>
    <div id="players" class="players"></div>
    <section class="logCard"><h3>ULTIMI RILANCI</h3>
-    <table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table>
+    <div class="logScroll"><table><thead><tr><th>Ora</th><th>Giocatore</th><th>Offerta</th><th>Tipo</th></tr></thead><tbody id="log"></tbody></table></div>
    </section>
   </main>
   <aside class="side rightSide">
