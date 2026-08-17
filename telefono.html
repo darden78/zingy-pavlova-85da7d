@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-apple-rotation-normal-20260817">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-viewport-fix-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -85,6 +85,18 @@ html.fa-ios.fa-ios-portrait .row button{min-height:var(--fa-ios-blue-h)!importan
 html.fa-ios.fa-ios-portrait .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
 /* Il messaggio non deve occupare spazio tra i tre comandi principali. */
 html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
+
+/* ===== FIX VIEWPORT iPAD LEGACY 2026-08-17D =====
+   Sui vecchi iPad in modalita' Home/standalone, window.innerHeight puo' restare
+   temporaneamente agganciato all'altezza landscape dopo il ritorno in portrait.
+   Su Apple non usiamo quindi un'altezza JS congelata: i contenitori principali
+   vengono ancorati ai quattro bordi del viewport reale. */
+html.fa-ios,html.fa-ios body{height:100%!important;min-height:0!important}
+html.fa-ios body{position:static!important;overflow:hidden!important}
+html.fa-ios .pages{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
+html.fa-ios .page{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
+html.fa-ios .modal{top:0!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important}
+html.fa-ios .app{height:100%!important;min-height:0!important}
 </style>
 <script>
 /* FANTASTICA_APPLE_LAYOUT_20260817C
@@ -757,7 +769,17 @@ document.addEventListener("pointerdown",()=>{
 },{passive:true});
 
 const pagesEl=$("pages");
-function syncViewportHeight(){try{document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px")}catch(e){}}
+function syncViewportHeight(){
+ try{
+  /* Su iPhone/iPad lasciamo che position:fixed + inset seguano il viewport reale.
+     Evita il vecchio bug iPad in cui innerHeight resta quello landscape. */
+  if(document.documentElement.classList.contains("fa-ios")){
+   document.documentElement.style.removeProperty("--fa-vh");
+   return;
+  }
+  document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px");
+ }catch(e){}
+}
 syncViewportHeight();window.addEventListener("resize",syncViewportHeight);window.addEventListener("orientationchange",function(){setTimeout(syncViewportHeight,120)});
 var faTouchX=null,faTouchY=null,faPageIndex=0,faPendingPageIndex=null,faGestureLock=null;
 function faPageList(){return pagesEl.querySelectorAll(".page")}
