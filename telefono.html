@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-corrections-20260817">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-apple-rotation-normal-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -75,50 +75,35 @@ html,body{background:radial-gradient(circle at 50% 28%,#06234a 0%,#03142a 36%,#0
 }
 
 
-/* ===== FANTASTICA APPLE FIX 2026-08-17B ===== */
-html.fa-ios .big{width:var(--fa-ios-circle)!important;height:var(--fa-ios-circle)!important;max-width:none!important;max-height:none!important}
-html.fa-ios .row{margin-top:var(--fa-ios-gap)!important;margin-bottom:0!important}
-html.fa-ios .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important}
-html.fa-ios .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
+/* ===== FANTASTICA APPLE LAYOUT 2026-08-17C =====
+   In verticale conserviamo esattamente la geometria approvata.
+   In orizzontale nessun blocco/contro-rotazione: iOS/iPadOS ruota normalmente
+   e torna ad usare il layout responsive generale. */
+html.fa-ios.fa-ios-portrait .big{width:var(--fa-ios-circle)!important;height:var(--fa-ios-circle)!important;max-width:none!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .row{margin-top:var(--fa-ios-gap)!important;margin-bottom:0!important}
+html.fa-ios.fa-ios-portrait .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
 /* Il messaggio non deve occupare spazio tra i tre comandi principali. */
 html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
-/* Software portrait lock per iOS/iPadOS: il viewport puo ruotare, l'interfaccia no. */
-html.fa-ios.fa-ios-landscape body{position:fixed!important;inset:0!important;overflow:hidden!important}
-html.fa-ios.fa-ios-landscape .entry,
-html.fa-ios.fa-ios-landscape #pages,
-html.fa-ios.fa-ios-landscape #modal,
-html.fa-ios.fa-ios-landscape #celebrate{
- position:fixed!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;
- width:var(--fa-ios-pw)!important;height:var(--fa-ios-ph)!important;max-width:none!important;max-height:none!important;
- transform-origin:0 0!important;
-}
-html.fa-ios.fa-ios-landscape .page{width:var(--fa-ios-pw)!important;max-width:var(--fa-ios-pw)!important;height:var(--fa-ios-ph)!important;min-height:var(--fa-ios-ph)!important}
-html.fa-ios.fa-ios-landscape .app{width:100%!important;height:100%!important;max-width:560px!important}
-html.fa-ios.fa-ios-landscape-left .entry,
-html.fa-ios.fa-ios-landscape-left #pages,
-html.fa-ios.fa-ios-landscape-left #modal,
-html.fa-ios.fa-ios-landscape-left #celebrate{transform:translateX(var(--fa-ios-ph)) rotate(90deg)!important}
-html.fa-ios.fa-ios-landscape-right .entry,
-html.fa-ios.fa-ios-landscape-right #pages,
-html.fa-ios.fa-ios-landscape-right #modal,
-html.fa-ios.fa-ios-landscape-right #celebrate{transform:translateY(var(--fa-ios-pw)) rotate(-90deg)!important}
 </style>
 <script>
-/* FANTASTICA_APPLE_PORTRAIT_SOFTLOCK_20260817B
-   WebKit/iOS non garantisce orientation.lock(). In landscape contro-ruotiamo i quattro
-   contenitori a tutto schermo, mantenendo una superficie logica verticale. */
+/* FANTASTICA_APPLE_LAYOUT_20260817C
+   Nessun orientation lock su Apple. In portrait manteniamo le misure approvate;
+   in landscape lasciamo ruotare normalmente il sistema e il CSS responsive. */
 (function(){
  var ua=navigator.userAgent||"";
  var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
  if(!ios)return;
  var de=document.documentElement;
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
- function updateApplePortrait(){
+ function updateAppleLayout(){
   var w=window.innerWidth||document.documentElement.clientWidth||0;
   var h=window.innerHeight||document.documentElement.clientHeight||0;
-  var pw=Math.min(w,h), ph=Math.max(w,h), land=w>h;
-  de.style.setProperty("--fa-ios-pw",pw+"px");
-  de.style.setProperty("--fa-ios-ph",ph+"px");
+  var portrait=h>=w;
+  de.classList.toggle("fa-ios-portrait",portrait);
+  de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
+  if(!portrait)return;
+  var pw=w,ph=h;
   var tablet=pw>=600;
   var circle=tablet?Math.min(pw*.48,360,ph*.37):Math.min(pw*.58,286,ph*.31);
   var gap=tablet?clamp(ph*.052,42,62):clamp(ph*.064,46,64);
@@ -128,17 +113,11 @@ html.fa-ios.fa-ios-landscape-right #celebrate{transform:translateY(var(--fa-ios-
   de.style.setProperty("--fa-ios-gap",gap+"px");
   de.style.setProperty("--fa-ios-blue-h",blue+"px");
   de.style.setProperty("--fa-ios-red-h",red+"px");
-  de.classList.toggle("fa-ios-landscape",land);
-  de.classList.remove("fa-ios-landscape-left","fa-ios-landscape-right");
-  if(land){
-   var o=(typeof window.orientation==="number")?window.orientation:90;
-   de.classList.add(o===-90?"fa-ios-landscape-right":"fa-ios-landscape-left");
-  }
  }
- updateApplePortrait();
- window.addEventListener("resize",function(){setTimeout(updateApplePortrait,40)});
- window.addEventListener("orientationchange",function(){setTimeout(updateApplePortrait,120)});
- document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateApplePortrait,40)});
+ updateAppleLayout();
+ window.addEventListener("resize",function(){setTimeout(updateAppleLayout,40)});
+ window.addEventListener("orientationchange",function(){setTimeout(updateAppleLayout,120)});
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateAppleLayout,40)});
 })();
 </script>
 
@@ -940,5 +919,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-corrections3"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-apple-rotation-normal1"));</script>
 </body></html>
