@@ -1,11 +1,3 @@
-FANTASTICA V5.1.4 - CORREZIONI JINGLE / CELEBRAZIONI - DA TESTARE
-
-Sostituire nella root GitHub:
-- pc.html
-- telefono.html
-- spettatore.html
-- sw.js
-- gioca.html (invariato funzionalmente, incluso per allineamento pacchetto)
-
-NON sostituire FANTASTICA.apk con questo pacchetto.
-Il nuovo APK va ricompilato dal nuovo index.html Android.
+Aggiornamento intermedio FANTASTICA 17/08/2026.
+Sostituire nella root GitHub i file presenti in questa cartella.
+NON sostituire FANTASTICA.apk in questo passaggio.

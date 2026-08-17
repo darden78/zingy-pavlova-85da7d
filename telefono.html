@@ -3,7 +3,7 @@
 <title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="512-ui-device-participant">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
-<script>(function(){try{var ua=navigator.userAgent||"";var isiOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);if(!isiOS){var ml=document.createElement("link");ml.rel="manifest";ml.href="./manifest-phone.webmanifest?v=508l";document.head.appendChild(ml)}}catch(e){}})();</script>
+<link rel="manifest" href="./manifest-phone.webmanifest?v=514portrait1">
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}.onlineDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#55e28b;margin-right:6px;vertical-align:1px}
 .entry{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:100%;max-width:430px;background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox{width:min(430px,100%)}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
@@ -40,7 +40,42 @@ html,body{background:radial-gradient(circle at 50% 28%,#06234a 0%,#03142a 36%,#0
 @media(min-width:700px){.app{max-width:640px!important}.topline h1{font-size:29px!important}.league{font-size:22px!important}.name{font-size:17px!important}.big{width:min(48vw,360px,37dvh)!important;height:min(48vw,360px,37dvh)!important}.row{max-width:610px!important;width:100%!important;margin-left:auto!important;margin-right:auto!important}.leave{max-width:610px!important;margin-left:auto!important;margin-right:auto!important}.modal{padding-left:max(4vw,32px)!important;padding-right:max(4vw,32px)!important}.modal input,.modal .keys{width:min(760px,100%)!important;margin-left:auto!important;margin-right:auto!important}.modal .keys{margin-top:20px!important}}
 @media(min-width:1000px){.app{max-width:620px!important;min-height:100vh!important;border:1px solid rgba(19,99,159,.42);box-shadow:0 0 60px rgba(0,0,0,.42)}.modal input,.modal .keys{max-width:720px!important}}
 
-</style></head><body>
+\n/* ===== FANTASTICA UI APPROVATA 2026-08-17 — SPAZIATURE/TASTI ===== */
+:root{--fa-action-gap:clamp(28px,4.6dvh,50px)}
+.app{position:relative!important}
+.main{padding-top:clamp(10px,1.8dvh,18px)!important}
+.big{width:min(76vw,360px,39dvh)!important;height:min(76vw,360px,39dvh)!important}
+.row{margin-top:var(--fa-action-gap)!important;margin-bottom:0!important;gap:clamp(20px,5vw,34px)!important}
+.row button{min-height:clamp(98px,12dvh,126px)!important}
+#msg{min-height:0!important;height:0!important;margin:0!important;position:relative!important;z-index:4!important;top:clamp(5px,.8dvh,9px)!important;overflow:visible!important;pointer-events:none!important}
+.leave{margin-top:var(--fa-action-gap)!important;min-height:clamp(92px,11.5dvh,118px)!important}
+@media(max-height:760px){
+ :root{--fa-action-gap:24px}
+ .big{width:min(76vw,285px,38dvh)!important;height:min(76vw,285px,38dvh)!important;font-size:64px!important}
+ .row{margin-top:var(--fa-action-gap)!important}
+ .row button{min-height:88px!important;font-size:22px!important}
+ #msg{height:0!important;min-height:0!important;margin:0!important;top:5px!important;font-size:10px!important}
+ .leave{margin-top:var(--fa-action-gap)!important;min-height:82px!important;font-size:18px!important}
+}
+@media(min-width:700px){
+ :root{--fa-action-gap:clamp(34px,4.5dvh,54px)}
+ .row button{min-height:clamp(110px,11dvh,142px)!important}
+ .leave{min-height:clamp(104px,10.5dvh,136px)!important}
+}
+
+</style>\n<script>
+/* FANTASTICA_PORTRAIT_LOCK_20260817 */
+(function(){
+ async function lockPortrait(){
+  try{if(screen.orientation&&typeof screen.orientation.lock==='function')await screen.orientation.lock('portrait-primary')}catch(e){}
+ }
+ window.addEventListener('load',lockPortrait,{once:false});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)lockPortrait()});
+ document.addEventListener('pointerdown',lockPortrait,{once:true,passive:true});
+})();
+</script>
+
+</head><body>
 
 <div id="startupScreen" class="entry"><div class="entryBox" style="text-align:center">
  <h1>⚽ FANTASTICA</h1><p>Connessione...</p>

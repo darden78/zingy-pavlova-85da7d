@@ -783,7 +783,7 @@ function render(){
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
  if(!auction?.highest_slot){$("timer").textContent="—";return}
- if(auction.paused){$("timer").textContent=((auction.paused_remaining_ms||league.duration_seconds*1000)/1000).toFixed(1);return}
+ if(auction.paused){$("timer").textContent=(Number(league.duration_seconds)||0).toFixed(1);return}
  if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent="—";return}
  const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1);
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
@@ -1100,7 +1100,17 @@ function showManualAuction(slotNo){
  $("manualLeave").onclick=async()=>{const {data,error}=await db.rpc("fa_leave_manual_v511",{p_league_id:league.id,p_slot:slotNo,p_rejoin:!!s.abandoned});if(error||!data?.ok){msg($("manualBidMsg"),manualBidError(error?.message||data?.error),"bad");return}await load(false);showManualAuction(slotNo)};
 }
 
-$("settingsBtn").onclick=()=>{$("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setTimerMode").value=league.timer_mode||"MANUAL";$("setTimerMode").disabled=auction?.status==="OPEN"&&!!auction?.current_player_id;$("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent="";refreshMirrorLink();renderManage();$("settingsPanel").classList.add("show")};
+$("settingsBtn").onclick=async()=>{
+ $("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setTimerMode").value=league.timer_mode||"MANUAL";
+ let timerModeLocked=auction?.status==="OPEN"&&!!auction?.current_player_id;
+ try{
+  const {data:liveAuction,error:liveAuctionError}=await db.from("fa_auction").select("status,current_player_id").eq("league_id",league.id).maybeSingle();
+  if(!liveAuctionError&&liveAuction)timerModeLocked=liveAuction.status==="OPEN"&&!!liveAuction.current_player_id;
+ }catch{}
+ $("setTimerMode").disabled=timerModeLocked;
+ $("setTimerMode").title=timerModeLocked?"La modalità timer si cambia solo tra un'asta e la successiva.":"";
+ $("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent=timerModeLocked?"Modalità timer bloccata finché l'asta corrente non è conclusa.":"";refreshMirrorLink();renderManage();$("settingsPanel").classList.add("show")
+};
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
 $("copyMirrorLink").onclick=copyMirrorLink;
 $("repairMarketBtn").onclick=startRepairWizard;

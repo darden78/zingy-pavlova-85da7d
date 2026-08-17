@@ -96,6 +96,12 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .viewerBadge.wait{background:#4a3910;border-color:#ffc857}.viewerBadge.bad{background:#572828;border-color:#ff6767}
 .viewerWaiting{position:fixed;inset:0;z-index:2500;background:radial-gradient(circle at 50% 20%,#0a3156 0,#031a33 48%,#020b16 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:30px}.viewerWaiting.hidden{display:none!important}.viewerWaiting h1{font-size:34px;margin-bottom:10px}.viewerWaiting p{color:#a9bed5}
 #mirrorView #regia .headerSettings,#mirrorView #regia .headerExit{opacity:.72}
+
+/* FANTASTICA MIRROR FIT 2026-08-17 — elimina micro-scroll pagina */
+html,body{height:100%;max-height:100%;overflow:hidden!important}
+body{overscroll-behavior:none}
+#mirrorView{height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden!important}
+#mirrorView>.wrap{height:100%;max-height:100%;overflow:hidden!important;padding-top:8px!important;padding-bottom:8px!important}
 </style></head><body>
 <div id="liveBadge" class="viewerBadge wait">SOLA VISIONE · COLLEGAMENTO…</div>
 <div id="mirrorWaiting" class="viewerWaiting"><div><h1>⚽ FANTASTICA</h1><p id="waitingText">Collegamento a FANTASTICA in tempo reale…</p></div></div>
@@ -128,7 +134,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 <div id="mirrorCelebrate" class="celebrate"></div>
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v514-celebrations";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v513-mirror";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 const ua=navigator.userAgent||"";
 const isMobileDevice=/Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
@@ -136,13 +142,6 @@ const leagueId=new URLSearchParams(location.search).get("lega")||"";
 let channel=null,retry=null,requestTimer=null,waitingFresh=true;
 const chunkTransfers=new Map();
 function setBadge(text,kind=""){const b=$("liveBadge");b.textContent=text;b.className="viewerBadge"+(kind?" "+kind:"")}
-let mirrorCelebrating=false;
-function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faMirrorAudio=window.__faMirrorAudio||new C();return window.__faMirrorAudio}
-function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
-function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
-function syncCelebrationSound(className){const visible=String(className||"").split(/\s+/).includes("show");if(visible&&!mirrorCelebrating)fireworksSound();mirrorCelebrating=visible}
-function unlockMirrorAudio(){try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}}
-document.addEventListener("pointerdown",unlockMirrorAudio,{passive:true});document.addEventListener("keydown",unlockMirrorAudio,{passive:true});
 function lockInteractions(){document.querySelectorAll("#mirrorView a,#mirrorView button,#mirrorView input,#mirrorView select").forEach(el=>el.tabIndex=-1)}
 function applyView(d){
  if(!d||d.league_id!==leagueId)return;
@@ -162,7 +161,7 @@ function applyView(d){
  if(Object.prototype.hasOwnProperty.call(p,"players"))$("players").innerHTML=p.players;
  if(Object.prototype.hasOwnProperty.call(p,"log"))$("log").innerHTML=p.log;
  if(Object.prototype.hasOwnProperty.call(p,"rightSide"))$("mirrorRight").innerHTML=p.rightSide;
- if(Object.prototype.hasOwnProperty.call(p,"celebrate")){const cls=p.celebrate?.className||"celebrate";$("mirrorCelebrate").innerHTML=p.celebrate?.html||"";$("mirrorCelebrate").className=cls;syncCelebrationSound(cls)}
+ if(Object.prototype.hasOwnProperty.call(p,"celebrate")){$("mirrorCelebrate").innerHTML=p.celebrate?.html||"";$("mirrorCelebrate").className=p.celebrate?.className||"celebrate"}
  waitingFresh=false;clearInterval(requestTimer);requestTimer=null;
  $("mirrorWaiting").classList.add("hidden");setBadge("SOLA VISIONE · LIVE");lockInteractions();
 }

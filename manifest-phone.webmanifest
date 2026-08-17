@@ -5,8 +5,8 @@
   "start_url": "/zingy-pavlova-85da7d/telefono.html",
   "scope": "/zingy-pavlova-85da7d/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#020b18",
+  "theme_color": "#02152a",
   "icons": [
     {
       "src": "/zingy-pavlova-85da7d/icon-192.png",
@@ -20,5 +20,6 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "orientation": "portrait-primary"
 }
