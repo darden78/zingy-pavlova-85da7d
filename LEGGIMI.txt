@@ -1,3 +1,17 @@
-Aggiornamento intermedio FANTASTICA 17/08/2026.
-Sostituire nella root GitHub i file presenti in questa cartella.
-NON sostituire FANTASTICA.apk in questo passaggio.
+FANTASTICA 5.1.4 - CORREZIONI TEST 17/08/2026
+
+Sostituire nella root GitHub:
+- pc.html
+- telefono.html
+- installa.html
+- sw.js
+
+Correzioni:
+- Apple iPhone/iPad: geometria schermata partecipante dedicata.
+- Apple: software portrait lock anche quando il dispositivo ruota.
+- Apple: Aggiungi a Home conserva URL/dispositivo, evitando un nuovo accesso come dispositivo diverso.
+- Apple/iPad: zoom disabilitato nella schermata di gioco e Offerta Libera.
+- FANTASTICA PC: pallino offline rosso e pallini presenza più grandi.
+- Presenza: il pallino verde compare solo dopo conferma backend; questo elimina la corsa che poteva lasciare fermo il timer automatico alla prima offerta dopo un rientro online.
+
+Android non richiede modifiche grafiche/APK per questo pacchetto.
