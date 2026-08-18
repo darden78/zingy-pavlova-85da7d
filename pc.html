@@ -434,7 +434,7 @@ body{overflow:hidden!important}
 }
 #regia:not(.hasManualPlayers) .p.highest .pMoney strong{color:#35e97a!important}
 #regia:not(.hasManualPlayers) .pHead{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;flex:0 0 auto!important}
-#regia:not(.hasManualPlayers) .pName{min-width:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;font-weight:900!important;line-height:1.08!important;color:#fff!important}
+#regia:not(.hasManualPlayers) .pName{min-width:0!important;flex:1 1 auto!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;overflow-wrap:normal!important;font-weight:900!important;line-height:1.08!important;color:#fff!important}
 #regia:not(.hasManualPlayers) .pMoney{display:flex!important;align-items:baseline!important;gap:6px!important;color:#fff!important;line-height:1!important;flex:0 0 auto!important}
 #regia:not(.hasManualPlayers) .pMoney strong{font-weight:950!important;color:#fff!important;line-height:1!important}
 #regia:not(.hasManualPlayers) .pCardRule{height:1px!important;background:rgba(211,225,239,.55)!important;width:100%!important;flex:0 0 auto!important}
@@ -1169,6 +1169,27 @@ function updateParticipantLayout(visibleCount){
  reg.dataset.playerBand=n<=4?"1-4":n<=8?"5-8":"9-12";
 }
 
+function fitParticipantNames(){
+ const names=document.querySelectorAll("#regia:not(.hasManualPlayers) .pName");
+ names.forEach(el=>{
+  el.style.removeProperty("font-size");
+  el.style.textOverflow="clip";
+  const base=parseFloat(getComputedStyle(el).fontSize)||15,minSize=10;
+  const available=el.clientWidth;
+  if(!(available>0))return;
+  if(el.scrollWidth<=available+1)return;
+
+  let low=minSize,high=base,best=minSize;
+  for(let i=0;i<12;i++){
+   const mid=(low+high)/2;
+   el.style.setProperty("font-size",mid+"px","important");
+   if(el.scrollWidth<=available+1){best=mid;low=mid}else high=mid;
+  }
+  el.style.setProperty("font-size",best.toFixed(1)+"px","important");
+  if(el.scrollWidth>available+1)el.style.textOverflow="ellipsis";
+ });
+}
+
 function render(){
  $("leagueName").textContent=league.name;
  const phase=phaseText(league);
@@ -1194,6 +1215,7 @@ function render(){
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,inactive=!!s.display_name&&!s.active;const dotClass=manual?"manual":inactive?"inactive":online(s)?"on":"";const dotTitle=manual?"Gestione manuale":inactive?"Non in gara per il ruolo":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
+ fitParticipantNames();
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
  const hist=syncHistoryOffset(),histTotal=hist.length;
  $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
@@ -1210,6 +1232,7 @@ function timer(){
  const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1);
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
 }
+window.addEventListener("resize",()=>requestAnimationFrame(fitParticipantNames));
 setInterval(timer,100);
 async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
