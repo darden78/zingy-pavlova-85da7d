@@ -1168,10 +1168,13 @@ function canStillParticipateInCurrentAuction(s){
 function offlineClosingBlockers(){return slots.filter(s=>canStillParticipateInCurrentAuction(s)&&!s.manual_control&&!online(s))}
 
 function participantCompletedActiveRole(s){
- if(!s?.display_name||league?.auction_mode!=="ROLE"||!league?.active_role)return false;
+ if(!s?.display_name)return false;
+ const r=rosterInfo(s.slot);
+ if(r.total>0&&r.ps.length>=r.total)return true;
+ if(league?.auction_mode!=="ROLE"||!league?.active_role)return false;
  const role=String(league.active_role).toUpperCase(),limit=Number(league["roster_"+role.toLowerCase()]||0);
  if(limit<=0)return false;
- return rosterInfo(s.slot).ps.filter(p=>p.role===role).length>=limit;
+ return r.ps.filter(p=>p.role===role).length>=limit;
 }
 
 function rosterHTML(slot,compact=true){
@@ -1319,7 +1322,10 @@ function renderList(){
    const src=catalog.find(x=>x.id===rosterSwapSourceId);if(!src)return;
    const sourceSlot=src.assigned_slot;
    if(!confirm(`Scambiare ${src.name} con ${p.name}?\nIl prezzo della rosa resterà ${src.assigned_price} crediti.`))return;
-   const {data,error}=await db.rpc("fa_roster_swap_free",{p_league_id:league.id,p_roster_player_id:src.id,p_free_player_id:p.id});
+   const outsideList=src.in_current_list===false;
+   const rpc=outsideList?"fa_replace_out_of_list_player_v514":"fa_roster_swap_free";
+   const args=outsideList?{p_league_id:league.id,p_out_player_id:src.id,p_free_player_id:p.id}:{p_league_id:league.id,p_roster_player_id:src.id,p_free_player_id:p.id};
+   const {data,error}=await db.rpc(rpc,args);
    if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}
    rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=sourceSlot;
    await load(false);msg($("status"),`✓ ${data.out} sostituito con ${data.in}; prezzo mantenuto ${data.price}`,"ok");return;
@@ -1356,7 +1362,7 @@ $("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("sho
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
 
-function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Un giocatore fuori dal listone corrente può essere soltanto liberato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
+function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Il giocatore scelto non è eleggibile nel listone corrente.":er==="GIOCATORE_NON_FUORI_LISTONE"?"Questa sostituzione è riservata ai giocatori FUORI LISTONE.":er==="NON_DISPONIBILE_IN_RIPARAZIONE"?"Nel Mercato di Riparazione i FUORI LISTONE si gestiscono con lo svincolo previsto dal mercato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
 function closeRosterModal(){$("rosterModal").classList.remove("show");$("rosterModalBox").innerHTML=""}
 function showRosterModal(html){$("rosterModalBox").innerHTML=`<button id="rosterModalX" class="rosterModalClose" type="button" title="Annulla">×</button>${html}`;$("rosterModal").classList.add("show");$("rosterModalX").onclick=closeRosterModal}
 $("rosterModal").onclick=e=>{if(e.target.id==="rosterModal")closeRosterModal()};
@@ -1364,7 +1370,12 @@ function bindRosterPlayerClicks(){document.querySelectorAll("#selectedRosterView
 function openRosterPlayer(id){
  const p=catalog.find(x=>x.id===id);if(!p?.assigned_slot)return;
  if(auction?.status==="OPEN"){alert(rosterActionError("ASTA_IN_CORSO"));return}
- const fuori=p.in_current_list===false;
+ const fuori=p.in_current_list===false,outsideMain=fuori&&league?.auction_session!=="REPAIR";
+ if(outsideMain){
+  showRosterModal(`<h2>${p.name}</h2><p>${p.role} · ${p.team||"—"} · prezzo in rosa <b>${p.assigned_price}</b></p><div class="outListWarning">Questo giocatore non è più presente nel listone corrente.</div><div class="rosterModalActions"><button id="rosterSwap" class="swapAction">SCAMBIA</button></div>`);
+  $("rosterSwap").onclick=()=>beginSwapWithFree(p.id);
+  return;
+ }
  showRosterModal(`<h2>${p.name}</h2><p>${p.role} · ${p.team||"—"} · prezzo in rosa <b>${p.assigned_price}</b></p>${fuori?'<div class="outListWarning">Questo giocatore non è più presente nel listone corrente.</div>':''}<div class="rosterModalActions"><button id="rosterRelease" class="dangerAction">LIBERA</button>${fuori?'':'<button id="rosterSwap" class="swapAction">SCAMBIA</button>'}</div>`);
  $("rosterRelease").onclick=()=>showRosterRelease(p.id);if(!fuori)$("rosterSwap").onclick=()=>showRosterSwapMenu(p.id);
 }
