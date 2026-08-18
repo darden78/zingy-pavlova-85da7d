@@ -25,7 +25,7 @@
 .main{display:flex;justify-content:center;padding-top:4px}.big{width:320px;height:320px;max-width:72vw;max-height:39vh;min-width:230px;min-height:230px;border:0;border-radius:50%;background:#ef2020;color:#fff;font-size:60px;font-weight:900}.big{width:min(72vw,320px,39dvh);height:min(72vw,320px,39dvh)}
 .row{display:flex;gap:18px;margin-top:42px;margin-bottom:30px}.row{margin-top:clamp(42px,5.5dvh,68px);margin-bottom:clamp(30px,4dvh,50px)}.row button{flex:1;min-height:92px;border:0;border-radius:15px;background:#333;color:#fff;font-size:24px;font-weight:900}
 .leave{width:100%;min-height:70px;border:0;border-radius:15px;background:#b33a3a;color:#fff;font-size:20px;font-weight:900}.resume{background:#28764b!important}.disabled{opacity:.35;pointer-events:none}
-.rosterPage{overflow-y:auto;padding:10px 13px 15px;-webkit-overflow-scrolling:touch}.rosterPage{padding:calc(10px + env(safe-area-inset-top)) 13px calc(15px + env(safe-area-inset-bottom))}.rosterBox{width:100%;max-width:760px;margin:0 auto}.rosterBox h2{text-align:center;margin:4px 0}.swipeHint{text-align:center;color:#777;font-size:11px;margin-bottom:8px}.summary{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#202020;border-radius:12px;padding:10px;margin-bottom:10px}.summary div{font-size:14px}.roleSec{background:#181818;border-radius:11px;padding:8px;margin-bottom:8px}.roleHead{font-weight:900;border-bottom:1px solid #333;padding-bottom:4px;margin-bottom:3px}.rr{display:grid;grid-template-columns:1fr auto;gap:8px;padding:3px 0;border-bottom:1px solid #242424;font-size:14px}.rr span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rosterPage{overflow-y:auto;padding:10px 13px 15px;-webkit-overflow-scrolling:touch}.rosterPage{padding:calc(10px + env(safe-area-inset-top)) 13px calc(15px + env(safe-area-inset-bottom))}.rosterBox{width:100%;max-width:760px;margin:0 auto}.rosterBox h2{text-align:center;margin:4px 0}.swipeHint{text-align:center;color:#777;font-size:11px;margin-bottom:8px}.pcPageNav{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:15;width:30px;height:70px;padding:0;border:1px solid #0b76bd;border-radius:10px;background:rgba(3,38,72,.92);color:#fff;font-size:30px;font-weight:900;line-height:1;cursor:pointer;box-shadow:0 0 14px rgba(0,111,204,.22)}#pcPagePrev{left:2px}#pcPageNext{right:2px}.pcPageNav:disabled{opacity:.22;pointer-events:none}@media(min-width:340px){.pcPageNav{width:38px;height:78px;font-size:34px}}.summary{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#202020;border-radius:12px;padding:10px;margin-bottom:10px}.summary div{font-size:14px}.roleSec{background:#181818;border-radius:11px;padding:8px;margin-bottom:8px}.roleHead{font-weight:900;border-bottom:1px solid #333;padding-bottom:4px;margin-bottom:3px}.rr{display:grid;grid-template-columns:1fr auto;gap:8px;padding:3px 0;border-bottom:1px solid #242424;font-size:14px}.rr span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .modal{position:fixed;top:0;right:0;bottom:0;left:0;background:#111;padding:15px;display:none;z-index:30}.modal.show{display:block}.modal input{width:100%;padding:10px;font-size:24px;background:#242424;color:#fff;border:0;border-radius:10px}.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.keys button{background:#333;color:#fff;border:0;border-radius:10px;font-size:22px;padding:10px}.send{background:#278c55!important}
 @media(max-height:760px){.big{width:265px;height:265px;max-width:63vw;max-height:35vh;min-width:200px;min-height:200px;font-size:50px}.big{width:min(63vw,265px,35dvh);height:min(63vw,265px,35dvh)}.row{margin-top:26px;margin-bottom:20px}.row button{min-height:74px;font-size:21px}.leave{min-height:56px;font-size:17px}#status,#info,#finance,#msg{font-size:11px}#wakeStatus{font-size:8px}}
 @media(min-width:600px){.app{max-width:none;padding-left:clamp(22px,6vw,80px);padding-right:clamp(22px,6vw,80px)}.big{width:360px;height:360px;max-width:48vw;max-height:42vh}.row,.leave{width:100%;max-width:760px;margin-left:auto;margin-right:auto}.row button{min-height:100px}.topline,.league,.name,#status,#wakeStatus,#info,#phoneTimer,#finance,#msg,.current{max-width:900px;width:100%;margin-left:auto;margin-right:auto}.rosterBox{max-width:900px}}
@@ -255,6 +255,8 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
   <div id="msg"></div><button id="leave" class="leave">ABBANDONA ASTA</button>
  </div></section>
  <div id="rosterPages"></div>
+ <button id="pcPagePrev" class="pcPageNav" type="button" aria-label="Pagina precedente">‹</button>
+ <button id="pcPageNext" class="pcPageNav" type="button" aria-label="Pagina successiva">›</button>
 </div>
 
 <div id="celebrate" class="celebrate"><div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div><h1 id="celebrateTitle"></h1></div>
@@ -872,7 +874,16 @@ function syncViewportHeight(){
 }
 syncViewportHeight();window.addEventListener("resize",syncViewportHeight);window.addEventListener("orientationchange",function(){setTimeout(syncViewportHeight,120)});
 var faTouchX=null,faTouchY=null,faPageIndex=0,faPendingPageIndex=null,faGestureLock=null;
+var faPcArrowMode=!/(Android|iPhone|iPad|iPod)/i.test(navigator.userAgent||"")&&!!(window.matchMedia&&window.matchMedia("(hover:hover) and (pointer:fine)").matches);
+const pcPagePrev=$("pcPagePrev"),pcPageNext=$("pcPageNext");
+if(faPcArrowMode){pcPagePrev.style.display="block";pcPageNext.style.display="block"}
 function faPageList(){return pagesEl.querySelectorAll(".page")}
+function faUpdatePcNav(){
+ if(!faPcArrowMode)return;
+ var list=faPageList();
+ pcPagePrev.disabled=faPageIndex<=0;
+ pcPageNext.disabled=list.length>1&&faPageIndex>=list.length-1;
+}
 function faActivatePage(index){
  var list=faPageList(),i;
  if(!list.length)return false;
@@ -884,11 +895,13 @@ function faActivatePage(index){
  for(i=0;i<list.length;i++)list[i].classList.remove("faActive");
  list[index].classList.add("faActive");
  faPageIndex=index;faPendingPageIndex=null;
+ faUpdatePcNav();
  try{window.scrollTo(0,0)}catch(e){}
  return true;
 }
 function faAfterRosterRender(){
  var list=faPageList(),wanted=faPendingPageIndex!==null?faPendingPageIndex:faPageIndex;
+ if(faPcArrowMode)list.forEach(function(page){var hint=page.querySelector(".swipeHint");if(hint)hint.textContent="← usa le frecce laterali per vedere le altre rose →"});
  if(!list.length)return;
  if(wanted>=list.length)wanted=list.length-1;
  if(wanted<0)wanted=0;
@@ -929,6 +942,7 @@ function faDesktopTargetIndex(dx){
  faActivatePage(target);
 }
 pagesEl.addEventListener("pointerdown",function(ev){
+ if(faPcArrowMode)return;
  if(ev.pointerType!=="mouse"&&ev.pointerType!=="pen")return;
  if(ev.button!==0)return;
  faMouseStartX=ev.clientX;faMouseStartY=ev.clientY;faMousePointerId=ev.pointerId;faMouseDragged=false;
@@ -964,6 +978,7 @@ pagesEl.addEventListener("click",function(ev){
  if(faSuppressClick){ev.preventDefault();ev.stopPropagation();faSuppressClick=false}
 },true);
 pagesEl.addEventListener("wheel",function(ev){
+ if(faPcArrowMode)return;
  var now=Date.now();
  if(now-faWheelAt<320)return;
  if(Math.abs(ev.deltaX)>28&&Math.abs(ev.deltaX)>Math.abs(ev.deltaY)*1.15){
@@ -972,6 +987,19 @@ pagesEl.addEventListener("wheel",function(ev){
   if(ev.cancelable)ev.preventDefault();
  }
 },{passive:false});
+pcPagePrev.addEventListener("click",function(ev){
+ if(!faPcArrowMode)return;
+ ev.preventDefault();ev.stopPropagation();
+ faActivatePage(faPageIndex-1);
+});
+pcPageNext.addEventListener("click",function(ev){
+ if(!faPcArrowMode)return;
+ ev.preventDefault();ev.stopPropagation();
+ var target=faPageIndex+1;
+ if(target>0)requestRosters();
+ faActivatePage(target);
+});
+faUpdatePcNav();
 
 function eventInsideAuction(ev){
  const el=ev.target instanceof Element?ev.target:null;
