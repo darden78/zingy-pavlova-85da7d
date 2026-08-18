@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-corrections-20260817">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -75,44 +75,153 @@ html,body{background:radial-gradient(circle at 50% 28%,#06234a 0%,#03142a 36%,#0
 }
 
 
-/* ===== FANTASTICA APPLE FIX 2026-08-17B ===== */
-html.fa-ios .big{width:var(--fa-ios-circle)!important;height:var(--fa-ios-circle)!important;max-width:none!important;max-height:none!important}
-html.fa-ios .row{margin-top:var(--fa-ios-gap)!important;margin-bottom:0!important}
-html.fa-ios .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important}
-html.fa-ios .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
+/* ===== FANTASTICA APPLE LAYOUT 2026-08-17C =====
+   In verticale conserviamo esattamente la geometria approvata.
+   In orizzontale nessun blocco/contro-rotazione: iOS/iPadOS ruota normalmente
+   e torna ad usare il layout responsive generale. */
+html.fa-ios.fa-ios-portrait .big{width:var(--fa-ios-circle)!important;height:var(--fa-ios-circle)!important;max-width:none!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .row{margin-top:var(--fa-ios-gap)!important;margin-bottom:0!important}
+html.fa-ios.fa-ios-portrait .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
 /* Il messaggio non deve occupare spazio tra i tre comandi principali. */
 html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
-/* Rotazione Apple standard: nessuna contro-rotazione CSS interna. */
+
+/* ===== FANTASTICA IPAD LEGACY VIEWPORT FIX 2026-08-17E =====
+   Sui vecchi iPad WebKit puo' lasciare innerHeight con la misura landscape
+   dopo il ritorno in portrait. Usiamo quindi dimensioni esplicite ricavate
+   dallo schermo e non lasciamo il body come fixed containing block. */
+html.fa-ios,html.fa-ios body{width:var(--fa-vw,100%)!important;height:var(--fa-vh,100%)!important;min-height:var(--fa-vh,100%)!important;overflow:hidden!important}
+html.fa-ios body{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important}
+html.fa-ios .pages{position:absolute!important;inset:0!important;width:var(--fa-vw,100%)!important;max-width:none!important;height:var(--fa-vh,100%)!important;min-height:0!important}
+html.fa-ios .page{position:absolute!important;inset:0!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important}
+html.fa-ios .app{height:100%!important;min-height:0!important}
+html.fa-ios .modal{position:absolute!important;inset:0!important;width:100%!important;height:var(--fa-vh,100%)!important;min-height:0!important;max-height:none!important}
+
+/* Ricalcolo rigido del layout portrait su vecchi iPad: evita che il flex mantenga
+   le altezze compresse della precedente visualizzazione landscape. */
+html.fa-ios.fa-ios-portrait .app{display:flex!important;flex-direction:column!important}
+html.fa-ios.fa-ios-portrait .topline,
+html.fa-ios.fa-ios-portrait .league,
+html.fa-ios.fa-ios-portrait .name,
+html.fa-ios.fa-ios-portrait #info,
+html.fa-ios.fa-ios-portrait #finance{flex:0 0 auto!important}
+html.fa-ios.fa-ios-portrait .main{flex:0 0 auto!important;min-height:var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .big{flex:0 0 var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .row{flex:0 0 var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important;min-height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .row button{flex:1 0 0!important;height:100%!important;min-height:100%!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 </style>
 <script>
-/* FANTASTICA_APPLE_RESPONSIVE_STANDARD_ROTATION_20260818
-   Nessun blocco/contro-rotazione software: Safari/iPadOS gestisce l'orientamento normalmente.
-   Manteniamo soltanto le dimensioni responsive specifiche Apple. */
+/* FANTASTICA_APPLE_LAYOUT_20260817D
+   Nessun orientation lock su Apple. In portrait manteniamo le misure approvate;
+   in landscape lasciamo ruotare normalmente il sistema e il CSS responsive. */
 (function(){
  var ua=navigator.userAgent||"";
  var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
  if(!ios)return;
  var de=document.documentElement;
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+ function isPortrait(){
+  /* Sui vecchi iPad window.orientation si aggiorna prima e in modo piu affidabile
+     delle media query durante landscape -> portrait. */
+  var o=typeof window.orientation==="number"?Math.abs(window.orientation)%180:null;
+  if(o!==null)return o===0;
+  try{if(window.matchMedia)return window.matchMedia("(orientation: portrait)").matches}catch(e){}
+  return (window.innerHeight||0)>=(window.innerWidth||0);
+ }
+ function screenSides(){
+  var sw=Number(window.screen&&window.screen.width)||0,sh=Number(window.screen&&window.screen.height)||0;
+  return {short:Math.min(sw,sh),long:Math.max(sw,sh)};
+ }
+ function savedInsetKey(sides,kind){return "fa-ios-vp-inset-"+kind+"-"+sides.short+"x"+sides.long}
+ function readSavedInset(sides,kind){try{var v=parseFloat(localStorage.getItem(savedInsetKey(sides,kind)));return isFinite(v)?v:null}catch(e){return null}}
+ function saveInset(sides,kind,v){try{if(isFinite(v)&&v>=0&&v<160)localStorage.setItem(savedInsetKey(sides,kind),String(v))}catch(e){}}
+ function appleViewport(){
+  var portrait=isPortrait();
+  var rawW=window.innerWidth||document.documentElement.clientWidth||0;
+  var rawH=window.innerHeight||document.documentElement.clientHeight||0;
+  var sides=screenSides();
+  if(!sides.short||!sides.long)return {portrait:portrait,w:rawW,h:rawH};
+  var kind=portrait?"p":"l";
+  var expectedW=portrait?sides.short:sides.long;
+  var screenH=portrait?sides.long:sides.short;
+  var inset=readSavedInset(sides,kind);
+  var plausible=portrait ? (rawH>rawW*1.12) : (rawW>rawH*1.12);
+  if(plausible&&screenH>=rawH){
+   var learned=screenH-rawH;
+   if(learned>=0&&learned<160){inset=learned;saveInset(sides,kind,learned)}
+  }
+  if(inset===null)inset=0;
+  return {portrait:portrait,w:Math.max(1,expectedW),h:Math.max(1,screenH-inset)};
+ }
+ function applyAppleViewport(){
+  var v=appleViewport();
+  de.style.setProperty("--fa-vw",v.w+"px");
+  de.style.setProperty("--fa-vh",v.h+"px");
+  return v;
+ }
  function updateAppleLayout(){
-  var w=window.innerWidth||document.documentElement.clientWidth||0;
-  var h=window.innerHeight||document.documentElement.clientHeight||0;
-  var shortSide=Math.min(w,h);
-  var tablet=shortSide>=600;
-  var circle=tablet?Math.min(w*.48,360,h*.37):Math.min(w*.58,286,h*.31);
-  var gap=tablet?clamp(h*.052,24,62):clamp(h*.064,22,64);
-  var blue=tablet?clamp(h*.115,72,142):clamp(h*.125,62,126);
-  var red=tablet?clamp(h*.108,68,134):clamp(h*.118,58,120);
+  var v=applyAppleViewport(),w=v.w,h=v.h,portrait=v.portrait;
+  de.classList.toggle("fa-ios-portrait",portrait);
+  de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
+  if(!portrait)return;
+  var pw=w,ph=h;
+  var tablet=pw>=600;
+  var circle=tablet?Math.min(pw*.48,360,ph*.37):Math.min(pw*.58,286,ph*.31);
+  var gap=tablet?clamp(ph*.052,42,62):clamp(ph*.064,46,64);
+  var blue=tablet?clamp(ph*.115,108,142):clamp(ph*.125,102,126);
+  var red=tablet?clamp(ph*.108,102,134):clamp(ph*.118,96,120);
   de.style.setProperty("--fa-ios-circle",circle+"px");
   de.style.setProperty("--fa-ios-gap",gap+"px");
   de.style.setProperty("--fa-ios-blue-h",blue+"px");
   de.style.setProperty("--fa-ios-red-h",red+"px");
-  de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
  }
- updateAppleLayout();
- window.addEventListener("resize",function(){setTimeout(updateAppleLayout,40)});
- window.addEventListener("orientationchange",function(){setTimeout(updateAppleLayout,160)});
- document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateAppleLayout,40)});
+ function forceAppleReflow(){
+  try{
+   var p=document.getElementById("pages");
+   if(!p||p.classList.contains("hidden"))return;
+   var old=p.style.display;
+   p.style.display="none";
+   void p.offsetHeight;
+   p.style.display=old||"";
+   void de.offsetHeight;
+   window.scrollTo(0,0);
+  }catch(e){}
+ }
+ function forceIPadStyleReparse(){
+  /* Alcuni iPad Mini con WebKit datato mantengono le metriche CSS/flex della
+     precedente orientation anche quando il viewport e gia tornato portrait.
+     Riparsiamo lo stylesheet senza ricaricare la pagina: sessione, realtime e
+     identita del partecipante restano intatti. */
+  try{
+   var st=document.querySelector("head style");
+   if(!st)return;
+   var clone=st.cloneNode(true);
+   st.parentNode.replaceChild(clone,st);
+   void de.offsetHeight;
+   updateAppleLayout();
+   forceAppleReflow();
+  }catch(e){}
+ }
+ function refreshAppleLayout(){
+  updateAppleLayout();
+  [80,260,650,1100,1700].forEach(function(ms){setTimeout(function(){updateAppleLayout();if(ms>=650)forceAppleReflow()},ms)});
+ }
+ refreshAppleLayout();
+ window.addEventListener("resize",refreshAppleLayout);
+ window.addEventListener("orientationchange",function(){
+  refreshAppleLayout();
+  setTimeout(forceAppleReflow,900);
+  setTimeout(function(){
+   updateAppleLayout();
+   if(/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)){
+    if(isPortrait())forceIPadStyleReparse();
+   }
+  },1250);
+  setTimeout(function(){updateAppleLayout();forceAppleReflow()},2100);
+ });
+ if(window.visualViewport)window.visualViewport.addEventListener("resize",refreshAppleLayout);
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshAppleLayout()});
 })();
 </script>
 
@@ -606,7 +715,7 @@ function roleLimit(role){return league["roster_"+role.toLowerCase()]}
 function purchaseOrderValue(p){const t=Date.parse((p&&p.assigned_at)||"");return Number.isFinite(t)?t:Number.MAX_SAFE_INTEGER}
 function comparePurchaseOrder(a,b){const ta=purchaseOrderValue(a),tb=purchaseOrderValue(b);return ta!==tb?ta-tb:Number((a&&a.id)||0)-Number((b&&b.id)||0)}
 function rosterPage(s){
- const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
+ const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri / trascina per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
  for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
 }
 function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.member_enabled!==false&&s.display_name).map(rosterPage).join("");faAfterRosterRender()}
@@ -754,7 +863,13 @@ document.addEventListener("pointerdown",()=>{
 },{passive:true});
 
 const pagesEl=$("pages");
-function syncViewportHeight(){try{document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px")}catch(e){}}
+function syncViewportHeight(){
+ try{
+  /* Su Apple --fa-vh e --fa-vw sono gestiti dal layout dedicato sopra. */
+  if(document.documentElement.classList.contains("fa-ios"))return;
+  document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px");
+ }catch(e){}
+}
 syncViewportHeight();window.addEventListener("resize",syncViewportHeight);window.addEventListener("orientationchange",function(){setTimeout(syncViewportHeight,120)});
 var faTouchX=null,faTouchY=null,faPageIndex=0,faPendingPageIndex=null,faGestureLock=null;
 function faPageList(){return pagesEl.querySelectorAll(".page")}
@@ -804,6 +919,59 @@ pagesEl.addEventListener("touchend",function(ev){
  faTouchX=faTouchY=null;faGestureLock=null;
 },{passive:false});
 pagesEl.addEventListener("touchcancel",function(){faTouchX=faTouchY=null;faGestureLock=null},{passive:true});
+
+/* PC: stessa navigazione delle rose con trascinamento orizzontale del mouse
+   e swipe orizzontale da trackpad. Non interviene sui touch di telefono/tablet. */
+var faMouseStartX=null,faMouseStartY=null,faMousePointerId=null,faMouseDragged=false,faSuppressClick=false,faWheelAt=0;
+function faDesktopTargetIndex(dx){
+ var target=dx<0?faPageIndex+1:faPageIndex-1;
+ if(target>0)requestRosters();
+ faActivatePage(target);
+}
+pagesEl.addEventListener("pointerdown",function(ev){
+ if(ev.pointerType!=="mouse"&&ev.pointerType!=="pen")return;
+ if(ev.button!==0)return;
+ faMouseStartX=ev.clientX;faMouseStartY=ev.clientY;faMousePointerId=ev.pointerId;faMouseDragged=false;
+ try{pagesEl.setPointerCapture(ev.pointerId)}catch(e){}
+},{passive:true});
+pagesEl.addEventListener("pointermove",function(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faMouseDragged=true;
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
+function faEndDesktopSwipe(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(faMouseDragged&&Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faDesktopTargetIndex(dx);
+  faSuppressClick=true;
+  setTimeout(function(){faSuppressClick=false},80);
+  if(ev.cancelable)ev.preventDefault();
+ }
+ try{pagesEl.releasePointerCapture(ev.pointerId)}catch(e){}
+ faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+}
+pagesEl.addEventListener("pointerup",faEndDesktopSwipe,{passive:false});
+pagesEl.addEventListener("pointercancel",function(ev){
+ if(ev.pointerId===faMousePointerId){
+  faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+ }
+},{passive:true});
+pagesEl.addEventListener("click",function(ev){
+ if(faSuppressClick){ev.preventDefault();ev.stopPropagation();faSuppressClick=false}
+},true);
+pagesEl.addEventListener("wheel",function(ev){
+ var now=Date.now();
+ if(now-faWheelAt<320)return;
+ if(Math.abs(ev.deltaX)>28&&Math.abs(ev.deltaX)>Math.abs(ev.deltaY)*1.15){
+  faWheelAt=now;
+  faDesktopTargetIndex(-ev.deltaX);
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
 
 function eventInsideAuction(ev){
  const el=ev.target instanceof Element?ev.target:null;
@@ -916,5 +1084,5 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-corrections3"));</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));</script>
 </body></html>
