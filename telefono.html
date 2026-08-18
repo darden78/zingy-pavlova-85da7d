@@ -82,63 +82,37 @@ html.fa-ios .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--f
 html.fa-ios .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
 /* Il messaggio non deve occupare spazio tra i tre comandi principali. */
 html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
-/* Software portrait lock per iOS/iPadOS: il viewport puo ruotare, l'interfaccia no. */
-html.fa-ios.fa-ios-landscape body{position:fixed!important;inset:0!important;overflow:hidden!important}
-html.fa-ios.fa-ios-landscape .entry,
-html.fa-ios.fa-ios-landscape #pages,
-html.fa-ios.fa-ios-landscape #modal,
-html.fa-ios.fa-ios-landscape #celebrate{
- position:fixed!important;left:0!important;top:0!important;right:auto!important;bottom:auto!important;
- width:var(--fa-ios-pw)!important;height:var(--fa-ios-ph)!important;max-width:none!important;max-height:none!important;
- transform-origin:0 0!important;
-}
-html.fa-ios.fa-ios-landscape .page{width:var(--fa-ios-pw)!important;max-width:var(--fa-ios-pw)!important;height:var(--fa-ios-ph)!important;min-height:var(--fa-ios-ph)!important}
-html.fa-ios.fa-ios-landscape .app{width:100%!important;height:100%!important;max-width:560px!important}
-html.fa-ios.fa-ios-landscape-left .entry,
-html.fa-ios.fa-ios-landscape-left #pages,
-html.fa-ios.fa-ios-landscape-left #modal,
-html.fa-ios.fa-ios-landscape-left #celebrate{transform:translateX(var(--fa-ios-ph)) rotate(90deg)!important}
-html.fa-ios.fa-ios-landscape-right .entry,
-html.fa-ios.fa-ios-landscape-right #pages,
-html.fa-ios.fa-ios-landscape-right #modal,
-html.fa-ios.fa-ios-landscape-right #celebrate{transform:translateY(var(--fa-ios-pw)) rotate(-90deg)!important}
+/* Rotazione Apple standard: nessuna contro-rotazione CSS interna. */
 </style>
 <script>
-/* FANTASTICA_APPLE_PORTRAIT_SOFTLOCK_20260817B
-   WebKit/iOS non garantisce orientation.lock(). In landscape contro-ruotiamo i quattro
-   contenitori a tutto schermo, mantenendo una superficie logica verticale. */
+/* FANTASTICA_APPLE_RESPONSIVE_STANDARD_ROTATION_20260818
+   Nessun blocco/contro-rotazione software: Safari/iPadOS gestisce l'orientamento normalmente.
+   Manteniamo soltanto le dimensioni responsive specifiche Apple. */
 (function(){
  var ua=navigator.userAgent||"";
  var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
  if(!ios)return;
  var de=document.documentElement;
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
- function updateApplePortrait(){
+ function updateAppleLayout(){
   var w=window.innerWidth||document.documentElement.clientWidth||0;
   var h=window.innerHeight||document.documentElement.clientHeight||0;
-  var pw=Math.min(w,h), ph=Math.max(w,h), land=w>h;
-  de.style.setProperty("--fa-ios-pw",pw+"px");
-  de.style.setProperty("--fa-ios-ph",ph+"px");
-  var tablet=pw>=600;
-  var circle=tablet?Math.min(pw*.48,360,ph*.37):Math.min(pw*.58,286,ph*.31);
-  var gap=tablet?clamp(ph*.052,42,62):clamp(ph*.064,46,64);
-  var blue=tablet?clamp(ph*.115,108,142):clamp(ph*.125,102,126);
-  var red=tablet?clamp(ph*.108,102,134):clamp(ph*.118,96,120);
+  var shortSide=Math.min(w,h);
+  var tablet=shortSide>=600;
+  var circle=tablet?Math.min(w*.48,360,h*.37):Math.min(w*.58,286,h*.31);
+  var gap=tablet?clamp(h*.052,24,62):clamp(h*.064,22,64);
+  var blue=tablet?clamp(h*.115,72,142):clamp(h*.125,62,126);
+  var red=tablet?clamp(h*.108,68,134):clamp(h*.118,58,120);
   de.style.setProperty("--fa-ios-circle",circle+"px");
   de.style.setProperty("--fa-ios-gap",gap+"px");
   de.style.setProperty("--fa-ios-blue-h",blue+"px");
   de.style.setProperty("--fa-ios-red-h",red+"px");
-  de.classList.toggle("fa-ios-landscape",land);
-  de.classList.remove("fa-ios-landscape-left","fa-ios-landscape-right");
-  if(land){
-   var o=(typeof window.orientation==="number")?window.orientation:90;
-   de.classList.add(o===-90?"fa-ios-landscape-right":"fa-ios-landscape-left");
-  }
+  de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
  }
- updateApplePortrait();
- window.addEventListener("resize",function(){setTimeout(updateApplePortrait,40)});
- window.addEventListener("orientationchange",function(){setTimeout(updateApplePortrait,120)});
- document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateApplePortrait,40)});
+ updateAppleLayout();
+ window.addEventListener("resize",function(){setTimeout(updateAppleLayout,40)});
+ window.addEventListener("orientationchange",function(){setTimeout(updateAppleLayout,160)});
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(updateAppleLayout,40)});
 })();
 </script>
 
