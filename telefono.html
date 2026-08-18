@@ -629,8 +629,8 @@ function roleCount(sl,role){
  return catalog.filter(p=>p.assigned_slot===sl&&p.role===role).length
 }
 function roleLimit(role){return league["roster_"+role.toLowerCase()]}
-function purchaseOrderValue(p){const t=Date.parse(p?.assigned_at||"");return Number.isFinite(t)?t:Number.MAX_SAFE_INTEGER}
-function comparePurchaseOrder(a,b){const ta=purchaseOrderValue(a),tb=purchaseOrderValue(b);return ta!==tb?ta-tb:Number(a?.id||0)-Number(b?.id||0)}
+function purchaseOrderValue(p){const t=Date.parse((p&&p.assigned_at)||"");return Number.isFinite(t)?t:Number.MAX_SAFE_INTEGER}
+function comparePurchaseOrder(a,b){const ta=purchaseOrderValue(a),tb=purchaseOrderValue(b);return ta!==tb?ta-tb:Number((a&&a.id)||0)-Number((b&&b.id)||0)}
 function rosterPage(s){
  const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
  for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
