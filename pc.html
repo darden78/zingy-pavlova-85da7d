@@ -213,192 +213,312 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 
 
-/* ===== LAYOUT PARTECIPANTI DEFINITIVO A 3 FASCE =====
-   1-4  : cronologia normale
-   5-8  : cronologia ridotta al solo titolo
-   9-12 : cronologia minima al solo titolo
-   La riga dei partecipanti occupa SEMPRE tutto lo spazio restante.
-   Se esistono partecipanti in gestione manuale, il terzo pannello viene
-   riservato ai comandi manuali; resta comunque visibile una sola console
-   alla volta, mentre tutti i manuali continuano ad avere pallino giallo. */
-
-#regia .players{
-  height:100%;
+/* ===== LAYOUT NORMALE PARTECIPANTI - PRIORITA OFFERTA/TIMER =====
+   1-4 / 5-8 / 9-12 hanno altezze dedicate. Offerta e timer mantengono
+   la loro importanza; se serve spazio viene sacrificata la cronologia. */
+#regia:not(.hasManualPlayers) .center{gap:8px}
+#regia:not(.hasManualPlayers) .players{
+  height:auto;
   min-height:0;
-  overflow:hidden;
-  align-content:stretch;
+  overflow:visible;
+  align-content:start;
   grid-template-columns:repeat(4,minmax(0,1fr)) !important;
-  grid-auto-rows:unset;
+  gap:7px;
 }
-#regia .p{
+#regia:not(.hasManualPlayers) .p{
   min-width:0;
   min-height:0;
   height:100%;
   overflow:hidden;
   display:flex;
   flex-direction:column;
+  justify-content:flex-start;
+  padding:8px 9px;
 }
-#regia .p>b{
-  display:block;
+#regia:not(.hasManualPlayers) .pHead{display:flex;align-items:flex-start;gap:6px;min-width:0}
+#regia:not(.hasManualPlayers) .pName{
   min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+  font-size:15px;
+  line-height:1.12;
+  font-weight:900;
 }
-#regia .manualCtl{margin-top:auto}
+#regia:not(.hasManualPlayers) .pMoney{margin-top:6px;display:flex;align-items:baseline;gap:5px;color:#d7e7f6;font-size:12px;line-height:1}
+#regia:not(.hasManualPlayers) .pMoney strong{font-size:24px;line-height:1;font-weight:950;color:#fff}
+#regia:not(.hasManualPlayers) .pRoster{margin-top:4px;color:#9fb8d0;font-size:10px;line-height:1.15}
+#regia:not(.hasManualPlayers) .pState{margin-top:4px;font-size:9px;line-height:1.1;font-weight:900}
+#regia .dot.inactive{background:#3f9dff;box-shadow:0 0 10px rgba(63,157,255,.58)}
 
-/* 1-4 partecipanti: una riga e cronologia completa. */
-#regia.faPlayers1 .center{
-  grid-template-rows:auto minmax(0,1fr) minmax(118px,18vh);
-}
-#regia.faPlayers1 .players{
-  grid-template-rows:minmax(0,1fr);
-}
+/* 1-4: una riga comoda. */
+#regia:not(.hasManualPlayers).faPlayers1 .center{grid-template-rows:auto auto minmax(125px,1fr)}
+#regia:not(.hasManualPlayers).faPlayers1 .players{grid-template-rows:108px}
+#regia:not(.hasManualPlayers).faPlayers1 .pName{font-size:16px}
+#regia:not(.hasManualPlayers).faPlayers1 .pMoney strong{font-size:26px}
 
-/* 5-8 partecipanti: due righe; la cronologia cede quasi tutto lo spazio. */
-#regia.faPlayers2 .center{
-  grid-template-rows:auto minmax(0,1fr) 34px;
-  gap:7px;
-}
-#regia.faPlayers2 .players{
-  grid-template-rows:repeat(2,minmax(0,1fr));
-}
-#regia.faPlayers2:not(.hasManualPlayers) .logCard{
-  min-height:0;
-  padding:6px 9px;
-}
-#regia.faPlayers2:not(.hasManualPlayers) .logCard h3{
-  margin:0;
-  font-size:12px;
-  line-height:20px;
-}
-#regia.faPlayers2:not(.hasManualPlayers) .logScroll{display:none}
-#regia.faPlayers2 .timerPanel{min-height:142px;padding:6px 8px}
-#regia.faPlayers2 .timer{font-size:clamp(38px,5.2vh,50px);margin:4px 0}
-#regia.faPlayers2 .timerTitle{font-size:10px;margin-bottom:2px}
-#regia.faPlayers2 .timerModeBadge{font-size:9px;margin-top:4px;padding:4px 7px}
-#regia.faPlayers2 .offerZone{padding:6px 8px}
-#regia.faPlayers2 .currentPlayer{min-height:36px;padding:3px 6px 5px;margin-bottom:5px}
-#regia.faPlayers2 .currentPlayer .pn{font-size:18px}
-#regia.faPlayers2 .currentPlayer .meta{font-size:10px;margin-top:1px}
-#regia.faPlayers2 .offerPanel{padding:5px 8px}
-#regia.faPlayers2 .offerLabel{font-size:10px;margin-bottom:1px}
-#regia.faPlayers2 .amount{font-size:42px}
-#regia.faPlayers2 .offerBy{font-size:8px;margin-top:0}
-#regia.faPlayers2 .who{font-size:15px;margin-top:1px}
-#regia.faPlayers2 .controls{margin-top:4px;gap:5px}
-#regia.faPlayers2 .controls button{min-height:29px;padding:4px 5px;font-size:9px}
-#regia.faPlayers2 .eventPos{font-size:9px;margin-top:1px}
-#regia.faPlayers2 .p{padding:5px 7px}
-#regia.faPlayers2 .p>b{font-size:11px;line-height:1.08}
-#regia.faPlayers2 .ps{font-size:9px;line-height:1.18;margin-top:2px}
-#regia.faPlayers2 .manualCtl{padding:3px 5px;font-size:8px;line-height:1.05}
+/* 5-8: due righe compatte, ma mai allungate a riempire lo spazio. */
+#regia:not(.hasManualPlayers).faPlayers2 .center{grid-template-rows:auto auto minmax(72px,1fr)}
+#regia:not(.hasManualPlayers).faPlayers2 .players{grid-template-rows:repeat(2,92px)}
+#regia:not(.hasManualPlayers).faPlayers2 .p{padding:7px 8px}
+#regia:not(.hasManualPlayers).faPlayers2 .pName{font-size:14px}
+#regia:not(.hasManualPlayers).faPlayers2 .pMoney{margin-top:5px}
+#regia:not(.hasManualPlayers).faPlayers2 .pMoney strong{font-size:23px}
+#regia:not(.hasManualPlayers).faPlayers2 .pState{font-size:8px;margin-top:3px}
 
-/* 9-12 partecipanti: tre righe; cronologia ridotta al minimo assoluto. */
-#regia.faPlayers3 .center{
-  grid-template-rows:auto minmax(0,1fr) 28px;
-  gap:5px;
-}
-#regia.faPlayers3 .players{
-  grid-template-rows:repeat(3,minmax(0,1fr));
-  gap:5px;
-}
-#regia.faPlayers3:not(.hasManualPlayers) .logCard{
-  min-height:0;
-  padding:4px 8px;
-}
-#regia.faPlayers3:not(.hasManualPlayers) .logCard h3{
-  margin:0;
-  font-size:10px;
-  line-height:18px;
-}
-#regia.faPlayers3:not(.hasManualPlayers) .logScroll{display:none}
-#regia.faPlayers3 .heroMain{gap:6px}
-#regia.faPlayers3 .timerPanel{min-height:102px;padding:4px 6px}
-#regia.faPlayers3 .timer{font-size:34px;margin:2px 0}
-#regia.faPlayers3 .timerTitle{font-size:9px;margin-bottom:1px}
-#regia.faPlayers3 .timerModeBadge{font-size:8px;margin-top:2px;padding:3px 6px}
-#regia.faPlayers3 .offerZone{padding:4px 6px}
-#regia.faPlayers3 .currentPlayer{min-height:26px;padding:1px 4px 3px;margin-bottom:3px}
-#regia.faPlayers3 .currentPlayer .pn{font-size:15px}
-#regia.faPlayers3 .currentPlayer .meta{font-size:8px;margin-top:0}
-#regia.faPlayers3 .offerPanel{padding:3px 6px}
-#regia.faPlayers3 .offerLabel{font-size:8px;margin-bottom:0}
-#regia.faPlayers3 .amount{font-size:34px}
-#regia.faPlayers3 .offerBy{font-size:7px;margin-top:0}
-#regia.faPlayers3 .who{font-size:12px;margin-top:0}
-#regia.faPlayers3 .controls{margin-top:3px;gap:3px}
-#regia.faPlayers3 .controls button{min-height:25px;padding:2px 4px;font-size:8px}
-#regia.faPlayers3 .eventPos{font-size:8px;margin-top:0}
-#regia.faPlayers3 .p{padding:3px 5px;border-radius:6px}
-#regia.faPlayers3 .p>b{font-size:10px;line-height:1.02}
-#regia.faPlayers3 .dot{width:11px;height:11px;margin-right:4px;vertical-align:-2px}
-#regia.faPlayers3 .ps{font-size:8px;line-height:1.08;margin-top:1px}
-#regia.faPlayers3 .manualCtl{padding:2px 4px;font-size:7px;line-height:1}
+/* 9-12: tre righe; schede basse ma complete. */
+#regia:not(.hasManualPlayers).faPlayers3 .center{grid-template-rows:auto auto minmax(38px,1fr)}
+#regia:not(.hasManualPlayers).faPlayers3 .players{grid-template-rows:repeat(3,78px);gap:6px 7px}
+#regia:not(.hasManualPlayers).faPlayers3 .p{padding:5px 7px}
+#regia:not(.hasManualPlayers).faPlayers3 .pHead{gap:4px}
+#regia:not(.hasManualPlayers).faPlayers3 .dot{width:13px;height:13px;margin-right:0;flex:0 0 auto;vertical-align:0}
+#regia:not(.hasManualPlayers).faPlayers3 .pName{font-size:12px;line-height:1.08}
+#regia:not(.hasManualPlayers).faPlayers3 .pMoney{margin-top:4px;font-size:9px;gap:4px}
+#regia:not(.hasManualPlayers).faPlayers3 .pMoney strong{font-size:20px}
+#regia:not(.hasManualPlayers).faPlayers3 .pRoster{margin-top:2px;font-size:8px}
+#regia:not(.hasManualPlayers).faPlayers3 .pState{margin-top:2px;font-size:7px}
 
-/* ===== GESTIONE MANUALE =====
-   Più partecipanti possono essere manuali contemporaneamente (tutti gialli
-   e tutti equivalenti a ONLINE per Offline Guard), ma la console visualizza
-   un solo partecipante alla volta. Il pannello comandi sostituisce la
-   cronologia e ha una quota fissa sufficiente, SENZA scroll. */
+/* La cronologia prende solo lo spazio che avanza e non genera scrollbar. */
+#regia:not(.hasManualPlayers) .logCard{min-height:0;height:100%;overflow:hidden}
+#regia:not(.hasManualPlayers) .logScroll{min-height:0;overflow:hidden}
+#regia:not(.hasManualPlayers).faPlayers3 .logCard{padding-top:6px}
+#regia:not(.hasManualPlayers).faPlayers3 .logCard h3{margin-bottom:4px}
 
-#regia.hasManualPlayers.faPlayers1 .center{
-  grid-template-rows:auto minmax(0,1fr) 255px;
-}
-#regia.hasManualPlayers.faPlayers2 .center{
-  grid-template-rows:auto minmax(0,1fr) 240px;
-}
-#regia.hasManualPlayers.faPlayers3 .center{
-  grid-template-rows:auto minmax(0,1fr) 230px;
-}
-#regia.hasManualPlayers .logCard{
-  min-height:0;
-  height:100%;
-  overflow:hidden;
-}
-#regia.hasManualPlayers .manualAuctionPanel{
-  height:100%;
-  min-height:0;
-  overflow:hidden;
-}
-#regia.hasManualPlayers.faPlayers2 .timerPanel{min-height:122px}
-#regia.hasManualPlayers.faPlayers3 .timerPanel{min-height:86px}
-#regia.hasManualPlayers.faPlayers3 .timer{font-size:30px}
-#regia.hasManualPlayers.faPlayers3 .currentPlayer{min-height:22px}
-#regia.hasManualPlayers.faPlayers3 .currentPlayer .pn{font-size:13px}
-#regia.hasManualPlayers.faPlayers3 .amount{font-size:29px}
-#regia.hasManualPlayers.faPlayers3 .controls button{min-height:22px;font-size:7px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionPanel{gap:4px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionHead{min-height:23px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionTitle{font-size:12px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionClose{padding:3px 7px;font-size:9px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStatus{gap:4px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat{padding:3px 4px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat small{font-size:7px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionStat b{font-size:12px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionActions{gap:4px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionActions button{min-height:27px;padding:3px;font-size:8px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionLeader{padding:4px;font-size:8px}
-#regia.hasManualPlayers.faPlayers3 .manualAuctionMsg{min-height:10px;font-size:8px}
-#regia.hasManualPlayers.faPlayers3 .manualExactBox{gap:5px}
-#regia.hasManualPlayers.faPlayers3 .manualExactDisplay{font-size:18px;min-height:30px;padding:2px 5px}
-#regia.hasManualPlayers.faPlayers3 .manualExactHint{font-size:7px;line-height:1.08}
-#regia.hasManualPlayers.faPlayers3 .manualKeypad{gap:3px}
-#regia.hasManualPlayers.faPlayers3 .manualKeypad button{font-size:10px;padding:1px 2px;min-height:0}
-
-/* Su monitor bassi riduciamo ancora solo le zone informative,
-   mai la visibilità delle righe partecipanti o la console manuale. */
+/* Monitor bassi: si riducono prima le schede/cronologia, non Offerta e Timer. */
 @media(max-height:720px){
- #regia.faPlayers2 .timerPanel{min-height:112px}
- #regia.faPlayers3 .timerPanel{min-height:78px}
- #regia.faPlayers2 .amount{font-size:36px}
- #regia.faPlayers3 .amount{font-size:27px}
- #regia.faPlayers2 .controls button{min-height:25px}
- #regia.faPlayers3 .controls button{min-height:20px}
- #regia.hasManualPlayers.faPlayers1 .center{grid-template-rows:auto minmax(0,1fr) 235px}
- #regia.hasManualPlayers.faPlayers2 .center{grid-template-rows:auto minmax(0,1fr) 225px}
- #regia.hasManualPlayers.faPlayers3 .center{grid-template-rows:auto minmax(0,1fr) 215px}
+ #regia:not(.hasManualPlayers).faPlayers1 .players{grid-template-rows:96px}
+ #regia:not(.hasManualPlayers).faPlayers2 .players{grid-template-rows:repeat(2,82px)}
+ #regia:not(.hasManualPlayers).faPlayers3 .players{grid-template-rows:repeat(3,68px)}
+ #regia:not(.hasManualPlayers).faPlayers1 .pMoney strong{font-size:23px}
+ #regia:not(.hasManualPlayers).faPlayers2 .pMoney strong{font-size:21px}
+ #regia:not(.hasManualPlayers).faPlayers3 .pMoney strong{font-size:18px}
+ #regia:not(.hasManualPlayers).faPlayers3 .pName{font-size:11px}
+ #regia:not(.hasManualPlayers).faPlayers3 .pRoster{font-size:7px}
 }
+
+/* La gestione manuale resta volutamente separata e invariata in questa fase. */
+
+
+body{overflow:hidden!important}
+.wrap{height:100vh!important;max-height:100vh!important;overflow:hidden!important;padding:14px!important}
+/* ======================================================================
+   FANTASTICA 5.1.4 — LAYOUT PC APPROVATO 17/08/2026
+   Geometria congelata sulle tre anteprime approvate (4 / 8 / 12 posti).
+   Priorità: Offerta + Timer > Partecipanti > cronologia (rimossa dal layout normale).
+   ====================================================================== */
+#regia{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+#regia .regiaHeader{margin:0 0 10px!important;padding:0 4px!important;flex:0 0 auto!important}
+#regia .regiaHeaderMain{
+  min-height:62px!important;
+  padding:6px 8px 8px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:15px!important;
+  border-bottom:1px solid rgba(79,142,199,.28)!important;
+}
+#regia .appIdentity{flex:0 0 auto!important}
+#regia .appMark{font-size:23px!important}
+#regia .appTitle{font-size:27px!important;white-space:nowrap!important}
+#regia .headerDivider{height:38px!important}
+#regia .leagueTitle{flex:0 0 auto!important;font-size:23px!important;white-space:nowrap!important}
+#regia .phaseBadge{font-size:12px!important;padding:6px 13px!important;margin-left:12px!important}
+#regia .headerExit{
+  flex:0 0 auto!important;
+  padding:9px 14px!important;
+  min-width:92px!important;
+  background:#0a3a67!important;
+  border:1px solid #17588d!important;
+  border-radius:8px!important;
+  color:#fff!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+}
+#regia .status{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:0 0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  font-size:15px!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+}
+#regia .status.ok{color:#35e97a!important}
+#regia .headerSettings{margin-left:auto!important;flex:0 0 auto!important;padding:10px 15px!important}
+#regia .regiaHeaderSub{display:none!important}
+#regia .offlineGuard{margin:0 5px 8px!important;flex:0 0 auto!important}
+
+#regia .workspace{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:0 5px 5px!important;
+  display:grid!important;
+  grid-template-columns:clamp(255px,20vw,330px) minmax(0,1fr) clamp(315px,24vw,390px)!important;
+  gap:12px!important;
+  align-items:stretch!important;
+  overflow:hidden!important;
+}
+#regia .side{height:100%!important;min-height:0!important;position:static!important;top:auto!important}
+#regia .leftSide{overflow:auto!important}
+#regia .rightSide{height:100%!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+#regia .rightSide #listView,#regia .rightSide #selectedRosterView{min-height:0!important;flex:1 1 auto!important;overflow:hidden!important}
+#regia .playerList{height:auto!important;min-height:0!important;flex:1 1 auto!important;overflow:auto!important}
+#regia #listView{display:flex!important;flex-direction:column!important}
+#regia #listView.hidden{display:none!important}
+
+/* Centro: due soli blocchi nel layout normale: asta + partecipanti. */
+#regia:not(.hasManualPlayers) .center{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  gap:10px!important;
+}
+#regia:not(.hasManualPlayers) .logCard{display:none!important}
+
+#regia .hero{padding:0!important;background:transparent!important;border:0!important;border-radius:8px!important;min-height:0!important}
+#regia .heroMain{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(225px,1fr)!important;gap:12px!important;align-items:stretch!important}
+#regia .offerZone,#regia .timerPanel{background:linear-gradient(180deg,#073561,#052a4e)!important;border:1px solid var(--fa-line)!important;border-radius:8px!important}
+#regia .offerZone{padding:12px!important;min-height:0!important}
+#regia .currentPlayer{min-height:76px!important;padding:1px 8px 10px!important;margin:0!important}
+#regia .currentPlayer .pn{font-size:clamp(24px,2.15vw,34px)!important;line-height:1.35!important}
+#regia .currentPlayer .meta{font-size:13px!important}
+#regia .offerPanel{padding:12px 10px 10px!important}
+#regia .offerLabel,#regia .timerTitle{font-size:14px!important}
+#regia .amount{font-size:clamp(62px,7.1vh,82px)!important;margin:4px 0 2px!important;line-height:1!important}
+#regia .who{font-size:clamp(22px,2.2vw,34px)!important;margin-top:3px!important}
+#regia .timerPanel{min-height:clamp(250px,31vh,305px)!important;padding:14px 12px!important}
+#regia .timer{font-size:clamp(52px,7vh,76px)!important;margin:20px 0 15px!important}
+#regia .timerModeBadge{font-size:13px!important}
+#regia #closed{margin-top:6px!important;font-size:15px!important;min-height:18px!important}
+#regia .controls{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin-top:8px!important}
+#regia .controls button{min-height:50px!important;padding:8px 9px!important;font-size:clamp(10px,.9vw,14px)!important}
+#regia .eventPos{margin-top:3px!important;font-size:12px!important;line-height:1.1!important}
+
+/* Griglia partecipanti: sempre quattro colonne, nessuno scroll. */
+#regia:not(.hasManualPlayers) .players{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-content:start!important;
+  gap:12px!important;
+  margin:0!important;
+}
+#regia:not(.hasManualPlayers) .p{
+  min-width:0!important;
+  min-height:0!important;
+  height:100%!important;
+  padding:13px 14px!important;
+  border-radius:8px!important;
+  background:linear-gradient(180deg,#07325d,#052846)!important;
+  border:1px solid #104b7e!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+}
+#regia:not(.hasManualPlayers) .p.highest{
+  border-color:#42a7ff!important;
+  box-shadow:0 0 12px rgba(66,167,255,.55), inset 0 0 18px rgba(38,125,205,.12)!important;
+}
+#regia:not(.hasManualPlayers) .p.highest .pMoney strong{color:#35e97a!important}
+#regia:not(.hasManualPlayers) .pHead{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;flex:0 0 auto!important}
+#regia:not(.hasManualPlayers) .pName{min-width:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;font-weight:900!important;line-height:1.08!important;color:#fff!important}
+#regia:not(.hasManualPlayers) .pMoney{display:flex!important;align-items:baseline!important;gap:6px!important;color:#fff!important;line-height:1!important;flex:0 0 auto!important}
+#regia:not(.hasManualPlayers) .pMoney strong{font-weight:950!important;color:#fff!important;line-height:1!important}
+#regia:not(.hasManualPlayers) .pCardRule{height:1px!important;background:rgba(211,225,239,.55)!important;width:100%!important;flex:0 0 auto!important}
+#regia:not(.hasManualPlayers) .pBottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important;color:#fff!important;line-height:1.15!important;flex:0 0 auto!important}
+#regia:not(.hasManualPlayers) .pState{font-weight:900!important;flex:0 0 auto!important}
+#regia:not(.hasManualPlayers) .dot{flex:0 0 auto!important}
+#regia .dot.inactive{background:#2b82ff!important;box-shadow:0 0 10px rgba(43,130,255,.60)!important}
+
+/* 1-4: una riga grande, identica alla prima anteprima approvata. */
+#regia:not(.hasManualPlayers).faPlayers1 .players{grid-template-rows:min(255px,100%)!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pName{font-size:19px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pMoney{margin-top:30px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pMoney strong{font-size:52px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pMoney span{font-size:14px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pCardRule{margin-top:22px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pBottom{margin-top:17px!important;font-size:13px!important}
+#regia:not(.hasManualPlayers).faPlayers1 .pState{margin-top:8px!important;font-size:10px!important}
+
+/* 5-8: due righe che occupano l'altezza utile, come seconda anteprima. */
+#regia:not(.hasManualPlayers).faPlayers2 .players{grid-template-rows:repeat(2,minmax(0,1fr))!important}
+#regia:not(.hasManualPlayers).faPlayers2 .p{padding:11px 13px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pName{font-size:17px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pMoney{margin-top:23px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pMoney strong{font-size:43px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pMoney span{font-size:13px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pCardRule{margin-top:18px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pBottom{margin-top:13px!important;font-size:12px!important}
+#regia:not(.hasManualPlayers).faPlayers2 .pState{margin-top:6px!important;font-size:9px!important}
+
+/* 9-12: tre righe complete, nessun contenuto coperto; Spesi nascosto come mockup. */
+#regia:not(.hasManualPlayers).faPlayers3 .players{grid-template-rows:repeat(3,minmax(0,1fr))!important;gap:9px 12px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .p{padding:8px 11px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .dot{width:15px!important;height:15px!important;margin-right:0!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pName{font-size:15px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pMoney{margin-top:10px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pMoney strong{font-size:32px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pMoney span{font-size:11px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pCardRule{display:none!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pBottom{margin-top:5px!important;font-size:10px!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pSpent{display:none!important}
+#regia:not(.hasManualPlayers).faPlayers3 .pState{margin-top:3px!important;font-size:8px!important}
+
+/* Gestione manuale mantenuta funzionante ma volutamente fuori dal layout approvato normale. */
+#regia.hasManualPlayers .logCard{display:flex!important}
+
+/* Il layout desktop non collassa mai in tre colonne: l'EXE è solo PC. */
+@media(max-width:1250px){
+ #regia .workspace{grid-template-columns:clamp(210px,20vw,280px) minmax(0,1fr) clamp(245px,24vw,320px)!important}
+ #regia .rightSide{grid-column:auto!important;height:100%!important;position:static!important}
+ #regia .players{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(max-height:760px){
+ #regia .regiaHeaderMain{min-height:54px!important;padding-top:3px!important;padding-bottom:5px!important}
+ #regia .timerPanel{min-height:198px!important;padding-top:8px!important;padding-bottom:8px!important}
+ #regia .timer{margin:8px 0 7px!important}
+ #regia .currentPlayer{min-height:52px!important;padding-bottom:5px!important}
+ #regia .offerPanel{padding-top:6px!important;padding-bottom:5px!important}
+ #regia .controls{margin-top:5px!important}
+ #regia .controls button{min-height:38px!important;padding-top:5px!important;padding-bottom:5px!important}
+ #regia #closed{margin-top:3px!important;min-height:14px!important}
+ #regia:not(.hasManualPlayers).faPlayers1 .players{grid-template-rows:min(205px,100%)!important}
+ #regia:not(.hasManualPlayers).faPlayers1 .pMoney{margin-top:18px!important}
+ #regia:not(.hasManualPlayers).faPlayers1 .pMoney strong{font-size:43px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .p{padding:7px 9px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pName{font-size:14px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pMoney{margin-top:5px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pMoney strong{font-size:30px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pMoney span{font-size:10px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pCardRule{margin-top:5px!important}
+ #regia:not(.hasManualPlayers).faPlayers2 .pBottom{margin-top:4px!important;font-size:9px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .p{padding:4px 7px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pHead{gap:4px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .dot{width:12px!important;height:12px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pName{font-size:11px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pMoney{margin-top:2px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pMoney strong{font-size:22px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pMoney span{font-size:8px!important}
+ #regia:not(.hasManualPlayers).faPlayers3 .pBottom{margin-top:1px!important;font-size:7px!important}
+}
+
+
+/* Gestione manuale Desktop: la console vive in una BrowserWindow separata.
+   La geometria approvata della regia NON cambia quando un partecipante è giallo. */
+#regia .p{position:relative}
 
 </style></head><body>
 <div class="wrap">
@@ -452,9 +572,10 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
    <div class="appIdentity"><span class="appMark">⚽</span><span class="appTitle">FANTASTICA</span></div>
    <div class="headerDivider"></div>
    <h1 class="leagueTitle"><span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1>
+   <button id="changeLeague" class="headerExit">← ESCI</button>
+   <div id="status" class="status">Avvio...</div>
    <button id="settingsBtn" class="headerSettings">⚙ IMPOSTAZIONI</button>
   </div>
-  <div class="regiaHeaderSub"><button id="changeLeague" class="headerExit">← ESCI FANTASTICA</button><div id="status" class="status">Avvio...</div></div>
  </header>
  <div id="offlineGuard" class="offlineGuard"></div>
  <div class="workspace">
@@ -834,6 +955,20 @@ function rosterInfo(slot){
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
  return {ps,spent,playerSpent,adjustment,remain,total,max};
 }
+function purchaseOrderValue(p){
+ const t=Date.parse(p?.assigned_at||"");
+ return Number.isFinite(t)?t:Number.MAX_SAFE_INTEGER;
+}
+function comparePurchaseOrder(a,b){
+ const ta=purchaseOrderValue(a),tb=purchaseOrderValue(b);
+ if(ta!==tb)return ta-tb;
+ return Number(a?.id||0)-Number(b?.id||0);
+}
+function roleOrderValue(role){return ({P:0,D:1,C:2,A:3})[role]??9}
+function compareRosterOrder(a,b){
+ const ra=roleOrderValue(a?.role),rb=roleOrderValue(b?.role);
+ return ra!==rb?ra-rb:comparePurchaseOrder(a,b);
+}
 function phoneParticipantState(s){
  const r=rosterInfo(s.slot),counts={P:0,D:0,C:0,A:0};
  for(const p of r.ps)if(counts[p.role]!==undefined)counts[p.role]++;
@@ -875,7 +1010,7 @@ async function pushPhoneState(){
 async function pushRosterState(){
  if(!channel||!rtConnected||!league)return;
  const assigned=catalog.filter(p=>p.assigned_slot).map(p=>({
-  id:p.id,name:p.name,team:p.team,role:p.role,assigned_slot:p.assigned_slot,assigned_price:p.assigned_price
+  id:p.id,name:p.name,team:p.team,role:p.role,assigned_slot:p.assigned_slot,assigned_price:p.assigned_price,assigned_at:p.assigned_at
  }));
  try{await channel.send({type:"broadcast",event:"ROSTER_STATE",payload:{sent_at_ms:serverNow(),players:assigned}})}catch{}
 }
@@ -1021,7 +1156,7 @@ function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
  let h=`<div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
- for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort((a,b)=>(b.assigned_price||0)-(a.assigned_price||0));h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
+ for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
  return h;
 }
 
@@ -1053,10 +1188,10 @@ function render(){
  $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";$("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;$("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
  const visible=slots.filter(s=>s.member_enabled!==false);
- const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",hasManualPlayers);updateParticipantLayout(visible.length);
+ const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",manualAuctionSlot!==null&&!window.fantasticaDesktop?.openManualWindow);updateParticipantLayout(visible.length);
  const tm=(league.timer_mode||"MANUAL").toUpperCase();
  $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control;const state=hi?(manual?"MAGGIORE OFFERENTE · MANUALE":"MAGGIORE OFFERENTE"):s.abandoned?"ABBANDONATO":manual?"GESTIONE MANUALE":s.active?"IN GARA":"NON IN GARA";return `<div class="p" data-slot="${s.slot}"><span class="dot ${manual?"manual":online(s)?"on":""}"></span><b>${s.display_name||`Posto ${s.slot} libero`}</b>${s.display_name?`<div class="ps ${hi?"high":s.abandoned?"ab":manual?"manualState":s.active?"in":""}">${state}<br>${r.remain} crediti · ${r.ps.length}/${r.total}</div>${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,inactive=!!s.display_name&&!s.active;const dotClass=manual?"manual":inactive?"inactive":online(s)?"on":"";const dotTitle=manual?"Gestione manuale":inactive?"Non in gara per il ruolo":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
@@ -1380,8 +1515,15 @@ function closeManualAuctionPanel(){
  manualAuctionSlot=null;manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";
  const p=$("manualAuctionPanel"),h=$("logHistory");if(p){p.classList.add("hidden");p.innerHTML=""}if(h)h.style.display="flex";
 }
-function showManualAuction(slotNo){
- manualAuctionSlot=Number(slotNo);manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";
+async function showManualAuction(slotNo){
+ const n=Number(slotNo);
+ if(window.fantasticaDesktop?.openManualWindow){
+  const r=await window.fantasticaDesktop.openManualWindow({leagueId:league.id,slot:n});
+  if(r?.ok===false)alert(r.error||"Impossibile aprire i comandi manuali.");
+  return;
+ }
+ manualAuctionSlot=n;manualExactMode=false;manualExactValue="";manualPanelMessage="";manualPanelMessageClass="";
+ $("regia").classList.add("hasManualPlayers");
  renderManualAuctionPanel(manualAuctionSlot);
 }
 function renderManualAuctionPanel(slotNo){
@@ -1473,11 +1615,11 @@ $("saveSettings").onclick=async()=>{
 function exportRows(){
  return slots.filter(s=>s.member_enabled!==false&&s.display_name).flatMap(s=>{
   const r=rosterInfo(s.slot);
-  return r.ps.map(p=>({"Partecipante":s.display_name,"Ruolo":p.role,"Giocatore":p.name,"Squadra":p.team||"","Quotazione":p.value??"","Prezzo pagato":p.assigned_price||0,"Crediti residui":r.remain}));
+  return [...r.ps].sort(compareRosterOrder).map(p=>({"Partecipante":s.display_name,"Ruolo":p.role,"Giocatore":p.name,"Squadra":p.team||"","Quotazione":p.value??"","Prezzo pagato":p.assigned_price||0,"Crediti residui":r.remain}));
  });
 }
 function exportFantasticaData(){
- return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:r.ps.map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,in_current_list:p.in_current_list!==false}))}})};
+ return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:[...r.ps].sort(compareRosterOrder).map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,assigned_at:p.assigned_at||null,in_current_list:p.in_current_list!==false}))}})};
 }
 function escHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function exportPdfHtml(){
@@ -1485,7 +1627,7 @@ function exportPdfHtml(){
 </style></head><body><h1>FANTASTICA — ${escHtml(league.name)}</h1>`;
  for(const s of slots.filter(s=>s.member_enabled!==false&&s.display_name)){
   const r=rosterInfo(s.slot);
-  h+=`<div class="team"><h2>${escHtml(s.display_name)} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${[...r.ps].sort((a,b)=>a.role.localeCompare(b.role)).map(p=>`<tr><td>${escHtml(p.role)}</td><td>${escHtml(p.name)}</td><td>${escHtml(p.team||"")}</td><td>${p.assigned_price||0}</td></tr>`).join("")}</table></div>`;
+  h+=`<div class="team"><h2>${escHtml(s.display_name)} — Spesi ${r.spent}, residui ${r.remain}</h2><table><tr><th>Ruolo</th><th>Giocatore</th><th>Squadra</th><th>Prezzo</th></tr>${[...r.ps].sort(compareRosterOrder).map(p=>`<tr><td>${escHtml(p.role)}</td><td>${escHtml(p.name)}</td><td>${escHtml(p.team||"")}</td><td>${p.assigned_price||0}</td></tr>`).join("")}</table></div>`;
  }
  return h+`</body></html>`;
 }
