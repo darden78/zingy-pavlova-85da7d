@@ -520,6 +520,22 @@ body{overflow:hidden!important}
    La geometria approvata della regia NON cambia quando un partecipante è giallo. */
 #regia .p{position:relative}
 
+
+
+/* ===== FIX 18-08-2026: PRIORITA' PALLINO BLU + ROSE COMPLETE SENZA SCROLL ===== */
+#regia .leftSide{display:flex!important;flex-direction:column!important;overflow:hidden!important}
+#regia .leftSide>h2{flex:0 0 auto!important}
+#regia #leaderRoster{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important}
+#regia .rightSide #selectedRosterView:not(.hidden){overflow:hidden!important}
+#regia .rosterFit{width:100%;max-width:100%;overflow:hidden}
+#regia .rosterFit .rosterName{font-size:var(--rf-name-size,27px)!important;line-height:1.05!important}
+#regia .rosterFit .rosterStats{font-size:var(--rf-stats-size,13px)!important;gap:var(--rf-stats-gap-y,6px) 9px!important;margin:var(--rf-stats-margin-y,7px) 0!important;line-height:1.08!important}
+#regia .rosterFit .roleBlock{margin-top:var(--rf-role-margin,6px)!important}
+#regia .rosterFit .roleTitle{font-size:var(--rf-role-title-size,13px)!important;line-height:var(--rf-role-title-line,17px)!important;margin-bottom:var(--rf-role-title-gap,2px)!important}
+#regia .rosterFit .rosterRow{font-size:var(--rf-row-size,14px)!important;line-height:var(--rf-row-line,18px)!important;min-height:var(--rf-row-line,18px)!important}
+#regia .rosterFit .rosterRow.manageable{padding:var(--rf-row-pad-y,2px) 4px!important}
+#regia .rosterFit .outListTag{font-size:var(--rf-tag-size,9px)!important;padding:0 4px!important}
+
 </style></head><body>
 <div class="wrap">
 <section id="leagueHome">
@@ -1151,13 +1167,52 @@ function canStillParticipateInCurrentAuction(s){
 }
 function offlineClosingBlockers(){return slots.filter(s=>canStillParticipateInCurrentAuction(s)&&!s.manual_control&&!online(s))}
 
+function participantCompletedActiveRole(s){
+ if(!s?.display_name||league?.auction_mode!=="ROLE"||!league?.active_role)return false;
+ const role=String(league.active_role).toUpperCase(),limit=Number(league["roster_"+role.toLowerCase()]||0);
+ if(limit<=0)return false;
+ return rosterInfo(s.slot).ps.filter(p=>p.role===role).length>=limit;
+}
+
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
- let h=`<div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
+ let h=`<div class="rosterFit"><div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
  for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
- return h;
+ return h+`</div>`;
 }
+
+function applyRosterFitScale(fit,scale){
+ const px=(base,min=0)=>`${Math.max(min,base*scale).toFixed(2)}px`;
+ fit.style.setProperty("--rf-name-size",px(27,9));
+ fit.style.setProperty("--rf-stats-size",px(13,6));
+ fit.style.setProperty("--rf-stats-gap-y",px(6,1));
+ fit.style.setProperty("--rf-stats-margin-y",px(7,1));
+ fit.style.setProperty("--rf-role-margin",px(6,0));
+ fit.style.setProperty("--rf-role-title-size",px(13,6));
+ fit.style.setProperty("--rf-role-title-line",px(17,7));
+ fit.style.setProperty("--rf-role-title-gap",px(2,0));
+ fit.style.setProperty("--rf-row-size",px(14,5));
+ fit.style.setProperty("--rf-row-line",px(18,6));
+ fit.style.setProperty("--rf-row-pad-y",px(2,0));
+ fit.style.setProperty("--rf-tag-size",px(9,5));
+}
+function fitRosterPanel(container){
+ if(!container||container.classList.contains("hidden"))return;
+ const fit=container.querySelector(".rosterFit");if(!fit)return;
+ const available=container.clientHeight;if(!(available>0))return;
+ applyRosterFitScale(fit,1);
+ if(fit.scrollHeight<=available+1)return;
+ let low=.18,high=1,best=low;
+ applyRosterFitScale(fit,low);
+ if(fit.scrollHeight>available+1)return;
+ for(let i=0;i<14;i++){
+  const mid=(low+high)/2;applyRosterFitScale(fit,mid);
+  if(fit.scrollHeight<=available+1){best=mid;low=mid}else high=mid;
+ }
+ applyRosterFitScale(fit,best);
+}
+function fitVisibleRosters(){fitRosterPanel($("leaderRoster"));fitRosterPanel($("selectedRosterView"))}
 
 function updateParticipantLayout(visibleCount){
  const reg=$("regia");if(!reg)return;
@@ -1211,7 +1266,7 @@ function render(){
  const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",manualAuctionSlot!==null&&!window.fantasticaDesktop?.openManualWindow);updateParticipantLayout(visible.length);
  const tm=(league.timer_mode||"MANUAL").toUpperCase();
  $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,inactive=!!s.display_name&&!s.active;const dotClass=manual?"manual":inactive?"inactive":online(s)?"on":"";const dotTitle=manual?"Gestione manuale":inactive?"Non in gara per il ruolo":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
  fitParticipantNames();
@@ -1222,6 +1277,7 @@ function render(){
  $("nextEvent").disabled=historyOffset<=0;
  if($("importList"))$("importList").textContent=catalog.some(p=>p.in_current_list!==false)?"AGGIORNA":"IMPORTA";renderList();renderManage();if(selectedRosterSlot)showSelectedRoster(false);
  if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
+ requestAnimationFrame(fitVisibleRosters);
 }
 function timer(){
  if(auction?.status==="SOLD"){$("timer").textContent="—";return}
@@ -1231,7 +1287,7 @@ function timer(){
  const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("timer").textContent=(left/1000).toFixed(1);
  const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;if(left<=0)finalize();
 }
-window.addEventListener("resize",()=>requestAnimationFrame(fitParticipantNames));
+window.addEventListener("resize",()=>requestAnimationFrame(()=>{fitParticipantNames();fitVisibleRosters()}));
 setInterval(timer,100);
 async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
@@ -1298,7 +1354,7 @@ async function editPlayer(id){
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
 $("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
-function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks()}
+function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
 
 function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Un giocatore fuori dal listone corrente può essere soltanto liberato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
 function closeRosterModal(){$("rosterModal").classList.remove("show");$("rosterModalBox").innerHTML=""}
