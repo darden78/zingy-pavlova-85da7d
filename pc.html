@@ -1358,7 +1358,11 @@ async function editPlayer(id){
  await load();
 }
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
-$("searchPlayer").oninput=renderList;$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
+function refreshPlayerSearch(){renderList()}
+$("searchPlayer").addEventListener("input",refreshPlayerSearch);
+$("searchPlayer").addEventListener("keyup",refreshPlayerSearch);
+$("searchPlayer").addEventListener("search",refreshPlayerSearch);
+$("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
 
