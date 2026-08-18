@@ -660,6 +660,7 @@ body{overflow:hidden!important}
 
  <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
  <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare FANTASTICA in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
+ <div class="installInvite"><h3>Esporta files</h3><p>Crea in qualsiasi momento i file aggiornati della lega usando la situazione attuale di rose, prezzi e crediti.</p><button id="exportAll" type="button">ESPORTA FILES</button></div>
  <div class="repairInvite"><h3>Mercato di riparazione</h3><p>Ripristina il backup dell’asta precedente, carica il nuovo listone e aggiungi i fantacrediti destinati alla riparazione.</p><button id="repairMarketBtn" class="repairBtn" type="button">MERCATO DI RIPARAZIONE</button></div>
  <div class="settingsActions"><button id="deleteLeague" class="danger">CANCELLA LEGA</button></div>
 </div></div>
@@ -669,8 +670,7 @@ body{overflow:hidden!important}
 
 <div id="celebrate" class="celebrate">
  <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
- <div class="celebrateBox"><h1 id="celebrateTitle"></h1><p id="celebrateSub"></p>
- <div id="exportActions" class="exportActions hidden"><button id="exportAll">ESPORTA FILES</button></div></div>
+ <div class="celebrateBox"><h1 id="celebrateTitle"></h1><p id="celebrateSub"></p></div>
 </div>
 
 <script type="module">
@@ -721,12 +721,11 @@ function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C
 function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
 function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
 function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
-function showCelebration(title,final=false){const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";$("exportActions").classList.toggle("hidden",!final);el.classList.add("show");fireworksSound();setTimeout(()=>{if(!final)el.classList.remove("show")},5000)}
+function showCelebration(title,final=false){const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";el.classList.add("show");fireworksSound();setTimeout(()=>el.classList.remove("show"),final?8000:5000)}
 function showParticipantCelebration(title){
  const el=$("celebrate");
  $("celebrateTitle").textContent=title;
  $("celebrateSub").textContent="🎉";
- $("exportActions").classList.add("hidden");
  el.classList.add("show");
  fireworksSound();
  setTimeout(()=>el.classList.remove("show"),5200);
