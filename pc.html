@@ -764,6 +764,18 @@ $("celebrate").onclick=e=>{if(e.target.id==="celebrate"&&!lastComplete)$("celebr
 function roleOrderValues(cls){return [...document.querySelectorAll(cls)].map(x=>x.value)}
 function validRoleOrder(a){return a.length===4&&new Set(a).size===4&&["P","D","C","A"].every(x=>a.includes(x))}
 function fillRoleSelects(cls,order){document.querySelectorAll(cls).forEach((s,i)=>{s.innerHTML=["P","D","C","A"].map(r=>`<option ${r===order[i]?"selected":""}>${r}</option>`).join("")})}
+function bindRoleOrderAutoSwap(cls){
+ const els=[...document.querySelectorAll(cls)];
+ els.forEach((sel,i)=>{
+  sel.dataset.prevRole=sel.value;
+  sel.addEventListener("change",()=>{
+   const previous=sel.dataset.prevRole||"",chosen=sel.value;
+   const other=els.find((x,j)=>j!==i&&x.value===chosen);
+   if(other&&previous){other.value=previous;other.dataset.prevRole=previous}
+   sel.dataset.prevRole=chosen;
+  });
+ });
+}
 function eligibleSlotsFor(role){if(!league||!role)return[];const lim=league["roster_"+role.toLowerCase()];return slots.filter(s=>s.member_enabled!==false&&s.display_name).filter(s=>catalog.filter(p=>p.assigned_slot===s.slot&&p.role===role).length<lim)}
 async function checkProgress(){
  if(progressBusy||!league)return;progressBusy=true;
@@ -1605,6 +1617,7 @@ function showRepairRoleOrderStep(){
  const current=Array.isArray(repairDraft.roleOrder)&&repairDraft.roleOrder.length===4?repairDraft.roleOrder:["P","D","C","A"];
  showRosterModal(`<h2>Mercato di riparazione</h2><p><b>4 — Precedenza ruoli</b></p><p>Scegli l'ordine con cui verranno svolte le aste per ruolo. I ruoli già completi per tutti verranno saltati automaticamente.</p><div class="repairField"><label>Ordine ruoli</label><div class="roleOrder"><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select></div></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairRoleOrderNext" class="swapAction">AVANTI</button><button id="repairRoleOrderBack" class="neutralAction">INDIETRO</button></div>`);
  fillRoleSelects(".repairRoleOrd",current);
+ bindRoleOrderAutoSwap(".repairRoleOrd");
  $("repairRoleOrderBack").onclick=showRepairModeStep;
  $("repairRoleOrderNext").onclick=()=>{const ord=roleOrderValues(".repairRoleOrd");if(!validRoleOrder(ord)){msg($("repairStepMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}repairDraft.roleOrder=ord;showRepairConfirmStep()};
 }
@@ -1767,15 +1780,22 @@ function browserDownload(name,blob){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
 async function exportAllFiles(){
- const btn=$("exportAll");if(btn.disabled)return;btn.disabled=true;const old=btn.textContent;btn.textContent="ESPORTAZIONE...";
+ const btn=$("exportAll");if(btn.disabled)return;
+ const now=new Date(),pad=n=>String(n).padStart(2,"0"),leagueSafe=(league.name||"lega").replace(/[^\w-]+/g,"_");
+ const suggested=`FANTASTICA_${leagueSafe}_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+ const requested=prompt("Nome dell'esportazione / backup:",suggested);
+ if(requested===null)return;
+ const exportName=String(requested||"").trim();
+ if(!exportName){alert("Inserisci un nome per l'esportazione.");return}
+ btn.disabled=true;const old=btn.textContent;btn.textContent="ESPORTAZIONE...";
  try{
-  const safe=(league.name||"lega").replace(/[^\w-]+/g,"_");
+  const safe=exportName.replace(/[^\w-]+/g,"_").replace(/^_+|_+$/g,"")||suggested;
   const xlsxBase64=makeXlsxBase64();
   const jsonText=JSON.stringify(await exportFantasticaBackup(),null,2);
   const pdfHtml=exportPdfHtml();
 
   if(window.fantasticaDesktop?.exportFiles){
-   const r=await window.fantasticaDesktop.exportFiles({leagueName:league.name,xlsxBase64,jsonText,pdfHtml});
+   const r=await window.fantasticaDesktop.exportFiles({leagueName:league.name,exportName:safe,xlsxBase64,jsonText,pdfHtml});
    if(r?.canceled)return;
    if(!r?.ok)throw new Error(r?.error||"Esportazione non riuscita");
    alert(`File esportati correttamente in:\n${r.folder}`);
