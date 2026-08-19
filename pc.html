@@ -45,7 +45,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 .exportActions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}.exportActions button{border:0;border-radius:12px;padding:13px 18px;font-weight:900;font-size:17px;cursor:pointer}
 
 .installInvite{margin-top:18px;background:#171717;border-radius:12px;padding:14px;text-align:center}.installInvite img{width:210px;height:210px;background:#fff;padding:8px;border-radius:12px}.installInvite p{color:#bbb;font-size:12px;margin:8px 0}.installInvite a{display:inline-block;margin-top:8px;color:#fff;background:#315f8a;text-decoration:none;border-radius:8px;padding:9px 12px;font-weight:900}.installInvite button{display:inline-block;margin:8px 0 0 7px;border:0;color:#fff;background:#315f8a;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer}
-.repairInvite{margin-top:18px;background:#171717;border:1px solid #56451f;border-radius:12px;padding:14px;text-align:center}.repairInvite p{color:#bbb;font-size:12px;margin:8px 0}.repairBtn{border:0;border-radius:10px;padding:11px 15px;background:#9a7426;color:#fff;font-weight:900;cursor:pointer}.repairField{display:block;margin:12px 0;text-align:left}.repairField label{display:block;font-size:12px;color:#bbb;margin-bottom:5px}.repairField input,.repairField select{width:100%;padding:11px;border:0;border-radius:9px;background:#111;color:#fff}.repairSummary{background:#151515;border-radius:10px;padding:11px;margin:12px 0;text-align:left;line-height:1.55}.repairModeBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.repairModeBtns button{border:0;border-radius:11px;padding:14px;background:#315f8a;color:#fff;font-weight:900;cursor:pointer}.repairModeBtns button.role{background:#8b5fc5}
+.repairInvite{margin-top:18px;background:#171717;border:1px solid #56451f;border-radius:12px;padding:14px;text-align:center}.repairInvite p{color:#bbb;font-size:12px;margin:8px 0}.repairBtn{border:0;border-radius:10px;padding:11px 15px;background:#9a7426;color:#fff;font-weight:900;cursor:pointer}.repairField{display:block;margin:12px 0;text-align:left}.repairField label{display:block;font-size:12px;color:#bbb;margin-bottom:5px}.repairField input,.repairField select{width:100%;padding:11px;border:0;border-radius:9px;background:#111;color:#fff}.repairSummary{background:#151515;border-radius:10px;padding:11px;margin:12px 0;text-align:left;line-height:1.55}.repairModeBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.repairModeBtns button{border:0;border-radius:11px;padding:14px;background:#315f8a;color:#fff;font-weight:900;cursor:pointer}.repairModeBtns button.role{background:#8b5fc5}.repairCreditList{display:grid;gap:8px;margin:12px 0}.repairCreditRow{display:grid;grid-template-columns:minmax(120px,1fr) 110px;gap:10px;align-items:center;background:#0b2138;border:1px solid #174d78;border-radius:9px;padding:9px 10px}.repairCreditRow b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.repairCreditRow input{width:100%!important;margin:0!important;text-align:right;font-weight:900}.repairCreditMeta{grid-column:1/-1;color:#a9c4da;font-size:11px}.repairHoldMark{color:#ffd36b!important;font-weight:900!important}.repairHoldInline{color:#ffd36b;font-weight:900;margin-left:5px}
 
 
 /* ===== NUOVA REGIA BLU - layout approvato ===== */
@@ -548,7 +548,7 @@ body{overflow:hidden!important}
 .exportNameBox{width:min(560px,94vw);background:#202020;border-radius:16px;padding:18px;box-shadow:0 18px 60px #000}
 .exportNameBox h2{margin:0 0 8px}
 .exportNameBox p{color:#bbb;font-size:13px}
-.exportNameInput{width:100%;box-sizing:border-box;padding:12px;border:1px solid #2478b8;border-radius:9px;background:#071e36;color:#fff;font-size:17px}
+.exportNameInput{width:100%;box-sizing:border-box;padding:12px;border:1px solid #2478b8;border-radius:9px;background:#071e36;color:#fff;font-size:17px;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;position:relative;z-index:2}
 .exportNameActions{display:flex;gap:10px;margin-top:14px}
 .exportNameActions button{flex:1;border:0;border-radius:10px;padding:11px 15px;color:#fff;font-weight:900;cursor:pointer}
 .exportNameActions .confirm{background:#1266a6}.exportNameActions .cancel{background:#444}
@@ -721,7 +721,7 @@ import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v491";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="",rosterSwapSourceId=null,rosterSwapMode="";
-let repairDraft={listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE"};
+let repairDraft={listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE",creditLimits:{}};
 let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={};
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -935,7 +935,7 @@ async function load(runProgress=true){
  const [l,a,s,b,p]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,repair_credit_hold,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30),
   db.from("fa_players").select("*").eq("league_id",league.id)
  ]);
@@ -951,7 +951,7 @@ async function loadCore(){
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
-  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,repair_credit_hold,member_enabled,manual_control,device_reclaim_open").eq("league_id",league.id).order("slot"),
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30)
  ]);
  if(l.error||a.error||s.error||b.error)return;
@@ -1005,9 +1005,9 @@ function syncPhonePresence(){
  }else if(!lastPresenceSnapshot)schedulePresenceSnapshot(25);
 }
 function rosterInfo(slot){
- const ps=catalog.filter(p=>p.assigned_slot===slot),playerSpent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),adjustment=Number(slots.find(s=>s.slot===slot)?.credit_adjustment||0),remain=league.credits_initial-playerSpent+adjustment,spent=league.credits_initial-remain,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
+ const slotData=slots.find(s=>s.slot===slot),ps=catalog.filter(p=>p.assigned_slot===slot),playerSpent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),adjustment=Number(slotData?.credit_adjustment||0),hold=Math.max(0,Number(slotData?.repair_credit_hold||0)),remain=league.credits_initial-playerSpent+adjustment,spent=league.credits_initial-remain,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
  const max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
- return {ps,spent,playerSpent,adjustment,remain,total,max};
+ return {ps,spent,playerSpent,adjustment,hold,remain,total,max};
 }
 function purchaseOrderValue(p){
  const t=Date.parse(p?.assigned_at||"");
@@ -1219,7 +1219,7 @@ function participantCompletedActiveRole(s){
 function rosterHTML(slot,compact=true){
  const s=slots.find(x=>x.slot===slot);if(!s?.display_name)return `<div class="rosterHead">Nessun partecipante.</div>`;
  const r=rosterInfo(slot),counts={P:0,D:0,C:0,A:0};r.ps.forEach(p=>counts[p.role]++);
- let h=`<div class="rosterFit"><div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span></div>`;
+ let h=`<div class="rosterFit"><div class="rosterName">${s.display_name}</div><div class="rosterStats"><span>Crediti: <b>${r.remain}</b></span><span>Spesi: <b>${r.spent}</b></span><span>Rosa: <b>${r.ps.length}/${r.total}</b></span><span>Max: <b>${r.max}</b></span>${r.hold>0?`<span class="repairHoldMark">Stand-by: <b>${r.hold}</b></span>`:""}</div>`;
  for(const role of ["P","D","C","A"]){const lim=league["roster_"+role.toLowerCase()],arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleBlock"><div class="roleTitle">${role} ${arr.length}/${lim}</div>`;for(let i=0;i<lim;i++){const p=arr[i];h+=p?`<div class="rosterRow manageable ${p.in_current_list===false?"outOfList":""}" data-roster-player="${p.id}"><span>${p.name}${p.in_current_list===false?' <small class="outListTag">FUORI LISTONE</small>':''}</span><b>${p.assigned_price}</b></div>`:`<div class="rosterRow emptyLine"><span>—</span><span></span></div>`}h+=`</div>`}
  return h+`</div>`;
 }
@@ -1310,7 +1310,7 @@ function render(){
  const hasManualPlayers=visible.some(s=>!!s.display_name&&!!s.manual_control);$("regia").classList.toggle("hasManualPlayers",manualAuctionSlot!==null&&!window.fantasticaDesktop?.openManualWindow);updateParticipantLayout(visible.length);
  const tm=(league.timer_mode||"MANUAL").toUpperCase();
  $("timerModeBadge").textContent=`TIMER: ${tm==="AUTO"?"AUTOMATICO":"MANUALE"}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti${r.hold>0?` <span class="repairHoldInline">· ${r.hold} stand-by</span>`:""}</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
  fitParticipantNames();
@@ -1365,7 +1365,8 @@ function renderList(){
    const sourceSlot=src.assigned_slot;
    if(!confirm(`Scambiare ${src.name} con ${p.name}?\nIl prezzo della rosa resterà ${src.assigned_price} crediti.`))return;
    const outsideList=src.in_current_list===false;
-   const rpc=outsideList?"fa_replace_out_of_list_player_v514":"fa_roster_swap_free";
+   const repairFinished=league?.auction_session==="REPAIR"&&(league?.repair_stage==="COMPLETE"||league?.auction_complete);
+   const rpc=outsideList?(repairFinished?"fa_replace_out_of_list_player_v518":"fa_replace_out_of_list_player_v514"):"fa_roster_swap_free";
    const args=outsideList?{p_league_id:league.id,p_out_player_id:src.id,p_free_player_id:p.id}:{p_league_id:league.id,p_roster_player_id:src.id,p_free_player_id:p.id};
    const {data,error}=await db.rpc(rpc,args);
    if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}
@@ -1437,7 +1438,7 @@ function bindRosterPlayerClicks(){document.querySelectorAll("#selectedRosterView
 function openRosterPlayer(id){
  const p=catalog.find(x=>x.id===id);if(!p?.assigned_slot)return;
  if(auction?.status==="OPEN"){alert(rosterActionError("ASTA_IN_CORSO"));return}
- const fuori=p.in_current_list===false,repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP",outsideMain=fuori&&league?.auction_session!=="REPAIR";
+ const fuori=p.in_current_list===false,repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP",repairFinished=league?.auction_session==="REPAIR"&&(league?.repair_stage==="COMPLETE"||league?.auction_complete),outsideMain=fuori&&(league?.auction_session!=="REPAIR"||repairFinished);
  if(outsideMain){
   showRosterModal(`<h2>${p.name}</h2><p>${p.role} · ${p.team||"—"} · prezzo in rosa <b>${p.assigned_price}</b></p><div class="outListWarning">Questo giocatore non è più presente nel listone corrente.</div><div class="rosterModalActions"><button id="rosterSwap" class="swapAction">SCAMBIA</button></div>`);
   $("rosterSwap").onclick=()=>beginSwapWithFree(p.id);
@@ -1605,7 +1606,17 @@ async function connect(){
 }
 
 
-function resetRepairDraft(){repairDraft={listPlayers:null,listFileName:"",listSource:league?.list_source||$("listSource")?.value||"Fantapazz",bonus:0,auctionMode:"FREE",roleOrder:Array.isArray(league?.role_order)&&league.role_order.length===4?[...league.role_order]:["P","D","C","A"]}}
+function repairParticipants(){return slots.filter(s=>s.member_enabled!==false&&s.display_name)}
+function repairRosterComplete(s){
+ if(!s?.display_name)return false;
+ const ps=catalog.filter(p=>p.assigned_slot===s.slot),counts={P:0,D:0,C:0,A:0};
+ for(const p of ps)if(counts[p.role]!==undefined)counts[p.role]++;
+ return counts.P===Number(league.roster_p||0)&&counts.D===Number(league.roster_d||0)&&counts.C===Number(league.roster_c||0)&&counts.A===Number(league.roster_a||0);
+}
+function resetRepairDraft(){
+ const creditLimits={};for(const s of repairParticipants())creditLimits[s.slot]=Math.max(0,Number(rosterInfo(s.slot).remain||0));
+ repairDraft={listPlayers:null,listFileName:"",listSource:league?.list_source||$("listSource")?.value||"Fantapazz",bonus:0,auctionMode:"FREE",roleOrder:Array.isArray(league?.role_order)&&league.role_order.length===4?[...league.role_order]:["P","D","C","A"],creditLimits};
+}
 async function parseRepairListFile(file){
  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:"array"}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{defval:""});
  if(!rows.length)throw new Error("Il listone è vuoto.");
@@ -1620,19 +1631,24 @@ async function parseRepairListFile(file){
 }
 function startRepairWizard(){
  if(auction?.status==="OPEN"&&auction?.current_player_id){alert("Concludi l'asta in corso prima di avviare il mercato di riparazione.");return}
- if(!league?.auction_complete){alert("Il Mercato di Riparazione si può preparare dopo la conclusione delle aste.");return}
- if(league?.auction_session==="REPAIR"&&["PREP","AUCTION"].includes(league?.repair_stage)){alert("Il Mercato di Riparazione è già in corso.");return}
+ const participants=repairParticipants(),incomplete=participants.filter(s=>!repairRosterComplete(s));
+ if(league?.auction_session==="REPAIR"&&!league?.auction_complete&&["PREP","AUCTION"].includes(league?.repair_stage)){alert("Il Mercato di Riparazione è già in corso.");return}
+ if(incomplete.length){alert(`Il Mercato di Riparazione può iniziare solo con tutte le rose complete.\n\nRose da completare: ${incomplete.map(s=>s.display_name).join(", ")}`);return}
+ if(!league?.auction_complete&&league?.auction_session!=="REPAIR"){alert("Il Mercato di Riparazione si può preparare solo dopo la conclusione dell'asta principale.");return}
  resetRepairDraft();showRepairListStep();
 }
 function showRepairListStep(){
- const pc=slots.filter(s=>s.member_enabled!==false&&s.display_name).length,pl=catalog.filter(p=>p.assigned_slot).length;
+ const pc=repairParticipants().length,pl=catalog.filter(p=>p.assigned_slot).length;
  showRosterModal(`<h2>Mercato di riparazione</h2><p><b>1 — Nuovo listone</b></p><div class="repairSummary">Lega: <b>${escHtml(league.name)}</b><br>Partecipanti: <b>${pc}</b> · Giocatori attualmente in rosa: <b>${pl}</b></div><p>Le rose attuali restano la base del mercato. Carica il listone aggiornato: chi non è più eleggibile resterà in rosa come <b>FUORI LISTONE</b> finché non lo liberi o lo scambi.</p><div class="repairField"><label>Nuovo listone</label><input id="repairListFile" type="file" accept=".csv,.xlsx,.xls"></div><div class="repairField"><label>Fonte listone</label><input id="repairListSource" value="${escHtml(repairDraft.listSource||"Fantapazz")}"></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairListNext" class="swapAction">AVANTI</button></div>`);
  $("repairListNext").onclick=async()=>{const f=$("repairListFile").files[0];if(!f){msg($("repairStepMsg"),"Seleziona il nuovo listone.","warn");return}try{repairDraft.listPlayers=await parseRepairListFile(f);repairDraft.listFileName=f.name;repairDraft.listSource=$("repairListSource").value.trim()||"Listone riparazione";showRepairCreditsStep()}catch(e){msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
 }
 function showRepairCreditsStep(){
- showRosterModal(`<h2>Mercato di riparazione</h2><p><b>2 — Fantacrediti aggiuntivi</b></p><p>Questi crediti verranno aggiunti <b>a ogni partecipante</b> ai crediti che ha disponibili adesso. I successivi LIBERA aggiungeranno anche il rimborso che indicherai.</p><div class="repairField"><label>Fantacrediti aggiuntivi per partecipante</label><input id="repairBonus" type="number" min="0" step="1" value="${Number(repairDraft.bonus)||0}"></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairCreditsNext" class="swapAction">AVANTI</button><button id="repairCreditsBack" class="neutralAction">INDIETRO</button></div>`);
+ const participants=repairParticipants();
+ const rows=participants.map(s=>{const max=Math.max(0,Number(rosterInfo(s.slot).remain||0)),v=Math.min(max,Math.max(0,Number(repairDraft.creditLimits?.[s.slot]??max)));return `<div class="repairCreditRow"><b>${escHtml(s.display_name)}</b><input class="repairCreditLimit" data-slot="${s.slot}" data-max="${max}" type="number" min="0" max="${max}" step="1" value="${v}"><div class="repairCreditMeta">Residui reali: <b>${max}</b> · Stand-by: <b class="repairHoldMark" data-hold-slot="${s.slot}">${max-v}</b></div></div>`}).join("");
+ showRosterModal(`<h2>Mercato di riparazione</h2><p><b>2 — Crediti del mercato</b></p><p>Per ogni partecipante scegli quanti dei crediti residui rendere utilizzabili in questo mercato. Il valore non può superare il residuo reale. La differenza resta <b>in stand-by</b> e tornerà disponibile alla fine del mercato.</p><div class="repairCreditList">${rows}</div><div class="repairField"><label>Fantacrediti aggiuntivi per partecipante</label><input id="repairBonus" type="number" min="0" step="1" value="${Number(repairDraft.bonus)||0}"></div><p>I crediti aggiuntivi vengono sommati alla quota utilizzabile scelta sopra.</p><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairCreditsNext" class="swapAction">AVANTI</button><button id="repairCreditsBack" class="neutralAction">INDIETRO</button></div>`);
+ document.querySelectorAll(".repairCreditLimit").forEach(inp=>{inp.onkeydown=e=>e.stopPropagation();inp.oninput=()=>{const max=Number(inp.dataset.max||0),raw=Number(inp.value);if(Number.isFinite(raw)&&raw>max)inp.value=String(max);else if(Number.isFinite(raw)&&raw<0)inp.value="0";const v=Number(inp.value),hold=document.querySelector(`[data-hold-slot="${inp.dataset.slot}"]`);if(hold)hold.textContent=Number.isFinite(v)?Math.max(0,max-Math.min(max,Math.max(0,v))):max}});
  $("repairCreditsBack").onclick=showRepairListStep;
- $("repairCreditsNext").onclick=()=>{const v=Number($("repairBonus").value);if(!Number.isInteger(v)||v<0){msg($("repairStepMsg"),"Inserisci un numero intero uguale o maggiore di zero.","bad");return}repairDraft.bonus=v;showRepairModeStep()};
+ $("repairCreditsNext").onclick=()=>{const bonus=Number($("repairBonus").value);if(!Number.isInteger(bonus)||bonus<0){msg($("repairStepMsg"),"Inserisci un bonus intero uguale o maggiore di zero.","bad");return}const limits={};for(const inp of document.querySelectorAll(".repairCreditLimit")){const v=Number(inp.value),max=Number(inp.dataset.max||0),slot=Number(inp.dataset.slot);if(!Number.isInteger(v)||v<0||v>max){msg($("repairStepMsg"),`${slotName(slot)}: inserisci un valore da 0 a ${max}.`,"bad");return}limits[slot]=v}repairDraft.bonus=bonus;repairDraft.creditLimits=limits;showRepairModeStep()};
 }
 function showRepairModeStep(){
  showRosterModal(`<h2>Mercato di riparazione</h2><p><b>3 — Modalità asta</b></p><p>Dopo la fase LIBERA/SCAMBIA, le aste useranno le stesse regole della sessione normale.</p><div class="repairModeBtns"><button id="repairModeFree">ASTA LIBERA</button><button id="repairModeRole" class="role">ASTA PER RUOLO</button></div><div class="rosterModalActions"><button id="repairModeBack" class="neutralAction">INDIETRO</button></div>`);
@@ -1641,16 +1657,16 @@ function showRepairModeStep(){
 function showRepairRoleOrderStep(){
  const current=Array.isArray(repairDraft.roleOrder)&&repairDraft.roleOrder.length===4?repairDraft.roleOrder:["P","D","C","A"];
  showRosterModal(`<h2>Mercato di riparazione</h2><p><b>4 — Precedenza ruoli</b></p><p>Scegli l'ordine con cui verranno svolte le aste per ruolo. I ruoli già completi per tutti verranno saltati automaticamente.</p><div class="repairField"><label>Ordine ruoli</label><div class="roleOrder"><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select><span>→</span><select class="repairRoleOrd"></select></div></div><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairRoleOrderNext" class="swapAction">AVANTI</button><button id="repairRoleOrderBack" class="neutralAction">INDIETRO</button></div>`);
- fillRoleSelects(".repairRoleOrd",current);
- bindRoleOrderAutoSwap(".repairRoleOrd");
+ fillRoleSelects(".repairRoleOrd",current);bindRoleOrderAutoSwap(".repairRoleOrd");
  $("repairRoleOrderBack").onclick=showRepairModeStep;
  $("repairRoleOrderNext").onclick=()=>{const ord=roleOrderValues(".repairRoleOrd");if(!validRoleOrder(ord)){msg($("repairStepMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}repairDraft.roleOrder=ord;showRepairConfirmStep()};
 }
 function showRepairConfirmStep(){
- const participants=slots.filter(s=>s.member_enabled!==false&&s.display_name),oldRemain=participants.reduce((n,s)=>n+Number(rosterInfo(s.slot).remain||0),0),mode=repairDraft.auctionMode==="ROLE"?"ASTA PER RUOLO":"ASTA LIBERA",roleLine=repairDraft.auctionMode==="ROLE"?`<br><b>Precedenza ruoli:</b> ${repairDraft.roleOrder.map(escHtml).join(" → ")}`:"";
- showRosterModal(`<h2>Conferma mercato di riparazione</h2><div class="repairSummary"><b>Situazione di partenza:</b> lega attuale<br><b>Nuovo listone:</b> ${escHtml(repairDraft.listFileName)} · ${repairDraft.listPlayers.length} righe caricate<br><b>Partecipanti:</b> ${participants.length}<br><b>Crediti residui complessivi attuali:</b> ${oldRemain}<br><b>Bonus:</b> +${repairDraft.bonus} a ogni partecipante<br><b>Modalità:</b> ${mode}${roleLine}</div><p>Confermando entrerai nella fase di <b>PREPARAZIONE</b>. Rose, prezzi e ordine degli acquisti restano quelli attuali; il nuovo listone aggiorna l'eleggibilità. I giocatori con <b>Squadra vuota</b> vengono trattati come <b>FUORI LISTONE</b>. Potrai LIBERARE/SCAMBIARE e solo dopo premere <b>INIZIA ASTE</b>.</p><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairConfirm" class="dangerAction">CONFERMA E PREPARA</button><button id="repairConfirmBack" class="neutralAction">INDIETRO</button></div>`);
+ const participants=repairParticipants(),oldRemain=participants.reduce((n,s)=>n+Number(rosterInfo(s.slot).remain||0),0),mode=repairDraft.auctionMode==="ROLE"?"ASTA PER RUOLO":"ASTA LIBERA",roleLine=repairDraft.auctionMode==="ROLE"?`<br><b>Precedenza ruoli:</b> ${repairDraft.roleOrder.map(escHtml).join(" → ")}`:"";
+ const creditLines=participants.map(s=>{const max=Math.max(0,Number(rosterInfo(s.slot).remain||0)),use=Math.min(max,Math.max(0,Number(repairDraft.creditLimits?.[s.slot]??max))),hold=max-use;return `${escHtml(s.display_name)}: <b>${use}</b> utilizzabili${hold>0?` · <span class="repairHoldMark">${hold} stand-by</span>`:""}`}).join("<br>");
+ showRosterModal(`<h2>Conferma mercato di riparazione</h2><div class="repairSummary"><b>Situazione di partenza:</b> lega attuale<br><b>Nuovo listone:</b> ${escHtml(repairDraft.listFileName)} · ${repairDraft.listPlayers.length} righe caricate<br><b>Partecipanti:</b> ${participants.length}<br><b>Crediti residui complessivi attuali:</b> ${oldRemain}<br><br>${creditLines}<br><b>Bonus:</b> +${repairDraft.bonus} a ogni partecipante<br><b>Modalità:</b> ${mode}${roleLine}</div><p>Confermando entrerai nella fase di <b>PREPARAZIONE</b>. I crediti in stand-by resteranno visibili in Regia ma non saranno spendibili nel mercato; verranno restituiti automaticamente alla conclusione. Rose, prezzi e ordine degli acquisti restano quelli attuali.</p><div id="repairStepMsg"></div><div class="rosterModalActions"><button id="repairConfirm" class="dangerAction">CONFERMA E PREPARA</button><button id="repairConfirmBack" class="neutralAction">INDIETRO</button></div>`);
  $("repairConfirmBack").onclick=repairDraft.auctionMode==="ROLE"?showRepairRoleOrderStep:showRepairModeStep;
- $("repairConfirm").onclick=async()=>{const btn=$("repairConfirm");btn.disabled=true;msg($("repairStepMsg"),"Preparazione mercato di riparazione...","warn");try{const {data,error}=await db.rpc("fa_start_repair_market_current_v517",{p_league_id:league.id,p_source:repairDraft.listSource,p_players:repairDraft.listPlayers,p_bonus:repairDraft.bonus,p_auction_mode:repairDraft.auctionMode,p_role_order:repairDraft.auctionMode==="ROLE"?repairDraft.roleOrder:null});if(error||!data?.ok)throw new Error(error?.message||data?.error||"Operazione non riuscita");closeRosterModal();$("settingsPanel").classList.remove("show");selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;if($("listSource"))$("listSource").value=repairDraft.listSource;await load(false);msg($("status"),`✓ Preparazione riparazione avviata · +${data.bonus} crediti · ${data.out_of_list} giocatori FUORI LISTONE`,"ok")}catch(e){btn.disabled=false;msg($("repairStepMsg"),"Errore: "+e.message,"bad")}};
+ $("repairConfirm").onclick=async()=>{const btn=$("repairConfirm");btn.disabled=true;msg($("repairStepMsg"),"Preparazione mercato di riparazione...","warn");try{const creditLimits=participants.map(s=>({slot:s.slot,available:Number(repairDraft.creditLimits?.[s.slot]??rosterInfo(s.slot).remain)}));const {data,error}=await db.rpc("fa_start_repair_market_current_v518",{p_league_id:league.id,p_source:repairDraft.listSource,p_players:repairDraft.listPlayers,p_bonus:repairDraft.bonus,p_auction_mode:repairDraft.auctionMode,p_role_order:repairDraft.auctionMode==="ROLE"?repairDraft.roleOrder:null,p_credit_limits:creditLimits});if(error||!data?.ok)throw new Error(error?.message||data?.error||"Operazione non riuscita");closeRosterModal();$("settingsPanel").classList.remove("show");selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;if($("listSource"))$("listSource").value=repairDraft.listSource;await load(false);const held=(data.credit_limits||[]).reduce((n,x)=>n+Number(x.hold||0),0);msg($("status"),`✓ Preparazione riparazione avviata · +${data.bonus} crediti · ${held} crediti in stand-by`,"ok")}catch(e){btn.disabled=false;const er=String(e.message||e);msg($("repairStepMsg"),"Errore: "+(er==="ROSE_INCOMPLETE"?"tutte le rose devono essere complete prima di iniziare un nuovo mercato.":er),"bad")}};
 }
 
 function chooseMemberSlots(candidates,required,title,description,allowEmpty=false){
@@ -1782,7 +1798,7 @@ function exportFantasticaData(){
  return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:[...r.ps].sort(compareRosterOrder).map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,assigned_at:p.assigned_at||null,in_current_list:p.in_current_list!==false}))}})};
 }
 async function exportFantasticaBackup(){
- const {data,error}=await db.rpc("fa_export_backup_v516",{p_league_id:league.id});
+ const {data,error}=await db.rpc("fa_export_backup_v518",{p_league_id:league.id});
  if(error||!data?.ok)throw new Error(error?.message||data?.error||"Backup non riuscito");
  return data;
 }
@@ -1808,13 +1824,15 @@ function askExportName(suggested){
  return new Promise(resolve=>{
   const modal=$("exportNameModal"),input=$("exportNameInput"),ok=$("exportNameOk"),cancel=$("exportNameCancel"),out=$("exportNameMsg");
   let settled=false;
-  const finish=value=>{if(settled)return;settled=true;modal.classList.remove("show");modal.onclick=null;input.onkeydown=null;ok.onclick=null;cancel.onclick=null;resolve(value)};
-  input.value=suggested;out.textContent="";out.className="";modal.classList.add("show");
-  requestAnimationFrame(()=>{try{input.focus();input.select()}catch{}});
+  const finish=value=>{if(settled)return;settled=true;modal.classList.remove("show");modal.onclick=null;input.onkeydown=null;input.onpointerdown=null;input.onmousedown=null;input.onclick=null;ok.onclick=null;cancel.onclick=null;resolve(value)};
+  input.disabled=false;input.readOnly=false;input.value=suggested;out.textContent="";out.className="";modal.classList.add("show");
+  const keepInput=e=>e.stopPropagation();
+  input.onpointerdown=keepInput;input.onmousedown=keepInput;input.onclick=e=>{e.stopPropagation();if(document.activeElement!==input){try{input.focus({preventScroll:true})}catch{try{input.focus()}catch{}}}};
+  requestAnimationFrame(()=>{try{input.focus({preventScroll:true})}catch{try{input.focus()}catch{}};try{input.select()}catch{}});
   ok.onclick=()=>{const value=String(input.value||"").trim();if(!value){msg(out,"Inserisci un nome per l'esportazione.","bad");try{input.focus()}catch{};return}finish(value)};
   cancel.onclick=()=>finish(null);
   modal.onclick=e=>{if(e.target===modal)finish(null)};
-  input.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}else if(e.key==="Escape"){e.preventDefault();finish(null)}};
+  input.onkeydown=e=>{e.stopPropagation();if(e.key==="Enter"){e.preventDefault();ok.click()}else if(e.key==="Escape"){e.preventDefault();finish(null)}};
  });
 }
 async function exportAllFiles(){
@@ -1860,7 +1878,7 @@ async function restoreFantasticaBackupFile(file){
  if(String(backup.league?.id||"")!==String(league.id))throw new Error("Questo backup appartiene a un'altra lega.");
  const when=backup.exported_at?new Date(backup.exported_at).toLocaleString("it-IT"):"data non disponibile";
  if(!confirm(`ATTENZIONE\n\nCaricando questo backup la situazione attuale della lega sarà SOSTITUITA completamente con quella salvata il ${when}.\n\nTutto ciò che è successo dopo quel salvataggio verrà annullato. Continuare?`))return false;
- const {data,error}=await db.rpc("fa_restore_backup_v516",{p_league_id:league.id,p_backup:backup});
+ const {data,error}=await db.rpc("fa_restore_backup_v518",{p_league_id:league.id,p_backup:backup});
  if(error||!data?.ok)throw new Error(error?.message||data?.detail||data?.error||"Ripristino non riuscito");
  $("settingsPanel").classList.remove("show");closeRosterModal();selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;historyOffset=0;await load(false);
  msg($("status"),data.paused_after_restore?"✓ Backup ripristinato esattamente · asta ripristinata in PAUSA":"✓ Backup ripristinato esattamente","ok");
