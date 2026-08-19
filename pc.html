@@ -1724,7 +1724,7 @@ function exportFantasticaData(){
  return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:[...r.ps].sort(compareRosterOrder).map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,assigned_at:p.assigned_at||null,in_current_list:p.in_current_list!==false}))}})};
 }
 async function exportFantasticaBackup(){
- const {data,error}=await db.rpc("fa_export_backup_v515",{p_league_id:league.id});
+ const {data,error}=await db.rpc("fa_export_backup_v516",{p_league_id:league.id});
  if(error||!data?.ok)throw new Error(error?.message||data?.error||"Backup non riuscito");
  return data;
 }
@@ -1778,11 +1778,11 @@ $("exportAll").onclick=e=>{e.stopPropagation();exportAllFiles()};
 
 async function restoreFantasticaBackupFile(file){
  let backup;try{backup=JSON.parse(await file.text())}catch{throw new Error("Il file JSON non è leggibile.")}
- if(!backup||backup.format!=="FANTASTICA-BACKUP-V1")throw new Error("Questo non è un backup completo FANTASTICA compatibile.");
+ if(!backup||backup.format!=="FANTASTICA-BACKUP-V2")throw new Error("Questo non è un backup completo FANTASTICA compatibile.");
  if(String(backup.league?.id||"")!==String(league.id))throw new Error("Questo backup appartiene a un'altra lega.");
  const when=backup.exported_at?new Date(backup.exported_at).toLocaleString("it-IT"):"data non disponibile";
  if(!confirm(`ATTENZIONE\n\nCaricando questo backup la situazione attuale della lega sarà SOSTITUITA completamente con quella salvata il ${when}.\n\nTutto ciò che è successo dopo quel salvataggio verrà annullato. Continuare?`))return false;
- const {data,error}=await db.rpc("fa_restore_backup_v515",{p_league_id:league.id,p_backup:backup});
+ const {data,error}=await db.rpc("fa_restore_backup_v516",{p_league_id:league.id,p_backup:backup});
  if(error||!data?.ok)throw new Error(error?.message||data?.detail||data?.error||"Ripristino non riuscito");
  $("settingsPanel").classList.remove("show");closeRosterModal();selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;historyOffset=0;await load(false);
  msg($("status"),data.paused_after_restore?"✓ Backup ripristinato esattamente · asta ripristinata in PAUSA":"✓ Backup ripristinato esattamente","ok");
