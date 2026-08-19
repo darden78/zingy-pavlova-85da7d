@@ -536,6 +536,9 @@ body{overflow:hidden!important}
 #regia .rosterFit .rosterRow.manageable{padding:var(--rf-row-pad-y,2px) 4px!important}
 #regia .rosterFit .outListTag{font-size:var(--rf-tag-size,9px)!important;padding:0 4px!important}
 
+/* ===== FIX 19-08-2026: CERCA SEMPRE CLICCABILE/FOCUSABILE ===== */
+#regia #searchPlayer{pointer-events:auto!important;position:relative;z-index:4;user-select:text!important;-webkit-user-select:text!important;cursor:text!important}
+
 /* ===== MERCATO RIPARAZIONE V2 + BACKUP COMPLETO 18-08-2026 ===== */
 #regia .repairStartWrap{display:flex;justify-content:center;margin:8px 0 10px}
 #regia .repairStartAuctions{min-width:280px;border:1px solid #39a86b;border-radius:11px;padding:12px 22px;background:#13733f;color:#fff;font-weight:900;letter-spacing:.35px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.22)}
@@ -646,7 +649,7 @@ body{overflow:hidden!important}
      <div class="importActions"><input id="listSource" value="Fantapazz" placeholder="Fonte listone"><button id="importList">IMPORTA</button></div>
      <div id="importMsg"></div>
     </div>
-    <div class="listControls"><input id="searchPlayer" placeholder="Cerca giocatore..."><select id="sortPlayers">
+    <div class="listControls"><input id="searchPlayer" type="search" autocomplete="off" spellcheck="false" placeholder="Cerca giocatore..."><select id="sortPlayers">
       <option value="value_desc">Quotazione ↓</option><option value="value_asc">Quotazione ↑</option><option value="name_asc">Nome A-Z</option><option value="name_desc">Nome Z-A</option><option value="team">Squadra</option><option value="role">Ruolo</option>
     </select></div>
     <div class="roleFilters"><button class="rf active" data-role="">TUTTI</button><button class="rf" data-role="P">P</button><button class="rf" data-role="D">D</button><button class="rf" data-role="C">C</button><button class="rf" data-role="A">A</button></div>
@@ -1372,9 +1375,19 @@ async function editPlayer(id){
 }
 document.querySelectorAll(".rf").forEach(b=>b.onclick=()=>{roleFilter=b.dataset.role;document.querySelectorAll(".rf").forEach(x=>x.classList.toggle("active",x===b));renderList()});
 function refreshPlayerSearch(){renderList()}
-$("searchPlayer").addEventListener("input",refreshPlayerSearch);
-$("searchPlayer").addEventListener("keyup",refreshPlayerSearch);
-$("searchPlayer").addEventListener("search",refreshPlayerSearch);
+function focusPlayerSearch(selectAll=false){
+ const el=$("searchPlayer");if(!el)return;el.disabled=false;el.readOnly=false;
+ try{el.focus({preventScroll:true})}catch{el.focus()}
+ if(selectAll)try{el.select()}catch{}
+}
+function resetPlayerRoleFilter(){roleFilter="";document.querySelectorAll(".rf").forEach(b=>b.classList.toggle("active",!b.dataset.role))}
+const playerSearch=$("searchPlayer");
+playerSearch.addEventListener("pointerdown",e=>{e.stopPropagation();if(document.activeElement!==playerSearch)focusPlayerSearch(false)});
+playerSearch.addEventListener("mousedown",e=>e.stopPropagation());
+playerSearch.addEventListener("click",e=>{e.stopPropagation();if(document.activeElement!==playerSearch)focusPlayerSearch(false)});
+playerSearch.addEventListener("input",refreshPlayerSearch);
+playerSearch.addEventListener("keyup",refreshPlayerSearch);
+playerSearch.addEventListener("search",refreshPlayerSearch);
 $("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
@@ -1409,7 +1422,7 @@ function showRosterSwapMenu(id){
  $("backRoster").onclick=()=>openRosterPlayer(id);$("swapFree").onclick=()=>beginSwapWithFree(id);$("swapRoster").onclick=()=>chooseOtherRoster(id);
 }
 function beginSwapWithFree(id){
- const p=catalog.find(x=>x.id===id);if(!p)return;closeRosterModal();rosterSwapSourceId=id;rosterSwapMode="free";selectedRosterSlot=null;roleFilter="";$("searchPlayer").value="";$("showAssigned").checked=false;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent=`SCAMBIA ${p.name} — SCEGLI ${p.role} LIBERO`;$("showList").classList.remove("hidden");renderList();
+ const p=catalog.find(x=>x.id===id);if(!p)return;closeRosterModal();rosterSwapSourceId=id;rosterSwapMode="free";selectedRosterSlot=null;resetPlayerRoleFilter();$("searchPlayer").value="";$("showAssigned").checked=false;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent=`SCAMBIA ${p.name} — SCEGLI ${p.role} LIBERO`;$("showList").classList.remove("hidden");renderList();requestAnimationFrame(()=>focusPlayerSearch(false));
 }
 function chooseOtherRoster(id){
  const p=catalog.find(x=>x.id===id);if(!p)return;const repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP",allowed=x=>repairPrep||x.in_current_list!==false;const other=slots.filter(s=>s.display_name&&s.slot!==p.assigned_slot&&catalog.some(x=>allowed(x)&&x.assigned_slot===s.slot&&x.role===p.role));
@@ -1724,7 +1737,7 @@ function exportFantasticaData(){
  return {format:"FANTASTICA-ROSE-V2",exported_at:new Date().toISOString(),league:{id:league.id,name:league.name,member_limit:league.member_limit,duration_seconds:league.duration_seconds,credits_initial:league.credits_initial,min_player_price:league.min_player_price,roster:{P:league.roster_p,D:league.roster_d,C:league.roster_c,A:league.roster_a},auction_mode:league.auction_mode,role_order:league.role_order,auction_session:league.auction_session||"MAIN",repair_bonus:league.repair_bonus||0},participants:slots.filter(s=>s.member_enabled!==false&&s.display_name).map(s=>{const r=rosterInfo(s.slot);return{slot:s.slot,name:s.display_name,spent:r.spent,credits_remaining:r.remain,credit_adjustment:r.adjustment,players:[...r.ps].sort(compareRosterOrder).map(p=>({id:p.id,name:p.name,original_name:p.original_name||p.name,role:p.role,original_role:p.original_role||p.role,team:p.team,value:p.value,price:p.assigned_price,assigned_at:p.assigned_at||null,in_current_list:p.in_current_list!==false}))}})};
 }
 async function exportFantasticaBackup(){
- const {data,error}=await db.rpc("fa_export_backup_v515",{p_league_id:league.id});
+ const {data,error}=await db.rpc("fa_export_backup_v516",{p_league_id:league.id});
  if(error||!data?.ok)throw new Error(error?.message||data?.error||"Backup non riuscito");
  return data;
 }
@@ -1778,11 +1791,11 @@ $("exportAll").onclick=e=>{e.stopPropagation();exportAllFiles()};
 
 async function restoreFantasticaBackupFile(file){
  let backup;try{backup=JSON.parse(await file.text())}catch{throw new Error("Il file JSON non è leggibile.")}
- if(!backup||backup.format!=="FANTASTICA-BACKUP-V1")throw new Error("Questo non è un backup completo FANTASTICA compatibile.");
+ if(!backup||backup.format!=="FANTASTICA-BACKUP-V2")throw new Error("Questo non è un backup completo FANTASTICA compatibile.");
  if(String(backup.league?.id||"")!==String(league.id))throw new Error("Questo backup appartiene a un'altra lega.");
  const when=backup.exported_at?new Date(backup.exported_at).toLocaleString("it-IT"):"data non disponibile";
  if(!confirm(`ATTENZIONE\n\nCaricando questo backup la situazione attuale della lega sarà SOSTITUITA completamente con quella salvata il ${when}.\n\nTutto ciò che è successo dopo quel salvataggio verrà annullato. Continuare?`))return false;
- const {data,error}=await db.rpc("fa_restore_backup_v515",{p_league_id:league.id,p_backup:backup});
+ const {data,error}=await db.rpc("fa_restore_backup_v516",{p_league_id:league.id,p_backup:backup});
  if(error||!data?.ok)throw new Error(error?.message||data?.detail||data?.error||"Ripristino non riuscito");
  $("settingsPanel").classList.remove("show");closeRosterModal();selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;historyOffset=0;await load(false);
  msg($("status"),data.paused_after_restore?"✓ Backup ripristinato esattamente · asta ripristinata in PAUSA":"✓ Backup ripristinato esattamente","ok");
