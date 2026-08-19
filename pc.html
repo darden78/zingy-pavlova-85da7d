@@ -538,6 +538,20 @@ body{overflow:hidden!important}
 
 /* ===== FIX 19-08-2026: CERCA SEMPRE CLICCABILE/FOCUSABILE ===== */
 #regia #searchPlayer{pointer-events:auto!important;position:relative;z-index:4;user-select:text!important;-webkit-user-select:text!important;cursor:text!important}
+/* Rinforzo locale: mantiene l'intera fascia di ricerca sopra agli elementi del listone. */
+#regia .listControls{position:relative!important;z-index:20!important;pointer-events:auto!important}
+#regia .listControls>*{pointer-events:auto!important}
+
+/* ===== FIX 19-08-2026: NOME ESPORTAZIONE SENZA window.prompt (Electron) ===== */
+.exportNameModal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:950}
+.exportNameModal.show{display:flex}
+.exportNameBox{width:min(560px,94vw);background:#202020;border-radius:16px;padding:18px;box-shadow:0 18px 60px #000}
+.exportNameBox h2{margin:0 0 8px}
+.exportNameBox p{color:#bbb;font-size:13px}
+.exportNameInput{width:100%;box-sizing:border-box;padding:12px;border:1px solid #2478b8;border-radius:9px;background:#071e36;color:#fff;font-size:17px}
+.exportNameActions{display:flex;gap:10px;margin-top:14px}
+.exportNameActions button{flex:1;border:0;border-radius:10px;padding:11px 15px;color:#fff;font-weight:900;cursor:pointer}
+.exportNameActions .confirm{background:#1266a6}.exportNameActions .cancel{background:#444}
 
 /* ===== MERCATO RIPARAZIONE V2 + BACKUP COMPLETO 18-08-2026 ===== */
 #regia .repairStartWrap{display:flex;justify-content:center;margin:8px 0 10px}
@@ -695,6 +709,7 @@ body{overflow:hidden!important}
 
 
 <div id="rosterModal" class="rosterModal"><div id="rosterModalBox" class="rosterModalBox"></div></div>
+<div id="exportNameModal" class="exportNameModal"><div class="exportNameBox"><h2>Nome esportazione / backup</h2><p>Scegli un nome riconoscibile per questo salvataggio. Verrà usato per JSON, Excel e PDF.</p><input id="exportNameInput" class="exportNameInput" type="text" autocomplete="off" spellcheck="false"><div id="exportNameMsg"></div><div class="exportNameActions"><button id="exportNameOk" class="confirm" type="button">CONTINUA</button><button id="exportNameCancel" class="cancel" type="button">ANNULLA</button></div></div></div>
 
 <div id="celebrate" class="celebrate">
  <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
@@ -1400,6 +1415,16 @@ playerSearch.addEventListener("click",e=>{e.stopPropagation();if(document.active
 playerSearch.addEventListener("input",refreshPlayerSearch);
 playerSearch.addEventListener("keyup",refreshPlayerSearch);
 playerSearch.addEventListener("search",refreshPlayerSearch);
+function stabilizePlayerSearchFocus(){
+ setTimeout(()=>{
+  const el=$("searchPlayer");if(!el||!document.body.contains(el))return;
+  el.disabled=false;el.readOnly=false;
+  try{el.focus({preventScroll:true})}catch{try{el.focus()}catch{}}
+ },0);
+}
+playerSearch.addEventListener("pointerup",e=>{e.stopPropagation();stabilizePlayerSearchFocus()});
+playerSearch.addEventListener("mouseup",e=>{e.stopPropagation();stabilizePlayerSearchFocus()});
+playerSearch.addEventListener("keydown",e=>e.stopPropagation());
 $("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
@@ -1779,14 +1804,27 @@ function makeXlsxBase64(){
 function browserDownload(name,blob){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 }
+function askExportName(suggested){
+ return new Promise(resolve=>{
+  const modal=$("exportNameModal"),input=$("exportNameInput"),ok=$("exportNameOk"),cancel=$("exportNameCancel"),out=$("exportNameMsg");
+  let settled=false;
+  const finish=value=>{if(settled)return;settled=true;modal.classList.remove("show");modal.onclick=null;input.onkeydown=null;ok.onclick=null;cancel.onclick=null;resolve(value)};
+  input.value=suggested;out.textContent="";out.className="";modal.classList.add("show");
+  requestAnimationFrame(()=>{try{input.focus();input.select()}catch{}});
+  ok.onclick=()=>{const value=String(input.value||"").trim();if(!value){msg(out,"Inserisci un nome per l'esportazione.","bad");try{input.focus()}catch{};return}finish(value)};
+  cancel.onclick=()=>finish(null);
+  modal.onclick=e=>{if(e.target===modal)finish(null)};
+  input.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}else if(e.key==="Escape"){e.preventDefault();finish(null)}};
+ });
+}
 async function exportAllFiles(){
  const btn=$("exportAll");if(btn.disabled)return;
  const now=new Date(),pad=n=>String(n).padStart(2,"0"),leagueSafe=(league.name||"lega").replace(/[^\w-]+/g,"_");
  const suggested=`FANTASTICA_${leagueSafe}_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
- const requested=prompt("Nome dell'esportazione / backup:",suggested);
+ const requested=await askExportName(suggested);
  if(requested===null)return;
  const exportName=String(requested||"").trim();
- if(!exportName){alert("Inserisci un nome per l'esportazione.");return}
+ if(!exportName)return;
  btn.disabled=true;const old=btn.textContent;btn.textContent="ESPORTAZIONE...";
  try{
   const safe=exportName.replace(/[^\w-]+/g,"_").replace(/^_+|_+$/g,"")||suggested;
