@@ -186,6 +186,8 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 /* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
 #leagueHome{max-width:900px;padding-top:3vh}
+/* FIX 20-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
+#leagueHome{max-height:calc(100vh - 28px);overflow-y:auto;overflow-x:hidden;padding-bottom:28px;scrollbar-gutter:stable}
 #leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
 #leagueHome .authTabs{background:#061b31;border:1px solid #123f67;border-radius:13px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.28)}
 #leagueHome .authTabs button{background:transparent;border:1px solid transparent;border-radius:9px;color:#a9bed5;padding:13px 14px}
