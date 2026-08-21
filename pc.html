@@ -778,6 +778,83 @@ try{regiaVoiceMuted=localStorage.getItem(REGIA_VOICE_MUTE_KEY)==="1"}catch{}
 function regiaItalianVoice(){
  try{return (speechSynthesis.getVoices?.()||[]).find(v=>/^it(?:-|_)/i.test(v.lang||""))||null}catch{return null}
 }
+/* V524 — pronuncia multilingua SOLO per i nomi dei giocatori.
+   Non modifica regiaSpeak(): offerte numeriche e "Aggiudicato a..." continuano
+   a usare esattamente la voce italiana e le regole V523. */
+function regiaVoiceForLang(lang){
+ try{
+  const voices=speechSynthesis.getVoices?.()||[];
+  const wanted=String(lang||"").replace("_","-").toLowerCase();
+  const base=wanted.split("-")[0];
+  return voices.find(v=>String(v.lang||"").replace("_","-").toLowerCase()===wanted)
+      ||voices.find(v=>String(v.lang||"").replace("_","-").toLowerCase().split("-")[0]===base)
+      ||null;
+ }catch{return null}
+}
+function regiaDetectPlayerNameLang(rawName){
+ const name=String(rawName||"").trim();
+ if(!name)return "it-IT";
+ const n=name.normalize("NFC").toLowerCase().replace(/\s+[a-z]{1,3}\.$/u,"").trim();
+
+ // Segnali ortografici forti. In caso di dubbio NON si forza una lingua straniera.
+ if(/[ąćęłńśźż]/u.test(n)||/(?:wicz|czyk|szcz|cki$|ski$)/u.test(n))return "pl-PL";
+ if(/[čćđšž]/u.test(n)||/(?:ovic|evic|ić|ic)$/u.test(n))return "hr-HR";
+ if(/[ăâîșț]/u.test(n)||/(?:escu|eanu|oiu)$/u.test(n))return "ro-RO";
+ if(/[őű]/u.test(n))return "hu-HU";
+ if(/[ğış]/u.test(n)||/(?:oglu|oğlu|yilmaz|yıldız)$/u.test(n))return "tr-TR";
+ if(/[řěů]/u.test(n))return "cs-CZ";
+ if(/[øåæ]/u.test(n))return "da-DK";
+ if(/[ðþ]/u.test(n))return "is-IS";
+ if(/[ñ]/u.test(n))return "es-ES";
+ if(/[ãõ]/u.test(n))return "pt-PT";
+
+ // Olandese / fiammingo.
+ if(/^(de\s+bru|van\s|van der\s|van den\s|ter\s|ten\s)/u.test(n)||/(?:ij|uij)/u.test(n))return "nl-NL";
+
+ // Inglese / scozzese / irlandese: prefissi molto riconoscibili.
+ if(/^mc[a-z]/u.test(n))return "en-GB";
+ if(/^(o['’]|fitz)/u.test(n))return "en-IE";
+
+ // Francese: solo combinazioni abbastanza caratteristiche.
+ if(/(?:eaux|euil|euille|eign|aign|gnan|ois|ault|ieux|oux$|ique$)/u.test(n))return "fr-FR";
+
+ // Tedesco. Evitati i generici "sch" interni che colpirebbero cognomi italiani in -schi.
+ if(/[äöüß]/u.test(n)||/(?:^sch|tsch|zsch|mann$|stein$|meier$|meyer$|bauer$|schmidt$)/u.test(n))return "de-DE";
+
+ // Portoghese.
+ if(/^joao\b/u.test(n)||/(?:ão|ões|ães|eiro$|eira$|inho$|inha$|alves$|gomes$|nunes$|lopes$|mendes$|fernandes$|goncal|gonçal)/u.test(n))return "pt-PT";
+
+ // Spagnolo: finali molto tipici; niente regole generiche su J/LL/RR per evitare falsi positivi italiani.
+ if(/(?:guez$|quez$|[rlmngv]ez$)/u.test(n))return "es-ES";
+
+ // Scandinavo senza caratteri speciali.
+ if(/(?:sson$|sen$|gaard$|gard$|lund$|holm$|qvist$|kvist$|strom$|dahl$)/u.test(n))return "sv-SE";
+
+ // Greco traslitterato.
+ if(/(?:opoulos$|poulos$|idis$|iadis$|akis$|oglou$)/u.test(n))return "el-GR";
+
+ // Georgiano traslitterato.
+ if(/(?:shvili$|dze$)/u.test(n))return "ka-GE";
+
+ // Inglese: finali/cognomi molto riconoscibili.
+ if(/(?:worth$|wood$|ford$|field$|shaw$|stone$|wright$|white$|brown$|green$|smith$|jones$|walker$|wilson$|thompson$|roberts$)/u.test(n))return "en-GB";
+
+ // Italiano: è sia una classe esplicita sia il fallback sicuro.
+ return "it-IT";
+}
+function regiaSpeakPlayerName(text){
+ if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ try{
+  const lang=regiaDetectPlayerNameLang(text);
+  const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=1;u.pitch=1;u.volume=1;
+  const lv=regiaVoiceForLang(lang);
+  // Se Windows/Chromium espone una voce della lingua scelta, la usiamo.
+  // Se non la espone, lasciamo la scelta al motore TTS tramite u.lang;
+  // per l'italiano manteniamo esplicitamente la stessa voce V523.
+  if(lv)u.voice=lv;else if(lang==="it-IT"){const it=regiaItalianVoice();if(it)u.voice=it}
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+ }catch{regiaSpeak(text)}
+}
 function regiaSpeak(text){
  if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
@@ -824,7 +901,7 @@ function syncRegiaVoice(){
  const prev=regiaVoiceSnapshot;regiaVoiceSnapshot=snap;
  const playerChanged=snap.player!=null&&snap.player!==prev.player;
  if(playerChanged&&snap.status==="OPEN"){
-  const p=catalog.find(x=>x.id===snap.player);if(p?.name)regiaSpeak(p.name);
+  const p=catalog.find(x=>x.id===snap.player);if(p?.name)regiaSpeakPlayerName(p.name);
  }
  const bidChanged=snap.status==="OPEN"&&snap.highest!=null&&snap.bid>0&&(
   snap.bid!==prev.bid||snap.highest!==prev.highest||prev.status!=="OPEN"||prev.player!==snap.player
