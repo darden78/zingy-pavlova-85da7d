@@ -781,14 +781,49 @@ function regiaItalianVoice(){
 /* V524 — pronuncia multilingua SOLO per i nomi dei giocatori.
    Non modifica regiaSpeak(): offerte numeriche e "Aggiudicato a..." continuano
    a usare esattamente la voce italiana e le regole V523. */
-function regiaVoiceForLang(lang){
+function regiaVoiceQualityScore(v){
+ const s=`${v?.name||""} ${v?.voiceURI||""}`.toLowerCase();
+ let n=0;
+ if(/natural/.test(s))n+=100;
+ if(/neural/.test(s))n+=90;
+ if(/online/.test(s))n+=60;
+ if(/premium|enhanced/.test(s))n+=50;
+ if(v?.localService===false)n+=5;
+ return n;
+}
+function regiaMaleVoiceScore(v,lang){
+ const s=`${v?.name||""} ${v?.voiceURI||""}`.toLowerCase();
+ if(/\bmale\b|maschio|uomo|masculin|masculino|m[aä]nnlich/.test(s))return 300;
+ const base=String(lang||v?.lang||"").replace("_","-").toLowerCase().split("-")[0];
+ const known={
+  it:["diego","cosimo","luca","giorgio","marco"],
+  en:["david","mark","guy","ryan","george","james"],
+  fr:["henri","paul","remy","alain"],
+  de:["conrad","stefan","klaus"],
+  es:["pablo","jorge","alvaro","dario"],
+  pt:["duarte","tiago"],
+  nl:["maarten","frank"],
+  pl:["marek"],
+  da:["magnus"],
+  sv:["mattias"],
+  tr:["ahmet"],
+  ro:["andrei"],
+  cs:["jakub"]
+ };
+ return (known[base]||[]).some(x=>s.includes(x))?250:0;
+}
+function regiaVoiceForLang(lang,preferMale=false){
  try{
   const voices=speechSynthesis.getVoices?.()||[];
   const wanted=String(lang||"").replace("_","-").toLowerCase();
   const base=wanted.split("-")[0];
-  return voices.find(v=>String(v.lang||"").replace("_","-").toLowerCase()===wanted)
-      ||voices.find(v=>String(v.lang||"").replace("_","-").toLowerCase().split("-")[0]===base)
-      ||null;
+  const candidates=voices.filter(v=>String(v.lang||"").replace("_","-").toLowerCase().split("-")[0]===base);
+  if(!candidates.length)return null;
+  const score=v=>{
+   const vl=String(v.lang||"").replace("_","-").toLowerCase();
+   return (vl===wanted?40:0)+regiaVoiceQualityScore(v)+(preferMale?regiaMaleVoiceScore(v,lang):0);
+  };
+  return candidates.slice().sort((a,b)=>score(b)-score(a))[0]||null;
  }catch{return null}
 }
 function regiaDetectPlayerNameLang(rawName){
@@ -847,7 +882,7 @@ function regiaSpeakPlayerName(text){
  try{
   const lang=regiaDetectPlayerNameLang(text);
   const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=1;u.pitch=1;u.volume=1;
-  const lv=regiaVoiceForLang(lang);
+  const lv=regiaVoiceForLang(lang,true);
   // Se Windows/Chromium espone una voce della lingua scelta, la usiamo.
   // Se non la espone, lasciamo la scelta al motore TTS tramite u.lang;
   // per l'italiano manteniamo esplicitamente la stessa voce V523.
@@ -858,22 +893,12 @@ function regiaSpeakPlayerName(text){
 /* Audio cumulativo post-V524 — pronuncia più naturale SOLO degli importi d'asta.
    La logica evento resta invariata: cambia esclusivamente il testo/prosodia passato al TTS.
    regiaSpeak() resta intatta per "Aggiudicato a..." e gli altri usi storici. */
-function regiaNaturalItalianVoice(){
+function regiaNaturalItalianVoice(preferMale=true){
  try{
   const voices=(speechSynthesis.getVoices?.()||[]).filter(v=>/^it(?:-|_)/i.test(v.lang||""));
   if(!voices.length)return null;
-  const quality=v=>{
-   const s=`${v.name||""} ${v.voiceURI||""}`.toLowerCase();
-   let n=0;
-   if(/natural/.test(s))n+=100;
-   if(/neural/.test(s))n+=90;
-   if(/online/.test(s))n+=60;
-   if(/premium|enhanced/.test(s))n+=50;
-   if(/elsa|isabella|diego/.test(s))n+=20;
-   if(v.localService===false)n+=5;
-   return n;
-  };
-  return voices.slice().sort((a,b)=>quality(b)-quality(a))[0]||regiaItalianVoice();
+  const score=v=>regiaVoiceQualityScore(v)+(preferMale?regiaMaleVoiceScore(v,"it-IT"):0);
+  return voices.slice().sort((a,b)=>score(b)-score(a))[0]||regiaItalianVoice();
  }catch{return regiaItalianVoice()}
 }
 function regiaItalianNumberWords(value){
