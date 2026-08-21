@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 #regia .regiaHeader{margin:0 0 10px;padding:0 2px}
 #regia .regiaHeaderMain{display:flex;align-items:center;gap:16px;min-height:52px;padding:5px 8px 8px;border-bottom:1px solid rgba(79,142,199,.28)}
 #regia .appIdentity{display:flex;align-items:center;gap:9px;white-space:nowrap}#regia .appMark{font-size:25px}#regia .appTitle{font-size:27px;font-weight:950;letter-spacing:.4px}#regia .headerDivider{width:1px;height:34px;background:#194e7b}
-#regia .leagueTitle{display:flex;align-items:center;gap:8px;flex:1;margin:0;font-size:24px;font-weight:900}#regia .headerSettings,#regia .headerExit{border:1px solid #185589;border-radius:8px;background:#082e53;color:#fff;font-weight:850;cursor:pointer}#regia .headerSettings{padding:10px 15px}#regia .headerExit{padding:8px 14px;background:#0a3a67}
+#regia .leagueTitle{display:flex;align-items:center;gap:8px;flex:1;margin:0;font-size:24px;font-weight:900}#regia .headerSettings,#regia .headerExit{border:1px solid #185589;border-radius:8px;background:#082e53;color:#fff;font-weight:850;cursor:pointer}#regia .headerSettings{padding:10px 15px}#regia .headerExit{padding:8px 14px;background:#0a3a67}#regia .headerVoice{padding:9px 12px;border:1px solid #185589;border-radius:8px;background:#08385f;color:#fff;font-weight:900;cursor:pointer;white-space:nowrap}#regia .headerVoice.muted{background:#542f38;border-color:#7b4652;color:#ffd7dd}
 #regia .regiaHeaderSub{display:flex;align-items:center;gap:11px;margin-top:7px;padding:5px 8px;background:#072946;border:1px solid #123f69;border-radius:8px}#regia .status{flex:1;margin:0;padding:4px 8px;background:transparent;color:var(--fa-muted);font-size:13px}#regia .status.ok{color:#65e99a}#regia .status.warn{color:#ffd166}#regia .status.bad{color:#ff8585}
 #regia .offlineGuard{margin:0 5px 10px;background:#513813;border-color:#926722}
 #regia .workspace{grid-template-columns:minmax(285px,.82fr) minmax(700px,2.25fr) minmax(340px,1fr);gap:12px;align-items:stretch;padding:0 5px 5px}
@@ -616,6 +616,7 @@ body{overflow:hidden!important}
    <h1 class="leagueTitle"><span id="leagueName"></span><span id="phaseBadge" class="phaseBadge hidden"></span></h1>
    <button id="changeLeague" class="headerExit">← ESCI</button>
    <div id="status" class="status">Avvio...</div>
+   <button id="voiceMuteBtn" class="headerVoice regiaOnly" type="button" aria-pressed="false" title="Disattiva solo la voce della Regia">🔊 VOCE</button>
    <button id="settingsBtn" class="headerSettings">⚙ IMPOSTAZIONI</button>
   </div>
  </header>
@@ -729,6 +730,8 @@ let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,las
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
+const auctionStarted=(a=auction)=>!!(a?.status==="OPEN"&&a?.current_player_id&&a?.highest_slot!=null);
+const keyboardFieldActive=t=>!!t?.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
 const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
 function phaseText(l=league){
  if(!l)return "";
@@ -766,8 +769,74 @@ function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C
 function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
 function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
 function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
-function showCelebration(title,final=false){const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";el.classList.add("show");fireworksSound();setTimeout(()=>el.classList.remove("show"),final?8000:5000)}
+
+/* V521 — VOCE REGIA. Separata dagli effetti sonori esistenti:
+   il MUTE agisce solo sulla sintesi vocale e non su fireworksSound(). */
+const REGIA_VOICE_MUTE_KEY="fantastica-regia-voice-muted-v521";
+let regiaVoiceMuted=false,regiaVoiceSnapshot=null,regiaAwardTimer=null,regiaCelebrationSuppressUntil=0;
+try{regiaVoiceMuted=localStorage.getItem(REGIA_VOICE_MUTE_KEY)==="1"}catch{}
+function regiaItalianVoice(){
+ try{return (speechSynthesis.getVoices?.()||[]).find(v=>/^it(?:-|_)/i.test(v.lang||""))||null}catch{return null}
+}
+function regiaSpeak(text){
+ if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ try{
+  const u=new SpeechSynthesisUtterance(String(text));u.lang="it-IT";u.rate=1;u.pitch=1;u.volume=1;
+  const v=regiaItalianVoice();if(v)u.voice=v;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+ }catch{}
+}
+function updateRegiaVoiceButton(){
+ const b=$("voiceMuteBtn");if(!b)return;
+ b.textContent=regiaVoiceMuted?"🔇 MUTE":"🔊 VOCE";b.classList.toggle("muted",regiaVoiceMuted);b.setAttribute("aria-pressed",regiaVoiceMuted?"true":"false");
+ b.title=regiaVoiceMuted?"Riattiva la voce della Regia":"Disattiva solo la voce della Regia";
+}
+function setRegiaVoiceMuted(v){
+ regiaVoiceMuted=!!v;try{localStorage.setItem(REGIA_VOICE_MUTE_KEY,regiaVoiceMuted?"1":"0")}catch{}
+ if(regiaVoiceMuted){try{speechSynthesis.cancel()}catch{};clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
+ updateRegiaVoiceButton();
+}
+function suppressRegiaAwardVoice(){
+ regiaCelebrationSuppressUntil=Date.now()+1800;clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
+ try{speechSynthesis.cancel()}catch{}
+}
+function scheduleRegiaAwardVoice(){
+ clearTimeout(regiaAwardTimer);
+ if(regiaVoiceMuted)return;
+ regiaAwardTimer=setTimeout(()=>{
+  regiaAwardTimer=null;
+  if(Date.now()<regiaCelebrationSuppressUntil)return;
+  regiaSpeak("Aggiudicato!");
+ },700);
+}
+function resetRegiaVoiceSnapshot(){regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
+function syncRegiaVoice(){
+ if(!auction)return;
+ const snap={
+  player:auction.current_player_id??null,
+  bid:Number(auction.current_bid||0),
+  highest:auction.highest_slot??null,
+  status:auction.status||"",
+  confirmed:!!auction.assignment_confirmed
+ };
+ if(!regiaVoiceSnapshot){regiaVoiceSnapshot=snap;return}
+ const prev=regiaVoiceSnapshot;regiaVoiceSnapshot=snap;
+ const playerChanged=snap.player!=null&&snap.player!==prev.player;
+ if(playerChanged&&snap.status==="OPEN"){
+  const p=catalog.find(x=>x.id===snap.player);if(p?.name)regiaSpeak(p.name);
+ }
+ const bidChanged=snap.status==="OPEN"&&snap.highest!=null&&snap.bid>0&&(
+  snap.bid!==prev.bid||snap.highest!==prev.highest||prev.status!=="OPEN"||prev.player!==snap.player
+ );
+ if(bidChanged)regiaSpeak(String(snap.bid));
+ const awarded=snap.status==="SOLD"&&snap.player!=null&&snap.highest!=null&&snap.bid>0&&snap.confirmed&&(
+  prev.status==="OPEN"||playerChanged||snap.highest!==prev.highest||snap.bid!==prev.bid||!prev.confirmed
+ );
+ if(awarded)scheduleRegiaAwardVoice();
+}
+function showCelebration(title,final=false){suppressRegiaAwardVoice();const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";el.classList.add("show");fireworksSound();setTimeout(()=>el.classList.remove("show"),final?8000:5000)}
 function showParticipantCelebration(title){
+ suppressRegiaAwardVoice();
  const el=$("celebrate");
  $("celebrateTitle").textContent=title;
  $("celebrateSub").textContent="🎉";
@@ -911,10 +980,11 @@ $("changeLeague").onclick=async()=>{
  localStorage.removeItem("fantastica-organizer-last-league");
  try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
  try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
- disconnect();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+ disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
 };
 
 async function openLeague(id){
+ resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
  if(error||!data){
   // Non cancellare la lega memorizzata per un errore temporaneo: viene rimossa solo con "ESCI REGIA".
@@ -943,7 +1013,7 @@ async function load(runProgress=true){
  ]);
  if(l.error||a.error||s.error||b.error||p.error){msg($("status"),"Errore lettura database","bad");return}
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
- render();
+ render();syncRegiaVoice();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -958,7 +1028,7 @@ async function loadCore(){
  ]);
  if(l.error||a.error||s.error||b.error)return;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
- render();
+ render();syncRegiaVoice();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
@@ -1079,8 +1149,9 @@ function mirrorPublicUrl(){
 }
 function mirrorPartState(){
  const right=document.querySelector("#regia .rightSide"),top=document.querySelector("#regia .regiaHeader"),controls=document.querySelector("#regia .controls"),celebrate=$("celebrate"),offlineGuard=$("offlineGuard");
+ const topClone=top?.cloneNode(true);topClone?.querySelectorAll?.(".regiaOnly").forEach(x=>x.remove());
  return{
-  top:top?.innerHTML||"",
+  top:topClone?.innerHTML||"",
   status:{html:$("status")?.innerHTML||"",className:$("status")?.className||""},
   leaderRoster:$("leaderRoster")?.innerHTML||"",
   currentPlayer:$("currentPlayer")?.innerHTML||"",
@@ -1378,7 +1449,7 @@ function renderList(){
   if(p.assigned_slot)return;
   if(repairPrep){alert("Prima termina LIBERA/SCAMBIA e premi INIZIA ASTE.");return}
   if(league.auction_mode==="ROLE"&&p.role!==league.active_role)return;
-  const {data,error}=await db.rpc("fa_select_and_start_v481",{p_league_id:league.id,p_player_id:p.id});
+  const {data,error}=await db.rpc("fa_select_and_start_v519",{p_league_id:league.id,p_player_id:p.id});
   if(error||!data?.ok){
    const er=error?.message||data?.error;
    alert(er==="NESSUN_PARTECIPANTE"?"In attesa dei partecipanti: entra almeno un partecipante nella lega prima di selezionare un giocatore.":er==="ASTA_GIA_APERTA"?"C'è già un'asta aperta. Concludila o torna indietro prima di scegliere un altro giocatore.":er);
@@ -1412,22 +1483,11 @@ function focusPlayerSearch(selectAll=false){
 }
 function resetPlayerRoleFilter(){roleFilter="";document.querySelectorAll(".rf").forEach(b=>b.classList.toggle("active",!b.dataset.role))}
 const playerSearch=$("searchPlayer");
-playerSearch.addEventListener("pointerdown",e=>{e.stopPropagation();if(document.activeElement!==playerSearch)focusPlayerSearch(false)});
-playerSearch.addEventListener("mousedown",e=>e.stopPropagation());
-playerSearch.addEventListener("click",e=>{e.stopPropagation();if(document.activeElement!==playerSearch)focusPlayerSearch(false)});
+/* Il campo Cerca resta sempre un normale input nativo: può filtrare il listone
+   prima, tra e durante le aste. La selezione di un altro giocatore viene invece
+   bloccata dalla logica d'asta solo dopo la prima offerta valida. */
 playerSearch.addEventListener("input",refreshPlayerSearch);
-playerSearch.addEventListener("keyup",refreshPlayerSearch);
 playerSearch.addEventListener("search",refreshPlayerSearch);
-function stabilizePlayerSearchFocus(){
- setTimeout(()=>{
-  const el=$("searchPlayer");if(!el||!document.body.contains(el))return;
-  el.disabled=false;el.readOnly=false;
-  try{el.focus({preventScroll:true})}catch{try{el.focus()}catch{}}
- },0);
-}
-playerSearch.addEventListener("pointerup",e=>{e.stopPropagation();stabilizePlayerSearchFocus()});
-playerSearch.addEventListener("mouseup",e=>{e.stopPropagation();stabilizePlayerSearchFocus()});
-playerSearch.addEventListener("keydown",e=>e.stopPropagation());
 $("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
@@ -1722,7 +1782,7 @@ function renderManualAuctionPanel(slotNo){
  p.innerHTML=`<div class="manualAuctionHead"><div class="manualAuctionTitle">${escHtml(s.display_name)} — COMANDI MANUALI</div><button id="manualPanelClose" class="manualAuctionClose">CHIUDI</button></div><div class="manualAuctionStatus"><div class="manualAuctionStat"><small>OFFERTA ATTUALE</small><b>${currentAmount}</b></div><div class="manualAuctionStat"><small>MIGLIOR OFFERENTE</small><b>${currentWho}</b></div><div class="manualAuctionStat"><small>MAX ${escHtml(s.display_name)}</small><b>${r.max}</b></div></div><div class="manualAuctionActions"><button id="manualPlus1" ${active&&!s.abandoned?"":"disabled"}>+1</button><button id="manualPlus10" ${active&&!s.abandoned?"":"disabled"}>+10</button><button id="manualExact" ${active&&!s.abandoned?"":"disabled"}>OFFERTA LIBERA</button>${leave}</div><div id="manualBidMsg" class="manualAuctionMsg ${manualPanelMessageClass}">${escHtml(manualPanelMessage)}</div>`;
  $("manualPanelClose").onclick=closeManualAuctionPanel;
  const bid=async(kind,exact=null)=>{
-  const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:kind,p_exact:exact});
+  const {data,error}=await db.rpc("fa_place_bid_manual_v521",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:kind,p_exact:exact});
   if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
   manualPanelMessage=`✓ Offerta ${data.amount??exact??""} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";
   await load(false);
@@ -1737,12 +1797,15 @@ function manualExactKey(key){
 }
 async function manualSendExact(slotNo){
  if(manualExactValue===""){manualPanelMessage="Inserisci un importo.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}const n=Number(manualExactValue);if(!Number.isInteger(n)||n<0){manualPanelMessage="Inserisci un importo intero valido.";manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
- const {data,error}=await db.rpc("fa_place_bid_manual_v511",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:"EXACT",p_exact:n});
+ const {data,error}=await db.rpc("fa_place_bid_manual_v521",{p_league_id:league.id,p_slot:Number(slotNo),p_kind:"EXACT",p_exact:n});
  if(error||!data?.ok){manualPanelMessage=manualBidError(error?.message||data?.error);manualPanelMessageClass="bad";renderManualAuctionPanel(slotNo);return}
  manualPanelMessage=`✓ Offerta ${data.amount??n} accettata`;manualPanelMessageClass="ok";manualExactMode=false;manualExactValue="";await load(false);
 }
 window.addEventListener("keydown",e=>{
+ // La tastiera appartiene alla funzione OFFERTA LIBERA solo quando è stata
+ // esplicitamente attivata e nessun altro campo editabile possiede il focus.
  if(!manualExactMode||manualAuctionSlot===null)return;
+ if(keyboardFieldActive(e.target))return;
  if(/^\d$/.test(e.key)){e.preventDefault();manualExactKey(e.key)}
  else if(e.key==="Backspace"){e.preventDefault();manualExactKey("B")}
  else if(e.key==="Delete"){e.preventDefault();manualExactKey("C")}
@@ -1750,16 +1813,19 @@ window.addEventListener("keydown",e=>{
  else if(e.key==="Enter"){e.preventDefault();manualSendExact(manualAuctionSlot)}
 });
 
+$("voiceMuteBtn").onclick=()=>setRegiaVoiceMuted(!regiaVoiceMuted);updateRegiaVoiceButton();
+
 $("settingsBtn").onclick=async()=>{
  $("setName").value=league.name;$("setMembers").value=league.member_limit;$("setDuration").value=league.duration_seconds;$("setTimerMode").value=league.timer_mode||"MANUAL";
- let timerModeLocked=auction?.status==="OPEN"&&!!auction?.current_player_id;
+ let settingsLocked=auctionStarted();
  try{
-  const {data:liveAuction,error:liveAuctionError}=await db.from("fa_auction").select("status,current_player_id").eq("league_id",league.id).maybeSingle();
-  if(!liveAuctionError&&liveAuction)timerModeLocked=liveAuction.status==="OPEN"&&!!liveAuction.current_player_id;
+  const {data:liveAuction,error:liveAuctionError}=await db.from("fa_auction").select("status,current_player_id,highest_slot").eq("league_id",league.id).maybeSingle();
+  if(!liveAuctionError&&liveAuction)settingsLocked=auctionStarted(liveAuction);
  }catch{}
- $("setTimerMode").disabled=timerModeLocked;
- $("setTimerMode").title=timerModeLocked?"La modalità timer si cambia solo tra un'asta e la successiva.":"";
- $("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent=timerModeLocked?"Modalità timer bloccata finché l'asta corrente non è conclusa.":"";refreshMirrorLink();renderManage();$("settingsPanel").classList.add("show")
+ $("setTimerMode").disabled=settingsLocked;
+ $("setTimerMode").title=settingsLocked?"Le impostazioni si modificano solo prima della prima offerta o tra un'asta e la successiva.":"";
+ $("saveSettings").disabled=settingsLocked;
+ $("setCredits").value=league.credits_initial;$("setP").value=league.roster_p;$("setD").value=league.roster_d;$("setC").value=league.roster_c;$("setA").value=league.roster_a;$("setAuctionMode").value=league.auction_mode||"FREE";fillRoleSelects(".setRoleOrd",league.role_order||["P","D","C","A"]);$("setRoleOrderBox").classList.toggle("hidden",$("setAuctionMode").value!=="ROLE");$("settingsMsg").textContent=settingsLocked?"Asta già iniziata: concludila prima di modificare le impostazioni.":"";refreshMirrorLink();renderManage();$("settingsPanel").classList.add("show")
 };
 $("closeSettings").onclick=()=>$("settingsPanel").classList.remove("show");
 $("copyMirrorLink").onclick=copyMirrorLink;
@@ -1770,10 +1836,10 @@ $("repairStartAuctions").onclick=async()=>{
  const btn=$("repairStartAuctions");btn.disabled=true;const {data,error}=await db.rpc("fa_begin_repair_auctions_v515",{p_league_id:league.id});btn.disabled=false;if(error||!data?.ok){alert(error?.message||data?.error||"Impossibile iniziare le aste.");return}await load(false);if(data.complete)msg($("status"),"✓ Nessun posto da completare: mercato di riparazione concluso.","ok");else msg($("status"),data.active_role?`✓ Aste di riparazione iniziate · ${roleNames[data.active_role]||data.active_role}`:"✓ Aste di riparazione iniziate","ok");
 };
 $("saveSettings").onclick=async()=>{
+ if(auctionStarted()){msg($("settingsMsg"),"Concludi l'asta del giocatore corrente prima di modificare le impostazioni.","bad");return}
  const target=+$("setMembers").value;
  if(target<2||target>12){msg($("settingsMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const ord=roleOrderValues(".setRoleOrd");if(!validRoleOrder(ord)){msg($("settingsMsg"),"Ogni ruolo deve comparire una sola volta.","bad");return}
- if(target!==league.member_limit&&auction?.status==="OPEN"&&auction?.current_player_id){msg($("settingsMsg"),"Concludi l'asta del giocatore corrente prima di cambiare il numero dei partecipanti.","bad");return}
  let disableSlots=[],enableSlots=[];
  if(target<league.member_limit){
    const named=slots.filter(s=>s.member_enabled!==false&&s.display_name),need=Math.max(0,named.length-target);
@@ -1784,8 +1850,8 @@ $("saveSettings").onclick=async()=>{
    if(excluded.length){const picked=await chooseMemberSlots(disabled,diff,"AUMENTA PARTECIPANTI",`Scegli quali posti riattivare. Le voci con una rosa conservata possono tornare in lega; i posti liberi accetteranno un nuovo partecipante.`,true);if(!picked)return;enableSlots=picked}
  }
  const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:target,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord,p_timer_mode:$("setTimerMode").value,p_disable_slots:disableSlots,p_enable_slots:enableSlots};
- const {data,error}=await db.rpc("fa_set_full_settings_v511",args);
- if(error||!data?.ok){const er=error?.message||data?.error;msg($("settingsMsg"),"Errore: "+(er==="CAMBIO_TIMER_DURANTE_ASTA"?"la modalità timer si cambia solo tra un'asta e la successiva.":er),"bad");return}
+ const {data,error}=await db.rpc("fa_set_full_settings_v519",args);
+ if(error||!data?.ok){const er=error?.message||data?.error;msg($("settingsMsg"),"Errore: "+(er==="ASTA_IN_CORSO"?"concludi l'asta del giocatore corrente prima di modificare le impostazioni.":er),"bad");return}
  msg($("settingsMsg"),"✓ Salvato — funzioni nuove DA TESTARE","ok");await load();renderManage();
 };
 
@@ -1826,15 +1892,13 @@ function askExportName(suggested){
  return new Promise(resolve=>{
   const modal=$("exportNameModal"),input=$("exportNameInput"),ok=$("exportNameOk"),cancel=$("exportNameCancel"),out=$("exportNameMsg");
   let settled=false;
-  const finish=value=>{if(settled)return;settled=true;modal.classList.remove("show");modal.onclick=null;input.onkeydown=null;input.onpointerdown=null;input.onmousedown=null;input.onclick=null;ok.onclick=null;cancel.onclick=null;resolve(value)};
+  const finish=value=>{if(settled)return;settled=true;modal.classList.remove("show");modal.onclick=null;input.onkeydown=null;ok.onclick=null;cancel.onclick=null;resolve(value)};
   input.disabled=false;input.readOnly=false;input.value=suggested;out.textContent="";out.className="";modal.classList.add("show");
-  const keepInput=e=>e.stopPropagation();
-  input.onpointerdown=keepInput;input.onmousedown=keepInput;input.onclick=e=>{e.stopPropagation();if(document.activeElement!==input){try{input.focus({preventScroll:true})}catch{try{input.focus()}catch{}}}};
   requestAnimationFrame(()=>{try{input.focus({preventScroll:true})}catch{try{input.focus()}catch{}};try{input.select()}catch{}});
   ok.onclick=()=>{const value=String(input.value||"").trim();if(!value){msg(out,"Inserisci un nome per l'esportazione.","bad");try{input.focus()}catch{};return}finish(value)};
   cancel.onclick=()=>finish(null);
   modal.onclick=e=>{if(e.target===modal)finish(null)};
-  input.onkeydown=e=>{e.stopPropagation();if(e.key==="Enter"){e.preventDefault();ok.click()}else if(e.key==="Escape"){e.preventDefault();finish(null)}};
+  input.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();ok.click()}else if(e.key==="Escape"){e.preventDefault();finish(null)}};
  });
 }
 async function exportAllFiles(){
