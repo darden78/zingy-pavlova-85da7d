@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260821-v521-completo1";
+ var FANTASTICA_PHONE_BUILD="20260821-v5211-ipad1";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -801,7 +801,7 @@ function playerPoolFits(p){
  if(!p||p.assigned_slot!=null||p.in_current_list===false||!String(p.team||"").trim())return false;
  return playerPoolEligibleRoles().includes(String(p.role||"").toUpperCase());
 }
-function playerPoolEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]||c))}
+function playerPoolEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]||c))}
 function sortPlayerPool(){playerPool.sort((a,b)=>Number(b.value||0)-Number(a.value||0)||String(a.name||"").localeCompare(String(b.name||""),"it"))}
 function renderPlayerPool(){
  const listEl=$("playerPoolList"),meta=$("playerPoolMeta"),status=$("playerPoolStatus"),search=$("playerPoolSearch");
