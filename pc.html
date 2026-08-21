@@ -855,6 +855,63 @@ function regiaSpeakPlayerName(text){
   speechSynthesis.cancel();speechSynthesis.speak(u);
  }catch{regiaSpeak(text)}
 }
+/* Audio cumulativo post-V524 — pronuncia più naturale SOLO degli importi d'asta.
+   La logica evento resta invariata: cambia esclusivamente il testo/prosodia passato al TTS.
+   regiaSpeak() resta intatta per "Aggiudicato a..." e gli altri usi storici. */
+function regiaNaturalItalianVoice(){
+ try{
+  const voices=(speechSynthesis.getVoices?.()||[]).filter(v=>/^it(?:-|_)/i.test(v.lang||""));
+  if(!voices.length)return null;
+  const quality=v=>{
+   const s=`${v.name||""} ${v.voiceURI||""}`.toLowerCase();
+   let n=0;
+   if(/natural/.test(s))n+=100;
+   if(/neural/.test(s))n+=90;
+   if(/online/.test(s))n+=60;
+   if(/premium|enhanced/.test(s))n+=50;
+   if(/elsa|isabella|diego/.test(s))n+=20;
+   if(v.localService===false)n+=5;
+   return n;
+  };
+  return voices.slice().sort((a,b)=>quality(b)-quality(a))[0]||regiaItalianVoice();
+ }catch{return regiaItalianVoice()}
+}
+function regiaItalianNumberWords(value){
+ const num=Number(value);
+ if(!Number.isFinite(num)||num<0||Math.floor(num)!==num||num>999999)return String(value);
+ const small=["zero","uno","due","tre","quattro","cinque","sei","sette","otto","nove","dieci","undici","dodici","tredici","quattordici","quindici","sedici","diciassette","diciotto","diciannove"];
+ const tens=["","","venti","trenta","quaranta","cinquanta","sessanta","settanta","ottanta","novanta"];
+ function under100(n){
+  if(n<20)return small[n];
+  const t=Math.floor(n/10),u=n%10;
+  let w=tens[t];
+  if(u===1||u===8)w=w.slice(0,-1);
+  return w+(u?small[u]:"");
+ }
+ function under1000(n){
+  if(n<100)return under100(n);
+  const h=Math.floor(n/100),r=n%100;
+  let w=(h===1?"":small[h])+"cento";
+  if(r>=80&&r<90)w=w.slice(0,-1);
+  return w+(r?under100(r):"");
+ }
+ if(num<1000)return under1000(num);
+ const th=Math.floor(num/1000),r=num%1000;
+ const head=th===1?"mille":under1000(th)+"mila";
+ return head+(r?under1000(r):"");
+}
+function regiaSpeakBidAmount(value){
+ if(regiaVoiceMuted||value==null||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ try{
+  const words=regiaItalianNumberWords(value);
+  const u=new SpeechSynthesisUtterance(`${words}.`);
+  u.lang="it-IT";
+  // Leggermente più lenta e meno piatta del default: effetto annunciatore umano, non robotico.
+  u.rate=.91;u.pitch=1.035;u.volume=1;
+  const v=regiaNaturalItalianVoice();if(v)u.voice=v;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+ }catch{regiaSpeak(String(value))}
+}
 function regiaSpeak(text){
  if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
@@ -862,6 +919,19 @@ function regiaSpeak(text){
   const v=regiaItalianVoice();if(v)u.voice=v;
   speechSynthesis.cancel();speechSynthesis.speak(u);
  }catch{}
+}
+/* Audio cumulativo post-V524 — aggiudicazione più naturale, senza cambiare alcuna regola evento.
+   La frase resta un'unica utterance fluida: nessuna pausa artificiale tra "Aggiudicato a" e il vincitore. */
+function regiaSpeakAward(winnerName){
+ if(regiaVoiceMuted||!winnerName||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ try{
+  const u=new SpeechSynthesisUtterance(`Aggiudicato a ${String(winnerName).trim()}!`);
+  u.lang="it-IT";
+  // Ritmo naturale e un minimo di slancio sul finale: vittoria percepibile, non teatrale.
+  u.rate=.95;u.pitch=1.06;u.volume=1;
+  const v=regiaNaturalItalianVoice();if(v)u.voice=v;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+ }catch{regiaSpeak(`Aggiudicato a ${winnerName}`)}
 }
 function updateRegiaVoiceButton(){
  const b=$("voiceMuteBtn");if(!b)return;
@@ -884,7 +954,7 @@ function scheduleRegiaAwardVoice(winnerSlot){
  regiaAwardTimer=setTimeout(()=>{
   regiaAwardTimer=null;
   if(Date.now()<regiaCelebrationSuppressUntil)return;
-  regiaSpeak(`Aggiudicato a ${winnerName}`);
+  regiaSpeakAward(winnerName);
  },700);
 }
 function resetRegiaVoiceSnapshot(){regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
@@ -906,7 +976,7 @@ function syncRegiaVoice(){
  const bidChanged=snap.status==="OPEN"&&snap.highest!=null&&snap.bid>0&&(
   snap.bid!==prev.bid||snap.highest!==prev.highest||prev.status!=="OPEN"||prev.player!==snap.player
  );
- if(bidChanged)regiaSpeak(String(snap.bid));
+ if(bidChanged)regiaSpeakBidAmount(snap.bid);
  const awarded=snap.status==="SOLD"&&snap.player!=null&&snap.highest!=null&&snap.bid>0&&snap.confirmed&&(
   prev.status==="OPEN"||playerChanged||snap.highest!==prev.highest||snap.bid!==prev.bid||!prev.confirmed
  );
