@@ -539,7 +539,7 @@ body{overflow:hidden!important}
 #regia .rosterFit .outListTag{font-size:var(--rf-tag-size,9px)!important;padding:0 4px!important}
 
 /* ===== FIX 19-08-2026: CERCA SEMPRE CLICCABILE/FOCUSABILE ===== */
-#regia #searchPlayer{pointer-events:auto!important;position:relative;z-index:4;user-select:text!important;-webkit-user-select:text!important;cursor:text!important}
+#regia #searchPlayer{pointer-events:auto!important;position:relative;z-index:100!important;user-select:text!important;-webkit-user-select:text!important;cursor:text!important;-webkit-app-region:no-drag!important;isolation:isolate}
 /* Rinforzo locale: mantiene l'intera fascia di ricerca sopra agli elementi del listone. */
 #regia .listControls{position:relative!important;z-index:20!important;pointer-events:auto!important}
 #regia .listControls>*{pointer-events:auto!important}
@@ -800,13 +800,14 @@ function suppressRegiaAwardVoice(){
  regiaCelebrationSuppressUntil=Date.now()+1800;clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
  try{speechSynthesis.cancel()}catch{}
 }
-function scheduleRegiaAwardVoice(){
+function scheduleRegiaAwardVoice(winnerSlot){
  clearTimeout(regiaAwardTimer);
  if(regiaVoiceMuted)return;
+ const winnerName=slotName(Number(winnerSlot));
  regiaAwardTimer=setTimeout(()=>{
   regiaAwardTimer=null;
   if(Date.now()<regiaCelebrationSuppressUntil)return;
-  regiaSpeak("Aggiudicato!");
+  regiaSpeak(`Aggiudicato a ${winnerName}`);
  },700);
 }
 function resetRegiaVoiceSnapshot(){regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
@@ -832,7 +833,7 @@ function syncRegiaVoice(){
  const awarded=snap.status==="SOLD"&&snap.player!=null&&snap.highest!=null&&snap.bid>0&&snap.confirmed&&(
   prev.status==="OPEN"||playerChanged||snap.highest!==prev.highest||snap.bid!==prev.bid||!prev.confirmed
  );
- if(awarded)scheduleRegiaAwardVoice();
+ if(awarded)scheduleRegiaAwardVoice(snap.highest);
 }
 function showCelebration(title,final=false){suppressRegiaAwardVoice();const el=$("celebrate");$("celebrateTitle").textContent=title;$("celebrateSub").textContent=final?"Le rose sono complete.":"Si passa al ruolo successivo.";el.classList.add("show");fireworksSound();setTimeout(()=>el.classList.remove("show"),final?8000:5000)}
 function showParticipantCelebration(title){
@@ -1439,7 +1440,7 @@ function renderList(){
    if(!confirm(`Scambiare ${src.name} con ${p.name}?\nIl prezzo della rosa resterà ${src.assigned_price} crediti.`))return;
    const outsideList=src.in_current_list===false;
    const repairFinished=league?.auction_session==="REPAIR"&&(league?.repair_stage==="COMPLETE"||league?.auction_complete);
-   const rpc=outsideList?(repairFinished?"fa_replace_out_of_list_player_v518":"fa_replace_out_of_list_player_v514"):"fa_roster_swap_free";
+   const rpc=outsideList?"fa_replace_out_of_list_player_v522":"fa_roster_swap_free_v522";
    const args=outsideList?{p_league_id:league.id,p_out_player_id:src.id,p_free_player_id:p.id}:{p_league_id:league.id,p_roster_player_id:src.id,p_free_player_id:p.id};
    const {data,error}=await db.rpc(rpc,args);
    if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}
@@ -1483,6 +1484,13 @@ function focusPlayerSearch(selectAll=false){
 }
 function resetPlayerRoleFilter(){roleFilter="";document.querySelectorAll(".rf").forEach(b=>b.classList.toggle("active",!b.dataset.role))}
 const playerSearch=$("searchPlayer");
+/* V522 — il campo Cerca deve prendere sempre il focus reale in Regia.
+   Il rinforzo è locale al solo input e non modifica la tastiera globale. */
+["pointerdown","mousedown","click"].forEach(type=>playerSearch.addEventListener(type,e=>{
+ if((type==="pointerdown"||type==="mousedown")&&e.button!=null&&e.button!==0)return;
+ e.stopPropagation();
+ if(document.activeElement!==playerSearch)focusPlayerSearch(false);
+},{capture:true}));
 /* Il campo Cerca resta sempre un normale input nativo: può filtrare il listone
    prima, tra e durante le aste. La selezione di un altro giocatore viene invece
    bloccata dalla logica d'asta solo dopo la prima offerta valida. */
@@ -1492,14 +1500,14 @@ $("sortPlayers").onchange=renderList;$("showAssigned").onchange=renderList;
 $("showList").onclick=()=>{rosterSwapMode="";rosterSwapSourceId=null;selectedRosterSlot=null;$("selectedRosterView").classList.add("hidden");$("listView").classList.remove("hidden");$("rightTitle").textContent="LISTONE";$("showList").classList.add("hidden");renderList()};
 function showSelectedRoster(update=true){if(!selectedRosterSlot)return;$("listView").classList.add("hidden");$("selectedRosterView").classList.remove("hidden");$("rightTitle").textContent="ROSA "+slotName(selectedRosterSlot);$("showList").classList.remove("hidden");$("selectedRosterView").innerHTML=rosterHTML(selectedRosterSlot);bindRosterPlayerClicks();requestAnimationFrame(()=>fitRosterPanel($("selectedRosterView")))}
 
-function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa è disponibile tra un'asta e l'altra, non mentre un'asta è aperta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Il giocatore scelto non è eleggibile nel listone corrente.":er==="GIOCATORE_NON_FUORI_LISTONE"?"Questa sostituzione è riservata ai giocatori FUORI LISTONE.":er==="NON_DISPONIBILE_IN_RIPARAZIONE"?"Nel Mercato di Riparazione i FUORI LISTONE si gestiscono con lo svincolo previsto dal mercato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
+function rosterActionError(er){return er==="ASTA_IN_CORSO"?"La gestione della rosa resta disponibile fino alla prima offerta; dopo la prima offerta torna disponibile alla fine dell'asta.":er==="RUOLO_DIVERSO"?"Lo scambio è consentito solo tra giocatori dello stesso ruolo.":er==="GIOCATORE_FUORI_LISTONE"?"Il giocatore scelto non è eleggibile nel listone corrente.":er==="GIOCATORE_NON_FUORI_LISTONE"?"Questa sostituzione è riservata ai giocatori FUORI LISTONE.":er==="NON_DISPONIBILE_IN_RIPARAZIONE"?"Nel Mercato di Riparazione i FUORI LISTONE si gestiscono con lo svincolo previsto dal mercato.":er==="GIOCATORE_NON_LIBERO"?"Il giocatore scelto non è più libero.":er||"Operazione non riuscita"}
 function closeRosterModal(){$("rosterModal").classList.remove("show");$("rosterModalBox").innerHTML=""}
 function showRosterModal(html){$("rosterModalBox").innerHTML=`<button id="rosterModalX" class="rosterModalClose" type="button" title="Annulla">×</button>${html}`;$("rosterModal").classList.add("show");$("rosterModalX").onclick=closeRosterModal}
 $("rosterModal").onclick=e=>{if(e.target.id==="rosterModal")closeRosterModal()};
 function bindRosterPlayerClicks(){document.querySelectorAll("#selectedRosterView [data-roster-player]").forEach(el=>el.onclick=()=>openRosterPlayer(+el.dataset.rosterPlayer))}
 function openRosterPlayer(id){
  const p=catalog.find(x=>x.id===id);if(!p?.assigned_slot)return;
- if(auction?.status==="OPEN"){alert(rosterActionError("ASTA_IN_CORSO"));return}
+ if(auctionStarted()){alert(rosterActionError("ASTA_IN_CORSO"));return}
  const fuori=p.in_current_list===false,repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP",repairFinished=league?.auction_session==="REPAIR"&&(league?.repair_stage==="COMPLETE"||league?.auction_complete),outsideMain=fuori&&(league?.auction_session!=="REPAIR"||repairFinished);
  if(outsideMain){
   showRosterModal(`<h2>${p.name}</h2><p>${p.role} · ${p.team||"—"} · prezzo in rosa <b>${p.assigned_price}</b></p><div class="outListWarning">Questo giocatore non è più presente nel listone corrente.</div><div class="rosterModalActions"><button id="rosterSwap" class="swapAction">SCAMBIA</button></div>`);
@@ -1514,7 +1522,7 @@ function showRosterRelease(id){
  const p=catalog.find(x=>x.id===id);if(!p)return;
  showRosterModal(`<h2>${p.name}</h2><p>Crediti da restituire alla rosa <b>${slotName(p.assigned_slot)}</b>:</p><input id="refundAmount" class="refundInput" type="number" min="0" step="1" value="${p.assigned_price||0}"><div class="rosterModalActions"><button id="confirmRelease" class="dangerAction">LIBERA</button><button id="backRoster" class="neutralAction">INDIETRO</button></div>`);
  $("backRoster").onclick=()=>openRosterPlayer(id);
- $("confirmRelease").onclick=async()=>{const refund=Number($("refundAmount").value);if(!Number.isInteger(refund)||refund<0){alert("Inserisci un numero intero di crediti uguale o maggiore di zero.");return}const slot=p.assigned_slot,repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP";const rpc=repairPrep?"fa_repair_release_player_prep_v515":"fa_roster_release_player";const {data,error}=await db.rpc(rpc,{p_league_id:league.id,p_player_id:p.id,p_refund:refund});if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}closeRosterModal();selectedRosterSlot=slot;await load(false);msg($("status"),`✓ ${data.player} liberato · restituiti ${data.refund} crediti`,"ok")};
+ $("confirmRelease").onclick=async()=>{const refund=Number($("refundAmount").value);if(!Number.isInteger(refund)||refund<0){alert("Inserisci un numero intero di crediti uguale o maggiore di zero.");return}const slot=p.assigned_slot,repairPrep=league?.auction_session==="REPAIR"&&league?.repair_stage==="PREP";const rpc=repairPrep?"fa_repair_release_player_prep_v515":"fa_roster_release_player_v522";const {data,error}=await db.rpc(rpc,{p_league_id:league.id,p_player_id:p.id,p_refund:refund});if(error||!data?.ok){alert(rosterActionError(error?.message||data?.error));return}closeRosterModal();selectedRosterSlot=slot;await load(false);msg($("status"),`✓ ${data.player} liberato · restituiti ${data.refund} crediti`,"ok")};
 }
 function showRosterSwapMenu(id){
  const p=catalog.find(x=>x.id===id);if(!p)return;
@@ -1539,7 +1547,7 @@ function confirmRosterSwap(idA,idB){
  const a=catalog.find(x=>x.id===idA),b=catalog.find(x=>x.id===idB);if(!a||!b)return;const slotA=a.assigned_slot,slotB=b.assigned_slot,maxA=Math.max(0,Number(rosterInfo(slotA).remain)||0),maxB=Math.max(0,Number(rosterInfo(slotB).remain)||0);
  showRosterModal(`<h2>Scambia con altra rosa</h2><div class="swapEquation"><div class="swapEquationRow"><div class="swapEquationPlayer"><b>${escHtml(a.name)}</b><small>${escHtml(slotName(slotA))}</small></div><span class="swapEquationPlus">+</span><input id="swapCreditA" class="swapCreditInput" type="number" min="0" step="1" value="0"><span class="swapMax">MAX ${maxA}</span></div><div class="swapEquals">=</div><div class="swapEquationRow"><div class="swapEquationPlayer"><b>${escHtml(b.name)}</b><small>${escHtml(slotName(slotB))}</small></div><span class="swapEquationPlus">+</span><input id="swapCreditB" class="swapCreditInput" type="number" min="0" step="1" value="0"><span class="swapMax">MAX ${maxB}</span></div></div><div class="swapEquationHelp">Lascia entrambe le caselle a 0 per uno scambio puro. Puoi aggiungere crediti da un solo lato: i crediti scritti accanto a un giocatore vengono pagati dal proprietario di quel giocatore all'altra rosa.</div><div id="swapCreditMsg"></div><div class="rosterModalActions"><button id="confirmSwapCredits" class="swapAction">CONFERMA SCAMBIO</button><button id="backSwapPlayer" class="neutralAction">INDIETRO</button></div>`);
  $("backSwapPlayer").onclick=()=>chooseOtherRosterPlayer(idA,slotB);
- $("confirmSwapCredits").onclick=async()=>{const read=id=>{const raw=$(id).value.trim();return raw===""?0:Number(raw)},ca=read("swapCreditA"),cb=read("swapCreditB");if(!Number.isInteger(ca)||!Number.isInteger(cb)||ca<0||cb<0){msg($("swapCreditMsg"),"Inserisci solo crediti interi uguali o maggiori di zero.","bad");return}if(ca>0&&cb>0){msg($("swapCreditMsg"),"Errore: puoi aggiungere crediti da una sola delle due parti.","bad");return}if(ca>maxA){msg($("swapCreditMsg"),`${slotName(slotA)} può aggiungere al massimo ${maxA} crediti.`,"bad");return}if(cb>maxB){msg($("swapCreditMsg"),`${slotName(slotB)} può aggiungere al massimo ${maxB} crediti.`,"bad");return}const btn=$("confirmSwapCredits");btn.disabled=true;const {data,error}=await db.rpc("fa_roster_swap_between_credits_v515",{p_league_id:league.id,p_player_a_id:idA,p_player_b_id:idB,p_credit_a:ca,p_credit_b:cb});if(error||!data?.ok){btn.disabled=false;const er=error?.message||data?.error;if(String(er).startsWith("CREDITI_INSUFFICIENTI")){msg($("swapCreditMsg"),`Crediti insufficienti. Massimo disponibile: ${data?.max??0}.`,"bad")}else msg($("swapCreditMsg"),rosterActionError(er),"bad");return}closeRosterModal();selectedRosterSlot=slotA;await load(false);const extra=data.credit_amount>0?` · ${data.credit_amount} crediti da ${slotName(data.credit_from_slot)} a ${slotName(data.credit_to_slot)}`:"";msg($("status"),`✓ Scambio completato: ${data.player_a} ↔ ${data.player_b}${extra}`,"ok")};
+ $("confirmSwapCredits").onclick=async()=>{const read=id=>{const raw=$(id).value.trim();return raw===""?0:Number(raw)},ca=read("swapCreditA"),cb=read("swapCreditB");if(!Number.isInteger(ca)||!Number.isInteger(cb)||ca<0||cb<0){msg($("swapCreditMsg"),"Inserisci solo crediti interi uguali o maggiori di zero.","bad");return}if(ca>0&&cb>0){msg($("swapCreditMsg"),"Errore: puoi aggiungere crediti da una sola delle due parti.","bad");return}if(ca>maxA){msg($("swapCreditMsg"),`${slotName(slotA)} può aggiungere al massimo ${maxA} crediti.`,"bad");return}if(cb>maxB){msg($("swapCreditMsg"),`${slotName(slotB)} può aggiungere al massimo ${maxB} crediti.`,"bad");return}const btn=$("confirmSwapCredits");btn.disabled=true;const {data,error}=await db.rpc("fa_roster_swap_between_credits_v522",{p_league_id:league.id,p_player_a_id:idA,p_player_b_id:idB,p_credit_a:ca,p_credit_b:cb});if(error||!data?.ok){btn.disabled=false;const er=error?.message||data?.error;if(String(er).startsWith("CREDITI_INSUFFICIENTI")){msg($("swapCreditMsg"),`Crediti insufficienti. Massimo disponibile: ${data?.max??0}.`,"bad")}else msg($("swapCreditMsg"),rosterActionError(er),"bad");return}closeRosterModal();selectedRosterSlot=slotA;await load(false);const extra=data.credit_amount>0?` · ${data.credit_amount} crediti da ${slotName(data.credit_from_slot)} a ${slotName(data.credit_to_slot)}`:"";msg($("status"),`✓ Scambio completato: ${data.player_a} ↔ ${data.player_b}${extra}`,"ok")};
 }
 
 $("importList").onclick=async()=>{
@@ -1552,11 +1560,11 @@ $("importList").onclick=async()=>{
   const hRole=find(["ruolo","r","role","posizione"]),hName=find(["calciatore","giocatore","nome","player"]),hTeam=find(["squadra","team","club","sqd"]),hValue=find(["quotazione","quota","valore","q","qta","quotazioneattuale","fvm"]);
   if(!hRole||!hName)throw new Error("Non riconosco le colonne Ruolo/Calciatore. Intestazioni: "+headers.join(", "));
   const players=rows.map(r=>({role:String(r[hRole]).trim().toUpperCase(),name:String(r[hName]).trim(),team:hTeam?String(r[hTeam]||"").trim():"",value:hValue&&r[hValue]!==""?parseInt(r[hValue],10):null,extra:r})).filter(x=>x.name);
-  if(auction?.status==="OPEN"&&auction?.current_player_id){throw new Error("Concludi l'asta in corso prima di aggiornare il listone.")}
+  if(auctionStarted()){throw new Error("Concludi l'asta in corso prima di aggiornare il listone.")}
   const hasList=catalog.some(p=>p.in_current_list!==false);
   if(hasList&&!confirm(`Aggiornare il listone corrente con ${players.length} giocatori?\nI giocatori già in rosa ma assenti dal nuovo listone resteranno nella rosa come FUORI LISTONE.`))return;
   msg($("importMsg"),hasList?"Aggiornamento listone...":"Importazione...");
-  const rpc=hasList?"fa_update_players_list":"fa_import_players";
+  const rpc=hasList?"fa_update_players_list_v522":"fa_import_players";
   const {data,error}=await db.rpc(rpc,{p_league_id:league.id,p_source:$("listSource").value.trim(),p_players:players});
   if(error||!data?.ok)throw new Error(error?.message||data?.error);
   if(hasList)msg($("importMsg"),`✓ Listone aggiornato: ${data.count} presenti · ${data.added} nuovi · ${data.missing_assigned} in rosa fuori listone`,"ok");
@@ -1692,7 +1700,7 @@ async function parseRepairListFile(file){
  return players;
 }
 function startRepairWizard(){
- if(auction?.status==="OPEN"&&auction?.current_player_id){alert("Concludi l'asta in corso prima di avviare il mercato di riparazione.");return}
+ if(auctionStarted()){alert("Concludi l'asta in corso prima di avviare il mercato di riparazione.");return}
  const participants=repairParticipants(),incomplete=participants.filter(s=>!repairRosterComplete(s));
  if(league?.auction_session==="REPAIR"&&!league?.auction_complete&&["PREP","AUCTION"].includes(league?.repair_stage)){alert("Il Mercato di Riparazione è già in corso.");return}
  if(incomplete.length){alert(`Il Mercato di Riparazione può iniziare solo con tutte le rose complete.\n\nRose da completare: ${incomplete.map(s=>s.display_name).join(", ")}`);return}

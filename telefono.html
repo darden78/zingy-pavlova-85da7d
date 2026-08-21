@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260821-v5212-poolload1";
+ var FANTASTICA_PHONE_BUILD="20260821-v5213-preasta100";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -1093,7 +1093,7 @@ pagesEl.addEventListener("touchstart",function(ev){
 pagesEl.addEventListener("touchmove",function(ev){
  if(faTouchX===null||!ev.touches||ev.touches.length!==1)return;
  var dx=ev.touches[0].clientX-faTouchX,dy=ev.touches[0].clientY-faTouchY;
- if(!faGestureLock&&(Math.abs(dx)>60||Math.abs(dy)>60))faGestureLock=Math.abs(dx)>Math.abs(dy)*1.08?"x":"y";
+ if(!faGestureLock&&(Math.abs(dx)>100||Math.abs(dy)>100))faGestureLock=Math.abs(dx)>Math.abs(dy)*1.08?"x":"y";
  if(faGestureLock==="x"){
   if(ev.cancelable)ev.preventDefault();
   ev.stopPropagation();
@@ -1102,7 +1102,7 @@ pagesEl.addEventListener("touchmove",function(ev){
 pagesEl.addEventListener("touchend",function(ev){
  if(faTouchX===null||!ev.changedTouches||!ev.changedTouches.length){faTouchX=faTouchY=null;faGestureLock=null;return}
  var dx=ev.changedTouches[0].clientX-faTouchX,dy=ev.changedTouches[0].clientY-faTouchY,target=faPageIndex;
- if((faGestureLock==="x"||Math.abs(dx)>Math.abs(dy)*1.15)&&Math.abs(dx)>=60){
+ if((faGestureLock==="x"||Math.abs(dx)>Math.abs(dy)*1.15)&&Math.abs(dx)>=100){
   target=dx<0?faPageIndex+1:faPageIndex-1;
   if(target>=2)requestRosters(target);
   faActivatePage(target);
