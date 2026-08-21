@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260821-v5211-ipad1";
+ var FANTASTICA_PHONE_BUILD="20260821-v5212-poolload1";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -1073,7 +1073,7 @@ function faActivatePage(index){
  list[index].classList.add("faActive");
  faPageIndex=index;faPendingPageIndex=null;
  faUpdatePcNav();
- if(index===0)loadPlayerPool(false);
+ if(index===0)loadPlayerPool(true);
  if(index>=2)refreshVisibleRosterDirect(false);
  try{window.scrollTo(0,0)}catch(e){}
  return true;
