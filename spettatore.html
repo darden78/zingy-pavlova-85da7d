@@ -50,7 +50,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 #regia .center{min-width:0;display:flex;flex-direction:column;gap:10px}#regia .hero{padding:0;background:transparent;border:0;border-radius:8px}#regia .heroMain{display:grid;grid-template-columns:minmax(0,2fr) minmax(230px,1fr);gap:10px;align-items:stretch}
 #regia .offerZone,#regia .timerPanel{background:linear-gradient(180deg,#073561,#052a4e);border:1px solid var(--fa-line);border-radius:8px}#regia .offerZone{padding:12px}#regia .currentPlayer{background:transparent;border:0;border-bottom:1px solid rgba(113,164,209,.20);border-radius:0;padding:1px 8px 10px;margin:0;min-height:63px}#regia .currentPlayer .pn{font-size:27px}#regia .currentPlayer .meta{color:#c0d0df;font-size:14px;margin-top:3px}
 #regia .offerPanel{padding:13px 10px 10px;background:transparent;border:0}#regia .offerLabel,#regia .timerTitle{font-size:14px;font-weight:850;letter-spacing:.3px;color:#f1f6fc}#regia .amount{font-size:78px;line-height:1;color:var(--fa-yellow);margin:4px 0 2px}#regia .offerBy{font-size:11px;color:#c9d6e4;margin-top:2px}#regia .who{font-size:22px;font-weight:850;color:#fff;margin-top:3px}
-#regia .timerPanel{padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:286px}#regia .timer{font-size:72px;line-height:1;font-weight:950;color:var(--fa-green);margin:24px 0 16px;white-space:nowrap}#regia .timerModeBadge{margin:0;padding:0;background:transparent;border:0;color:#bcd0e4;font-size:13px}#regia .timerModeBadge.auto{border:0;color:var(--fa-green)}#regia #closed{color:#65e99a;font-weight:900;margin-top:5px;min-height:0}
+#regia .timerPanel{padding:16px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:286px}#regia .timer{font-size:72px;line-height:1;font-weight:950;color:var(--fa-green);margin:24px 0 16px;white-space:nowrap}#regia .timerModeBadge{margin:0;padding:0;background:transparent;border:0;color:#bcd0e4;font-size:13px}#regia .timerModeBadge.auto{border:0;color:var(--fa-green)}#regia #closed{color:#65e99a;font-weight:900;margin-top:5px;min-height:0}#regia .timer.timerRunning{color:var(--fa-green)}#regia .timer.timerStandby{color:#ff6767}#regia .timer.timerNeutral{color:#fff}#regia .timerModeBadge.semi{border:0;color:#77d6ff}
 #regia .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}#regia .controls button{min-height:43px;border:1px solid rgba(88,153,214,.42);border-radius:7px;padding:9px 10px;font-size:13px}#regia .undo{background:linear-gradient(180deg,#0b67b9,#094e8d)}#regia .pause{background:linear-gradient(180deg,#e49c08,#b97200)}#regia .newAuction{background:linear-gradient(180deg,#35bd6c,#1e904e)}#regia .eventPos{margin-top:3px;color:#7895b1;text-align:center}
 #regia .players{grid-template-columns:repeat(4,1fr);gap:8px;margin-top:0}#regia .p{min-height:104px;background:linear-gradient(180deg,#07325d,#052846);border:1px solid #104b7e;border-radius:8px;padding:10px}#regia .p:hover{outline:1px solid #2d78b9}#regia .ps{color:#b8cbe0;line-height:1.5}#regia .dot{background:#8b99a8}#regia .dot.on{background:var(--fa-green)}#regia .dot.manual{background:var(--fa-yellow)}
 #regia .logCard{background:linear-gradient(180deg,#062c51,#042541);border:1px solid var(--fa-line);border-radius:8px;padding:9px 12px 12px;min-height:150px}#regia .logCard h3{font-size:14px;margin:0 0 7px}#regia table{background:transparent;border-radius:0}#regia th,#regia td{border-bottom:1px solid rgba(103,150,193,.23);padding:7px 8px}#regia th{color:#c7d7e8;font-weight:500}
@@ -153,6 +153,7 @@ function applyView(d){
  if(Object.prototype.hasOwnProperty.call(p,"amount"))$("amount").textContent=p.amount;
  if(Object.prototype.hasOwnProperty.call(p,"who"))$("who").textContent=p.who;
  if(Object.prototype.hasOwnProperty.call(p,"timer"))$("timer").textContent=p.timer;
+ if(Object.prototype.hasOwnProperty.call(p,"timerClass"))$("timer").className=p.timerClass||"timer";
  if(Object.prototype.hasOwnProperty.call(p,"timerModeBadge")){const b=$("timerModeBadge");if(b){b.textContent=p.timerModeBadge?.text||"";b.className=p.timerModeBadge?.className||"timerModeBadge"}}
  if(Object.prototype.hasOwnProperty.call(p,"offlineGuard")){const g=$("offlineGuard");if(g){g.innerHTML=p.offlineGuard?.html||"";g.className=p.offlineGuard?.className||"offlineGuard"}}
  if(Object.prototype.hasOwnProperty.call(p,"closed"))$("closed").textContent=p.closed;
@@ -165,7 +166,7 @@ function applyView(d){
  waitingFresh=false;clearInterval(requestTimer);requestTimer=null;
  $("mirrorWaiting").classList.add("hidden");setBadge("SOLA VISIONE · LIVE");lockInteractions();
 }
-function applyTimer(d){if(!d||d.league_id!==leagueId)return;$("timer").textContent=d.text??"—";setBadge("SOLA VISIONE · LIVE")}
+function applyTimer(d){if(!d||d.league_id!==leagueId)return;const t=$("timer");t.textContent=d.text??"—";if(d.className)t.className=d.className;setBadge("SOLA VISIONE · LIVE")}
 function applyChunk(d){
  if(!d||d.league_id!==leagueId||!d.transfer_id||!d.key)return;
  let t=chunkTransfers.get(d.transfer_id);
