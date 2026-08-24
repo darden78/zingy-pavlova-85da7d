@@ -1296,5 +1296,14 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));</script>
+<script>
+/* V528.1: fix PWA applicato SOLO a iPad.
+   iPhone, Android e gli altri browser mantengono esattamente la registrazione V526. */
+(function(){
+ var ua=navigator.userAgent||"";
+ var isIPad=/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ if(isIPad)return;
+ if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));
+})();
+</script>
 </body></html>
