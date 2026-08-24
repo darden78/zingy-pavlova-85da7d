@@ -728,7 +728,7 @@ const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getE
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="",rosterSwapSourceId=null,rosterSwapMode="";
 let repairDraft={listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE",creditLimits:{}};
 let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={};
-let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false;
+let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false,semiVisibleCueArmedDeadline="";
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
@@ -771,6 +771,18 @@ function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C
 function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
 function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
 function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
+
+/* V529 — segnale acustico indipendente dal MUTE voce.
+   Parte una sola volta quando il timer SEMIAUTOMATICO entra nella fase visibile. */
+const SEMI_VISIBLE_CUE_SRC="./audio/timer_visible_double_ping.wav";
+let semiVisibleCueAudio=null;
+function playSemiVisibleCue(){
+ try{
+  if(!semiVisibleCueAudio){semiVisibleCueAudio=new Audio(SEMI_VISIBLE_CUE_SRC);semiVisibleCueAudio.preload="auto";semiVisibleCueAudio.volume=1}
+  semiVisibleCueAudio.pause();semiVisibleCueAudio.currentTime=0;
+  const pr=semiVisibleCueAudio.play();if(pr&&typeof pr.catch==="function")pr.catch(()=>{});
+ }catch{}
+}
 
 /* V521 — VOCE REGIA. Separata dagli effetti sonori esistenti:
    il MUTE agisce solo sulla sintesi vocale e non su fireworksSound(). */
@@ -1594,14 +1606,17 @@ function updateTimerVisualState(){
 }
 function timer(){
  updateTimerVisualState();
- if(auction?.status==="SOLD"){$("timer").textContent="—";return}
- if(!auction?.highest_slot){$("timer").textContent="—";return}
+ if(auction?.status==="SOLD"){semiVisibleCueArmedDeadline="";$("timer").textContent="—";return}
+ if(!auction?.highest_slot){semiVisibleCueArmedDeadline="";$("timer").textContent="—";return}
  const tm=timerMode(),semi=tm==="SEMI",visible=semiVisibleSeconds();
- if(auction.paused){$("timer").textContent=(semi?visible:(Number(league.duration_seconds)||0)).toFixed(1);return}
- if(auction.status!=="OPEN"||!auction.timer_deadline){$("timer").textContent="—";return}
- const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());
+ if(auction.paused){semiVisibleCueArmedDeadline="";$("timer").textContent=(semi?visible:(Number(league.duration_seconds)||0)).toFixed(1);return}
+ if(auction.status!=="OPEN"||!auction.timer_deadline){semiVisibleCueArmedDeadline="";$("timer").textContent="—";return}
+ const deadline=String(auction.timer_deadline),left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());
  const displayLeft=semi?Math.min(left,visible*1000):left;$("timer").textContent=(displayLeft/1000).toFixed(1);
  const visiblePhase=!semi||left<=visible*1000;
+ if(semi&&!visiblePhase)semiVisibleCueArmedDeadline=deadline;
+ else if(semi&&visiblePhase&&semiVisibleCueArmedDeadline===deadline){semiVisibleCueArmedDeadline="";playSemiVisibleCue()}
+ else if(!semi)semiVisibleCueArmedDeadline="";
  const sec=Math.ceil(displayLeft/1000);if(visiblePhase&&sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(!visiblePhase||sec>5)lastDrumSecond=null;if(left<=0)finalize();
 }
 window.addEventListener("resize",()=>requestAnimationFrame(()=>{fitParticipantNames();fitVisibleRosters()}));
