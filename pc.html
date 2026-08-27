@@ -466,7 +466,7 @@ body{overflow:hidden!important}
 #regia:not(.hasManualPlayers).faPlayers2 .pBottom{margin-top:13px!important;font-size:12px!important}
 #regia:not(.hasManualPlayers).faPlayers2 .pState{margin-top:6px!important;font-size:9px!important}
 
-/* 9-12: tre righe complete, nessun contenuto coperto; Spesi nascosto come mockup. */
+/* 9-12: tre righe complete, nessun contenuto coperto; MAX usa posizione e dimensioni gia approvate. */
 #regia:not(.hasManualPlayers).faPlayers3 .players{grid-template-rows:repeat(3,minmax(0,1fr))!important;gap:9px 12px!important}
 #regia:not(.hasManualPlayers).faPlayers3 .p{padding:8px 11px!important}
 #regia:not(.hasManualPlayers).faPlayers3 .dot{width:15px!important;height:15px!important;margin-right:0!important}
@@ -476,7 +476,6 @@ body{overflow:hidden!important}
 #regia:not(.hasManualPlayers).faPlayers3 .pMoney span{font-size:11px!important}
 #regia:not(.hasManualPlayers).faPlayers3 .pCardRule{display:none!important}
 #regia:not(.hasManualPlayers).faPlayers3 .pBottom{margin-top:5px!important;font-size:10px!important}
-#regia:not(.hasManualPlayers).faPlayers3 .pSpent{display:none!important}
 #regia:not(.hasManualPlayers).faPlayers3 .pState{margin-top:3px!important;font-size:8px!important}
 
 /* Gestione manuale mantenuta funzionante ma volutamente fuori dal layout approvato normale. */
@@ -1589,7 +1588,7 @@ function render(){
  const timerModeLabel=tm==="AUTO"?"AUTOMATICO":tm==="SEMI"?"SEMIAUTOMATICO":"MANUALE";
  $("timerModeBadge").textContent=`TIMER: ${timerModeLabel}`;$("timerModeBadge").classList.toggle("auto",tm==="AUTO");$("timerModeBadge").classList.toggle("semi",tm==="SEMI");
  updateTimerVisualState();
- $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti${r.hold>0?` <span class="repairHoldInline">· ${r.hold} stand-by</span>`:""}</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">Spesi: <b>${r.spent}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
+ $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti${r.hold>0?` <span class="repairHoldInline">· ${r.hold} stand-by</span>`:""}</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">MAX: <b>${r.max}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
  fitParticipantNames();

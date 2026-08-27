@@ -258,7 +258,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
  <section class="page auctionPage faActive"><div class="app">
   <div class="topline"><h1>⚽ FANTASTICA</h1><button id="exitBtn" class="exitBtn">ESCI</button></div>
   <div id="leagueDisplay" class="league"></div><div id="playerName" class="name"></div><div id="status">Avvio...</div><div id="wakeStatus"></div>
-  <div id="current" class="current">Nessun giocatore selezionato</div><div id="info">Offerta: 0 · Nessun offerente</div><div id="phoneTimer">—</div><div id="finance"></div>
+  <div id="current" class="current">Nessun giocatore selezionato</div><div id="info">MIGLIOR OFFERENTE: 0 · Nessun offerente</div><div id="phoneTimer">—</div><div id="finance"></div>
   <div class="main"><button id="plus1" class="big">+1</button></div>
   <div class="row"><button id="plus10">+10</button><button id="exact">IMPORTO</button></div>
   <div id="msg"></div><button id="leave" class="leave">ABBANDONA ASTA</button>
@@ -898,10 +898,10 @@ async function requestRosters(index=faPageIndex){
 }
 function render(){
  if(!auction||!slotData)return;$("leagueDisplay").textContent=league.name;$("playerName").textContent=slotData.display_name;
- const player=cp(),own=rosterInfo(slot),best=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente",leader=auction.highest_slot?rosterInfo(auction.highest_slot):null;
+ const player=cp(),own=rosterInfo(slot),best=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
  $("current").textContent=player?`${player.name} · ${player.role} · ${player.team||"—"} · Q ${player.value!=null?player.value:"—"}`:"Nessun giocatore selezionato";
- $("info").textContent=`Offerta: ${auction.current_bid} · ${best}${auction.paused?" · PAUSA":""}`;
- $("finance").textContent=leader?`Crediti ${leader.remain} · Spesi ${leader.spent} · Max spendibile ${leader.max}`:"Crediti — · Spesi — · Max spendibile —";
+ $("info").textContent=`MIGLIOR OFFERENTE: ${auction.current_bid} · ${best}${auction.paused?" · PAUSA":""}`;
+ $("finance").textContent=`Crediti ${own.remain} · Spesi ${own.spent} · Max spendibile ${own.max}`;
  if($("exactMax"))$("exactMax").textContent=`Massimo offribile: ${own.max} crediti`;
 
  const anyActive=slots.some(x=>x.active);
@@ -1231,7 +1231,7 @@ async function bid(kind,exact=null){
  const oldBid=auction&&auction.current_bid||0;
  const optimistic=kind==="PLUS1"?oldBid+1:kind==="PLUS10"?oldBid+10:(exact!=null?exact:oldBid);
  if(auction){auction.current_bid=optimistic;auction.highest_slot=slot}
- $("info").textContent=`Offerta: ${optimistic} · ${slotName(slot)}`;
+ $("info").textContent=`MIGLIOR OFFERENTE: ${optimistic} · ${slotName(slot)}`;
  m($("msg"),"Invio offerta...","warn");
  const {data,error}=await db.rpc("fa_place_bid_v521",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
  busy=false;

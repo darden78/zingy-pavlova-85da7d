@@ -1,0 +1,16 @@
+FANTASTICA V532 — GITHUB
+
+Caricare nella root del repository GitHub Pages, sostituendo i file esistenti:
+
+- pc.html
+- telefono.html
+- telefono-version.txt
+
+Non modificare altri file.
+Non è necessario eseguire SQL o modificare Supabase.
+
+Controllo rapido dopo la pubblicazione:
+- Regia: Rosa e MAX nelle schede, compresi 9-12 partecipanti;
+- dispositivi: riga MIGLIOR OFFERENTE;
+- CREDITI, SPESI e MAX SPENDIBILE riferiti al proprietario del dispositivo;
+- recupero realtime V530 ancora funzionante.
