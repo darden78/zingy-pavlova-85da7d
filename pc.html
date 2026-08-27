@@ -1196,8 +1196,9 @@ async function openLeague(id){
  $("regia").classList.remove("hidden");
  await load();connect();
 }
-async function load(runProgress=true){
+async function load(runProgress=true,stateSignalMs=0){
  if(!league)return;
+ const loadRun=++loadRunSequence;
  const [l,a,s,b,p]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
@@ -1206,14 +1207,18 @@ async function load(runProgress=true){
   db.from("fa_players").select("*").eq("league_id",league.id)
  ]);
  if(l.error||a.error||s.error||b.error||p.error){msg($("status"),"Errore lettura database","bad");return}
+ if(loadRun<lastAppliedLoadRun)return;
+ lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
+ if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
  render();syncRegiaVoice();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
 }
-async function loadCore(){
+async function loadCore(stateSignalMs=0){
  if(!league)return;
+ const loadRun=++loadRunSequence;
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
@@ -1221,7 +1226,10 @@ async function loadCore(){
   db.from("fa_bids").select("*").eq("league_id",league.id).order("created_at",{ascending:false}).limit(30)
  ]);
  if(l.error||a.error||s.error||b.error)return;
+ if(loadRun<lastAppliedLoadRun)return;
+ lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
+ if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
  render();syncRegiaVoice();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
@@ -1302,6 +1310,7 @@ function phoneStatePayload(){
  const p=currentPlayer();
  return{
   sent_at_ms:serverNow(),
+  state_sync_ms:lastLoadedStateSignalMs,
   league:{
    id:league.id,name:league.name,member_limit:league.member_limit,
    credits_initial:league.credits_initial,
@@ -1836,14 +1845,15 @@ $("nextEvent").onclick=async()=>{
 
 document.addEventListener("pointerdown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 document.addEventListener("keydown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
-let loadTimer=null,rtConnected=false,lastRtAt=0;
+let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0;
 let pendingFullLoad=false;
 function scheduleLoad(ms=12,full=false){
  pendingFullLoad=pendingFullLoad||full;
  clearTimeout(loadTimer);
  loadTimer=setTimeout(()=>{
    const f=pendingFullLoad;pendingFullLoad=false;
-   f?load(false):loadCore();
+   const stateSignalMs=latestStateSignalMs;
+   f?load(false,stateSignalMs):loadCore(stateSignalMs);
  },ms);
 }
 function disconnect(){
@@ -1859,6 +1869,8 @@ async function connect(){
    .on("broadcast",{event:"STATE"},payload=>{
       showRt(payload);
       const d=payload?.payload||payload||{};
+      const stateSignalMs=Number(d.sent_at_ms)||0;
+      if(stateSignalMs>latestStateSignalMs)latestStateSignalMs=stateSignalMs;
       scheduleLoad(18,d.table==="fa_players"||d.table==="fa_leagues");
    })
    .on("broadcast",{event:"CELEBRATE"},payload=>{
@@ -1873,7 +1885,14 @@ async function connect(){
 .on("presence",{event:"sync"},()=>{syncPhonePresence()})
    .on("presence",{event:"join"},()=>{syncPhonePresence()})
    .on("presence",{event:"leave"},()=>{syncPhonePresence()})
-   .on("broadcast",{event:"REQUEST_STATE"},()=>{pushPhoneState()})
+   .on("broadcast",{event:"REQUEST_STATE"},payload=>{
+      const d=payload?.payload||payload||{};
+      const afterStateMs=Number(d.after_state_ms)||0;
+      if(afterStateMs&&lastLoadedStateSignalMs<afterStateMs){
+        latestStateSignalMs=Math.max(latestStateSignalMs,afterStateMs);
+        scheduleLoad(8,false);
+      }else pushPhoneState();
+   })
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
       if(st==="SUBSCRIBED"){

@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260821-v5213-preasta100";
+ var FANTASTICA_PHONE_BUILD="20260827-v530-realtime-recovery";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -349,7 +349,7 @@ const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5JZ7VvIiadcSkAvjpFZZxw_xgHC5ga5";
 const createClient=window.supabase&&window.supabase.createClient;
 if(!createClient){document.getElementById("startupScreen").querySelector("p").textContent="Errore caricamento connessione. Ricarica la pagina.";throw new Error("SUPABASE_CLIENT_NON_CARICATO");}
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
-let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastRegiaStateSyncMs=0,latestStateSignalSeenMs=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateRecoveryTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
 let playerPool=[],playerPoolLoaded=false,playerPoolLoading=false,playerPoolKey="",playerPoolBusy=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
 let deviceId=null,pendingLogin=null;
@@ -954,6 +954,8 @@ function applyRegiaState(d){
  slotData=slots.find(x=>x.slot===slot);
  if(!slotData){invalidateParticipant();return}
  lastRegiaStateAt=Date.now();
+ const stateSyncMs=Number(d.state_sync_ms)||0;
+ if(stateSyncMs>lastRegiaStateSyncMs)lastRegiaStateSyncMs=stateSyncMs;
  if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  const newPoolKey=playerPoolContextKey();
@@ -962,9 +964,11 @@ function applyRegiaState(d){
  if(slotData){render();renderRosterPages();if(faPageIndex>=2)refreshVisibleRosterDirect(false)}
 }
 
-function requestState(){
+function requestState(afterStateMs=0){
  if(!(channel&&rtConnected))return false;
- channel.send({type:"broadcast",event:"REQUEST_STATE",payload:{slot}}).catch(()=>{});
+ const payload={slot};
+ if(Number(afterStateMs)>0)payload.after_state_ms=Number(afterStateMs);
+ channel.send({type:"broadcast",event:"REQUEST_STATE",payload}).catch(()=>{});
  return true;
 }
 async function trackPhonePresence(){
@@ -980,17 +984,38 @@ function untrackPhonePresence(){
  presenceTracked=false;
  try{channel.untrack().catch(()=>{})}catch{}
 }
-function scheduleStateFallback(delay=2200){
+function hasFreshRegiaState(signalLocalAt,signalServerAt){
+ if(Number(signalServerAt)>0)return lastRegiaStateSyncMs>=Number(signalServerAt);
+ return lastRegiaStateAt>=Number(signalLocalAt||0);
+}
+function scheduleStateFallback(delay=2200,signalLocalAt=Date.now(),signalServerAt=0){
  clearTimeout(stateFallbackTimer);
- const requestedAt=Date.now();
  stateFallbackTimer=setTimeout(async()=>{
   if(!leagueId||document.hidden)return;
-  if(lastRegiaStateAt>=requestedAt)return;
+  if(hasFreshRegiaState(signalLocalAt,signalServerAt))return;
   const now=Date.now();
   if(now-lastFallbackLoadAt<30000)return;
   lastFallbackLoadAt=now;
   await load();
  },delay);
+}
+/* V530 — STATE non genera piu' una richiesta duplicata immediata da ogni telefono.
+   La Regia invia gia' PHONE_STATE dopo la propria lettura. Solo in caso di mancata
+   risposta parte un recupero sfalsato per posto; il load diretto resta il paracadute. */
+function scheduleStateRecovery(payload){
+ clearTimeout(stateRecoveryTimer);
+ const d=payload&&payload.payload||payload||{};
+ const signalLocalAt=Date.now();
+ const signalServerAt=Number(d.sent_at_ms)||0;
+ if(signalServerAt>latestStateSignalSeenMs)latestStateSignalSeenMs=signalServerAt;
+ const slotIndex=Math.max(0,Math.min(10,(Number(slot)||1)-1));
+ const recoveryDelay=500+slotIndex*140;
+ stateRecoveryTimer=setTimeout(()=>{
+  if(!leagueId||document.hidden)return;
+  if(hasFreshRegiaState(signalLocalAt,signalServerAt))return;
+  requestState(signalServerAt);
+ },recoveryDelay);
+ scheduleStateFallback(2200,signalLocalAt,signalServerAt);
 }
 async function connect(force=false){
  if(!leagueId||document.hidden||(!force&&rtConnected)||connectInFlight)return;
@@ -1001,10 +1026,12 @@ async function connect(force=false){
  channel=db.channel("fantastica:"+leagueId,{config:{presence:{key:`phone:${Number(slot)}`}}})
  .on("broadcast",{event:"STATE"},payload=>{
    showRt(payload);
-   requestState();
+   scheduleStateRecovery(payload);
  })
  .on("broadcast",{event:"PHONE_STATE"},payload=>{
    const d=payload&&payload.payload||payload||{};
+   const stateSyncMs=Number(d.state_sync_ms)||0;
+   if(stateSyncMs>0&&latestStateSignalSeenMs>0&&stateSyncMs<latestStateSignalSeenMs)return;
    applyRegiaState(d);
  })
  .on("broadcast",{event:"ROSTER_STATE"},payload=>{
@@ -1258,7 +1285,7 @@ function resumeLightSync(forceReconnect=false){
 }
 document.addEventListener("visibilitychange",()=>{
  if(!document.hidden)resumeLightSync(true);
- else{reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
+ else{reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateRecoveryTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
 });
 window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted)});
 window.addEventListener("pagehide",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
