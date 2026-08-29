@@ -767,7 +767,9 @@ async function syncServerClock(){try{const t0=Date.now();const {data}=await db.r
 setInterval(syncServerClock,30000);
 
 function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faAudio=window.__faAudio||new C();return window.__faAudio}
-function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
+const regiaToneOscillators=new Set();
+function stopRegiaTonesForPriceJingle(){for(const o of regiaToneOscillators){try{o.stop()}catch{}}regiaToneOscillators.clear()}
+function tone(freq,dur=.12,vol=.12,type="sine",delay=0){if(priceJingleAudioLocked())return;const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.onended=()=>regiaToneOscillators.delete(o);regiaToneOscillators.add(o);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
 function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
 function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
 
@@ -776,11 +778,121 @@ function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,
 const SEMI_VISIBLE_CUE_SRC="./audio/timer_visible_double_ping.wav";
 let semiVisibleCueAudio=null;
 function playSemiVisibleCue(){
+ if(priceJingleAudioLocked())return;
  try{
   if(!semiVisibleCueAudio){semiVisibleCueAudio=new Audio(SEMI_VISIBLE_CUE_SRC);semiVisibleCueAudio.preload="auto";semiVisibleCueAudio.volume=1}
   semiVisibleCueAudio.pause();semiVisibleCueAudio.currentTime=0;
   const pr=semiVisibleCueAudio.play();if(pr&&typeof pr.catch==="function")pr.catch(()=>{});
  }catch{}
+}
+
+/* V544 — jingle di soglia esclusivi della Regia MAIN.
+   Modulo solo client: osserva i rilanci gia caricati dalla Regia, senza nuove
+   chiamate, trigger o broadcast Supabase e senza modificare il flusso d'asta. */
+const PRICE_JINGLE_RULES=[
+ {threshold:40,mode:"EXACT",src:"./audio/price-jingles/40.mp3"},
+ {threshold:100,mode:"EXACT",src:"./audio/price-jingles/100.mp3"},
+ {threshold:104,mode:"EXACT",src:"./audio/price-jingles/104.mp3"},
+ {threshold:150,mode:"CROSS",src:"./audio/price-jingles/150.mp3"},
+ {threshold:200,mode:"CROSS",src:"./audio/price-jingles/200.mp3"},
+ {threshold:300,mode:"CROSS",src:"./audio/price-jingles/300.mp3"}
+];
+const PRICE_JINGLE_STORAGE_PREFIX="fantastica-price-jingles-main-v1:";
+const priceJingleAudios=new Map();
+let priceJinglePlayed=new Set(),priceJingleQueue=[],priceJingleActive=false,priceJingleCurrentAudio=null;
+let priceJinglePaintFrame1=null,priceJinglePaintFrame2=null,priceJingleSeeded=false,priceJingleLastBidId=0,priceJinglePlayerId=null,priceJingleLastAmount=0;
+function priceJingleAudioLocked(){return priceJingleActive||priceJingleQueue.length>0||priceJinglePaintFrame1!=null||priceJinglePaintFrame2!=null}
+function priceJingleStorageKey(){return league?.id?PRICE_JINGLE_STORAGE_PREFIX+league.id+":MAIN":""}
+function loadPriceJinglePlayed(){
+ priceJinglePlayed=new Set();
+ try{
+  const raw=JSON.parse(localStorage.getItem(priceJingleStorageKey())||"[]");
+  if(Array.isArray(raw))for(const n of raw.map(Number))if(PRICE_JINGLE_RULES.some(r=>r.threshold===n))priceJinglePlayed.add(n);
+ }catch{}
+}
+function savePriceJinglePlayed(){
+ const key=priceJingleStorageKey();if(!key)return;
+ try{localStorage.setItem(key,JSON.stringify([...priceJinglePlayed].sort((a,b)=>a-b)))}catch{}
+}
+function priceJingleAudioFor(rule){
+ let a=priceJingleAudios.get(rule.threshold);
+ if(!a){a=new Audio(rule.src);a.preload="auto";a.volume=1;priceJingleAudios.set(rule.threshold,a)}
+ return a;
+}
+function preloadPriceJingles(){for(const rule of PRICE_JINGLE_RULES)priceJingleAudioFor(rule)}
+function stopOtherRegiaAudioForPriceJingle(){
+ try{speechSynthesis.cancel()}catch{}
+ clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
+ stopRegiaTonesForPriceJingle();
+ try{if(semiVisibleCueAudio){semiVisibleCueAudio.pause();semiVisibleCueAudio.currentTime=0}}catch{}
+}
+function finishCurrentPriceJingle(){
+ const a=priceJingleCurrentAudio;
+ if(a){a.onended=null;a.onerror=null}
+ priceJingleCurrentAudio=null;priceJingleActive=false;
+ if(priceJingleQueue.length)playNextPriceJingle();
+}
+function playNextPriceJingle(){
+ if(priceJingleActive)return;
+ const rule=priceJingleQueue.shift();if(!rule)return;
+ priceJingleActive=true;stopOtherRegiaAudioForPriceJingle();
+ try{
+  const a=priceJingleAudioFor(rule);priceJingleCurrentAudio=a;
+  a.pause();a.currentTime=0;a.onended=finishCurrentPriceJingle;a.onerror=finishCurrentPriceJingle;
+  const pr=a.play();if(pr&&typeof pr.catch==="function")pr.catch(finishCurrentPriceJingle);
+ }catch{finishCurrentPriceJingle()}
+}
+function schedulePriceJingleAfterPaint(){
+ if(priceJingleActive||priceJinglePaintFrame1!=null||priceJinglePaintFrame2!=null)return;
+ priceJinglePaintFrame1=requestAnimationFrame(()=>{
+  priceJinglePaintFrame1=null;
+  priceJinglePaintFrame2=requestAnimationFrame(()=>{priceJinglePaintFrame2=null;playNextPriceJingle()});
+ });
+}
+function queuePriceJingleRules(rules){
+ const fresh=[];
+ for(const rule of rules)if(!priceJinglePlayed.has(rule.threshold)){
+  priceJinglePlayed.add(rule.threshold);priceJingleQueue.push(rule);fresh.push(rule);
+ }
+ if(!fresh.length)return;
+ savePriceJinglePlayed();stopOtherRegiaAudioForPriceJingle();schedulePriceJingleAfterPaint();
+}
+function reseedPriceJingleBidCursor(){
+ priceJingleSeeded=false;priceJingleLastBidId=0;priceJinglePlayerId=null;priceJingleLastAmount=0;
+}
+function resetPriceJingleRuntime(){
+ const a=priceJingleCurrentAudio;
+ if(a){a.onended=null;a.onerror=null;try{a.pause();a.currentTime=0}catch{}}
+ if(priceJinglePaintFrame1!=null)cancelAnimationFrame(priceJinglePaintFrame1);
+ if(priceJinglePaintFrame2!=null)cancelAnimationFrame(priceJinglePaintFrame2);
+ priceJingleCurrentAudio=null;priceJingleActive=false;priceJingleQueue=[];priceJinglePaintFrame1=null;priceJinglePaintFrame2=null;
+ priceJinglePlayed=new Set();reseedPriceJingleBidCursor();
+}
+function syncPriceJinglesAfterRender(){
+ if(!league||!auction)return;
+ const rows=[...bids].filter(b=>Number.isFinite(Number(b.id))).sort((a,b)=>Number(a.id)-Number(b.id));
+ const newestId=rows.length?Number(rows[rows.length-1].id):0;
+ const currentPlayerId=auction.current_player_id??null;
+ if(!priceJingleSeeded){
+  loadPriceJinglePlayed();preloadPriceJingles();priceJingleSeeded=true;priceJingleLastBidId=newestId;priceJinglePlayerId=currentPlayerId;
+  priceJingleLastAmount=rows.length?Number(rows[rows.length-1].amount||0):Number(auction.current_bid||0);
+  return;
+ }
+ if(currentPlayerId!==priceJinglePlayerId){priceJinglePlayerId=currentPlayerId;priceJingleLastAmount=0}
+ const triggered=[];
+ for(const row of rows){
+  const id=Number(row.id);if(id<=priceJingleLastBidId)continue;
+  const amount=Number(row.amount);if(!Number.isFinite(amount)){priceJingleLastBidId=Math.max(priceJingleLastBidId,id);continue}
+  if(league.auction_session==="MAIN"){
+   for(const rule of PRICE_JINGLE_RULES){
+    const hit=rule.mode==="EXACT"?amount===rule.threshold:priceJingleLastAmount<rule.threshold&&amount>=rule.threshold;
+    if(hit&&!priceJinglePlayed.has(rule.threshold)&&!triggered.some(r=>r.threshold===rule.threshold))triggered.push(rule);
+   }
+  }
+  priceJingleLastAmount=amount;priceJingleLastBidId=Math.max(priceJingleLastBidId,id);
+ }
+ priceJingleLastBidId=Math.max(priceJingleLastBidId,newestId);
+ if(triggered.length)queuePriceJingleRules(triggered);
 }
 
 /* V521 — VOCE REGIA. Separata dagli effetti sonori esistenti:
@@ -891,7 +1003,7 @@ function regiaDetectPlayerNameLang(rawName){
  return "it-IT";
 }
 function regiaSpeakPlayerName(text){
- if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const lang=regiaDetectPlayerNameLang(text);
   const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=1;u.pitch=1;u.volume=1;
@@ -939,7 +1051,7 @@ function regiaItalianNumberWords(value){
  return head+(r?under1000(r):"");
 }
 function regiaSpeakBidAmount(value){
- if(regiaVoiceMuted||value==null||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||value==null||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const words=regiaItalianNumberWords(value);
   const u=new SpeechSynthesisUtterance(`${words}.`);
@@ -951,7 +1063,7 @@ function regiaSpeakBidAmount(value){
  }catch{regiaSpeak(String(value))}
 }
 function regiaSpeak(text){
- if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const u=new SpeechSynthesisUtterance(String(text));u.lang="it-IT";u.rate=1;u.pitch=1;u.volume=1;
   const v=regiaItalianVoice();if(v)u.voice=v;
@@ -961,7 +1073,7 @@ function regiaSpeak(text){
 /* Audio cumulativo post-V524 — aggiudicazione più naturale, senza cambiare alcuna regola evento.
    La frase resta un'unica utterance fluida: nessuna pausa artificiale tra "Aggiudicato a" e il vincitore. */
 function regiaSpeakAward(winnerName){
- if(regiaVoiceMuted||!winnerName||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!winnerName||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const u=new SpeechSynthesisUtterance(`Aggiudicato a ${String(winnerName).trim()}!`);
   u.lang="it-IT";
@@ -987,7 +1099,7 @@ function suppressRegiaAwardVoice(){
 }
 function scheduleRegiaAwardVoice(winnerSlot){
  clearTimeout(regiaAwardTimer);
- if(regiaVoiceMuted)return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted)return;
  const winnerName=slotName(Number(winnerSlot));
  regiaAwardTimer=setTimeout(()=>{
   regiaAwardTimer=null;
@@ -1173,11 +1285,11 @@ $("changeLeague").onclick=async()=>{
  localStorage.removeItem("fantastica-organizer-last-league");
  try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
  try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
- disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+ disconnect();resetRegiaVoiceSnapshot();resetPriceJingleRuntime();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
 };
 
 async function openLeague(id){
- resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
+ resetRegiaVoiceSnapshot();resetPriceJingleRuntime();updateRegiaVoiceButton();
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
  if(error||!data){
   // Non cancellare la lega memorizzata per un errore temporaneo: viene rimossa solo con "ESCI REGIA".
@@ -1210,7 +1322,7 @@ async function load(runProgress=true,stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncRegiaVoice();
+ render();syncPriceJinglesAfterRender();syncRegiaVoice();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -1229,7 +1341,7 @@ async function loadCore(stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncRegiaVoice();
+ render();syncPriceJinglesAfterRender();syncRegiaVoice();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
@@ -2188,6 +2300,7 @@ async function restoreFantasticaBackupFile(file){
  if(!confirm(`ATTENZIONE\n\nCaricando questo backup la situazione attuale della lega sarà SOSTITUITA completamente con quella salvata il ${when}.\n\nTutto ciò che è successo dopo quel salvataggio verrà annullato. Continuare?`))return false;
  const {data,error}=await db.rpc("fa_restore_backup_v527",{p_league_id:league.id,p_backup:backup});
  if(error||!data?.ok)throw new Error(error?.message||data?.detail||data?.error||"Ripristino non riuscito");
+ reseedPriceJingleBidCursor();
  $("settingsPanel").classList.remove("show");closeRosterModal();selectedRosterSlot=null;rosterSwapMode="";rosterSwapSourceId=null;historyOffset=0;await load(false);
  msg($("status"),data.paused_after_restore?"✓ Backup ripristinato esattamente · asta ripristinata in PAUSA":"✓ Backup ripristinato esattamente","ok");
  return true;
