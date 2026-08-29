@@ -798,8 +798,9 @@ const PRICE_JINGLE_SOURCES=new Map([
 ]);
 const priceJingleAudios=new Map();
 const priceJingleHandled=new Set();
-let priceJingleQueue=[],priceJingleActive=false,priceJingleCurrentAudio=null;
-function priceJingleAudioLocked(){return priceJingleActive||priceJingleQueue.length>0}
+let priceJinglePending=[],priceJingleQueue=[],priceJingleActive=false,priceJingleCurrentAudio=null;
+let regiaAudioPaintFrame1=null,regiaAudioPaintFrame2=null;
+function priceJingleAudioLocked(){return priceJingleActive||priceJingleQueue.length>0||priceJinglePending.length>0}
 function priceJingleAudioFor(threshold){
  let a=priceJingleAudios.get(threshold);
  if(!a){a=new Audio(PRICE_JINGLE_SOURCES.get(threshold));a.preload="auto";a.volume=1;priceJingleAudios.set(threshold,a)}
@@ -829,15 +830,40 @@ function playNextPriceJingle(){
   const pr=a.play();if(pr&&typeof pr.catch==="function")pr.catch(finishCurrentPriceJingle);
  }catch{finishCurrentPriceJingle()}
 }
-function enqueuePriceJingle(rawThreshold){
+function queuePriceJingleAfterVisualUpdate(rawThreshold){
  const threshold=Number(rawThreshold);
  if(!PRICE_JINGLE_SOURCES.has(threshold)||priceJingleHandled.has(threshold))return;
- priceJingleHandled.add(threshold);priceJingleQueue.push(threshold);playNextPriceJingle();
+ priceJingleHandled.add(threshold);priceJinglePending.push(threshold);
+ // Il segnale jingle arriva prima di STATE: blocca subito gli altri suoni,
+ // ma riproduce il file soltanto dopo il nuovo importo disegnato dalla Regia.
+ stopOtherRegiaAudioForPriceJingle();
+ scheduleLoad(0,false);
+}
+function flushPriceJinglesAfterVisualUpdate(){
+ if(!priceJinglePending.length)return;
+ priceJingleQueue.push(...priceJinglePending.splice(0));playNextPriceJingle();
+}
+function cancelRegiaAudioAfterPaint(){
+ if(regiaAudioPaintFrame1!=null)cancelAnimationFrame(regiaAudioPaintFrame1);
+ if(regiaAudioPaintFrame2!=null)cancelAnimationFrame(regiaAudioPaintFrame2);
+ regiaAudioPaintFrame1=null;regiaAudioPaintFrame2=null;
+}
+function scheduleRegiaAudioAfterPaint(){
+ cancelRegiaAudioAfterPaint();
+ regiaAudioPaintFrame1=requestAnimationFrame(()=>{
+  regiaAudioPaintFrame1=null;
+  regiaAudioPaintFrame2=requestAnimationFrame(()=>{
+   regiaAudioPaintFrame2=null;
+   flushPriceJinglesAfterVisualUpdate();
+   syncRegiaVoice();
+  });
+ });
 }
 function resetPriceJingleRuntime(){
  const a=priceJingleCurrentAudio;
  if(a){a.onended=null;a.onerror=null;try{a.pause();a.currentTime=0}catch{}}
- priceJingleCurrentAudio=null;priceJingleActive=false;priceJingleQueue=[];priceJingleHandled.clear();
+ cancelRegiaAudioAfterPaint();
+ priceJingleCurrentAudio=null;priceJingleActive=false;priceJinglePending=[];priceJingleQueue=[];priceJingleHandled.clear();
 }
 for(const threshold of PRICE_JINGLE_SOURCES.keys())priceJingleAudioFor(threshold);
 
@@ -1268,7 +1294,7 @@ async function load(runProgress=true,stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncRegiaVoice();
+ render();scheduleRegiaAudioAfterPaint();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -1287,7 +1313,7 @@ async function loadCore(stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncRegiaVoice();
+ render();scheduleRegiaAudioAfterPaint();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
@@ -1925,7 +1951,7 @@ async function connect(){
  channel=db.channel("fantastica:"+league.id)
    .on("broadcast",{event:"PRICE_JINGLE"},payload=>{
       const d=payload?.payload||payload||{};
-      enqueuePriceJingle(d.threshold);
+      queuePriceJingleAfterVisualUpdate(d.threshold);
    })
    .on("broadcast",{event:"STATE"},payload=>{
       showRt(payload);
