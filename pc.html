@@ -1928,8 +1928,23 @@ $("nextEvent").onclick=async()=>{
 
 document.addEventListener("pointerdown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 document.addEventListener("keydown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
-let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0;
+let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0,lastImmediateAuctionSignalMs=0;
 let pendingFullLoad=false;
+function applyImmediateAuctionState(d,stateSignalMs=0){
+ if(!league||d?.table!=="fa_auction"||d?.op==="DELETE"||!d?.auction)return false;
+ const incoming=d.auction;
+ if(String(incoming.league_id||"")!==String(league.id))return false;
+ const signalMs=Number(stateSignalMs)||0;
+ if(signalMs>0&&signalMs<lastImmediateAuctionSignalMs)return false;
+ if(signalMs>0)lastImmediateAuctionSignalMs=signalMs;
+ // Invalida soltanto eventuali letture REST iniziate prima di questo STATE.
+ // Il recupero autorevole parte comunque subito dopo tramite scheduleLoad().
+ const guardRun=++loadRunSequence;
+ if(guardRun>lastAppliedLoadRun)lastAppliedLoadRun=guardRun;
+ auction={...(auction||{}),...incoming};
+ render();scheduleRegiaAudioAfterPaint();
+ return true;
+}
 function scheduleLoad(ms=12,full=false){
  pendingFullLoad=pendingFullLoad||full;
  clearTimeout(loadTimer);
@@ -1958,6 +1973,7 @@ async function connect(){
       const d=payload?.payload||payload||{};
       const stateSignalMs=Number(d.sent_at_ms)||0;
       if(stateSignalMs>latestStateSignalMs)latestStateSignalMs=stateSignalMs;
+      applyImmediateAuctionState(d,stateSignalMs);
       scheduleLoad(18,d.table==="fa_players"||d.table==="fa_leagues");
    })
    .on("broadcast",{event:"CELEBRATE"},payload=>{
