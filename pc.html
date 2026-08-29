@@ -767,7 +767,9 @@ async function syncServerClock(){try{const t0=Date.now();const {data}=await db.r
 setInterval(syncServerClock,30000);
 
 function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faAudio=window.__faAudio||new C();return window.__faAudio}
-function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
+const regiaToneOscillators=new Set();
+function stopRegiaTonesForPriceJingle(){for(const o of regiaToneOscillators){try{o.stop()}catch{}}regiaToneOscillators.clear()}
+function tone(freq,dur=.12,vol=.12,type="sine",delay=0){if(priceJingleAudioLocked())return;const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.onended=()=>regiaToneOscillators.delete(o);regiaToneOscillators.add(o);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
 function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
 function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
 
@@ -776,12 +778,68 @@ function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,
 const SEMI_VISIBLE_CUE_SRC="./audio/timer_visible_double_ping.wav";
 let semiVisibleCueAudio=null;
 function playSemiVisibleCue(){
+ if(priceJingleAudioLocked())return;
  try{
   if(!semiVisibleCueAudio){semiVisibleCueAudio=new Audio(SEMI_VISIBLE_CUE_SRC);semiVisibleCueAudio.preload="auto";semiVisibleCueAudio.volume=1}
   semiVisibleCueAudio.pause();semiVisibleCueAudio.currentTime=0;
   const pr=semiVisibleCueAudio.play();if(pr&&typeof pr.catch==="function")pr.catch(()=>{});
  }catch{}
 }
+
+/* FANTASTICA 5.4 — jingle di soglia esclusivi della Regia MAIN.
+   Modulo additivo: non cambia le regole di offerte, timer, MUTE o celebrazioni. */
+const PRICE_JINGLE_SOURCES=new Map([
+ [40,"./audio/price-jingles/40.mp3"],
+ [100,"./audio/price-jingles/100.mp3"],
+ [104,"./audio/price-jingles/104.mp3"],
+ [150,"./audio/price-jingles/150.mp3"],
+ [200,"./audio/price-jingles/200.mp3"],
+ [300,"./audio/price-jingles/300.mp3"]
+]);
+const priceJingleAudios=new Map();
+const priceJingleHandled=new Set();
+let priceJingleQueue=[],priceJingleActive=false,priceJingleCurrentAudio=null;
+function priceJingleAudioLocked(){return priceJingleActive||priceJingleQueue.length>0}
+function priceJingleAudioFor(threshold){
+ let a=priceJingleAudios.get(threshold);
+ if(!a){a=new Audio(PRICE_JINGLE_SOURCES.get(threshold));a.preload="auto";a.volume=1;priceJingleAudios.set(threshold,a)}
+ return a;
+}
+function stopOtherRegiaAudioForPriceJingle(){
+ try{speechSynthesis.cancel()}catch{}
+ clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
+ stopRegiaTonesForPriceJingle();
+ try{if(semiVisibleCueAudio){semiVisibleCueAudio.pause();semiVisibleCueAudio.currentTime=0}}catch{}
+}
+function finishCurrentPriceJingle(){
+ const a=priceJingleCurrentAudio;
+ if(a){a.onended=null;a.onerror=null}
+ priceJingleCurrentAudio=null;priceJingleActive=false;
+ if(priceJingleQueue.length)playNextPriceJingle();
+}
+function playNextPriceJingle(){
+ if(priceJingleActive)return;
+ const threshold=priceJingleQueue.shift();
+ if(threshold==null)return;
+ priceJingleActive=true;stopOtherRegiaAudioForPriceJingle();
+ try{
+  const a=priceJingleAudioFor(threshold);priceJingleCurrentAudio=a;
+  a.pause();a.currentTime=0;
+  a.onended=finishCurrentPriceJingle;a.onerror=finishCurrentPriceJingle;
+  const pr=a.play();if(pr&&typeof pr.catch==="function")pr.catch(finishCurrentPriceJingle);
+ }catch{finishCurrentPriceJingle()}
+}
+function enqueuePriceJingle(rawThreshold){
+ const threshold=Number(rawThreshold);
+ if(!PRICE_JINGLE_SOURCES.has(threshold)||priceJingleHandled.has(threshold))return;
+ priceJingleHandled.add(threshold);priceJingleQueue.push(threshold);playNextPriceJingle();
+}
+function resetPriceJingleRuntime(){
+ const a=priceJingleCurrentAudio;
+ if(a){a.onended=null;a.onerror=null;try{a.pause();a.currentTime=0}catch{}}
+ priceJingleCurrentAudio=null;priceJingleActive=false;priceJingleQueue=[];priceJingleHandled.clear();
+}
+for(const threshold of PRICE_JINGLE_SOURCES.keys())priceJingleAudioFor(threshold);
 
 /* V521 — VOCE REGIA. Separata dagli effetti sonori esistenti:
    il MUTE agisce solo sulla sintesi vocale e non su fireworksSound(). */
@@ -891,7 +949,7 @@ function regiaDetectPlayerNameLang(rawName){
  return "it-IT";
 }
 function regiaSpeakPlayerName(text){
- if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const lang=regiaDetectPlayerNameLang(text);
   const u=new SpeechSynthesisUtterance(String(text));u.lang=lang;u.rate=1;u.pitch=1;u.volume=1;
@@ -939,7 +997,7 @@ function regiaItalianNumberWords(value){
  return head+(r?under1000(r):"");
 }
 function regiaSpeakBidAmount(value){
- if(regiaVoiceMuted||value==null||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||value==null||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const words=regiaItalianNumberWords(value);
   const u=new SpeechSynthesisUtterance(`${words}.`);
@@ -951,7 +1009,7 @@ function regiaSpeakBidAmount(value){
  }catch{regiaSpeak(String(value))}
 }
 function regiaSpeak(text){
- if(regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!text||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const u=new SpeechSynthesisUtterance(String(text));u.lang="it-IT";u.rate=1;u.pitch=1;u.volume=1;
   const v=regiaItalianVoice();if(v)u.voice=v;
@@ -961,7 +1019,7 @@ function regiaSpeak(text){
 /* Audio cumulativo post-V524 — aggiudicazione più naturale, senza cambiare alcuna regola evento.
    La frase resta un'unica utterance fluida: nessuna pausa artificiale tra "Aggiudicato a" e il vincitore. */
 function regiaSpeakAward(winnerName){
- if(regiaVoiceMuted||!winnerName||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted||!winnerName||!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
  try{
   const u=new SpeechSynthesisUtterance(`Aggiudicato a ${String(winnerName).trim()}!`);
   u.lang="it-IT";
@@ -987,7 +1045,7 @@ function suppressRegiaAwardVoice(){
 }
 function scheduleRegiaAwardVoice(winnerSlot){
  clearTimeout(regiaAwardTimer);
- if(regiaVoiceMuted)return;
+ if(priceJingleAudioLocked()||regiaVoiceMuted)return;
  const winnerName=slotName(Number(winnerSlot));
  regiaAwardTimer=setTimeout(()=>{
   regiaAwardTimer=null;
@@ -1173,11 +1231,11 @@ $("changeLeague").onclick=async()=>{
  localStorage.removeItem("fantastica-organizer-last-league");
  try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
  try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
- disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+ disconnect();resetPriceJingleRuntime();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
 };
 
 async function openLeague(id){
- resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
+ resetPriceJingleRuntime();resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
  if(error||!data){
   // Non cancellare la lega memorizzata per un errore temporaneo: viene rimossa solo con "ESCI REGIA".
@@ -1865,6 +1923,10 @@ function showRt(payload){lastRtAt=Date.now()}
 async function connect(){
  disconnect();
  channel=db.channel("fantastica:"+league.id)
+   .on("broadcast",{event:"PRICE_JINGLE"},payload=>{
+      const d=payload?.payload||payload||{};
+      enqueuePriceJingle(d.threshold);
+   })
    .on("broadcast",{event:"STATE"},payload=>{
       showRt(payload);
       const d=payload?.payload||payload||{};
