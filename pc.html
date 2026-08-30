@@ -899,6 +899,11 @@ function syncPriceJinglesAfterRender(){
    il MUTE agisce solo sulla sintesi vocale e non su fireworksSound(). */
 const REGIA_VOICE_MUTE_KEY="fantastica-regia-voice-muted-v521";
 let regiaVoiceMuted=false,regiaVoiceSnapshot=null,regiaAwardTimer=null,regiaCelebrationSuppressUntil=0;
+/* FANTASTICA 5.5.1 - LAGFIX1 client-only.
+   Voce e jingle vengono valutati dopo che il nuovo stato e' stato disegnato.
+   Gli STATE tecnici della stessa offerta non annullano e non riavviano
+   inutilmente l'attesa audio gia' programmata. */
+let regiaAudioPaintFrame1=null,regiaAudioPaintFrame2=null,regiaAudioPaintKey="";
 try{regiaVoiceMuted=localStorage.getItem(REGIA_VOICE_MUTE_KEY)==="1"}catch{}
 function regiaItalianVoice(){
  try{return (speechSynthesis.getVoices?.()||[]).find(v=>/^it(?:-|_)/i.test(v.lang||""))||null}catch{return null}
@@ -1107,7 +1112,32 @@ function scheduleRegiaAwardVoice(winnerSlot){
   regiaSpeakAward(winnerName);
  },700);
 }
-function resetRegiaVoiceSnapshot(){regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
+function regiaAudioStateKey(){
+ if(!auction)return "";
+ return [
+  auction.current_player_id??"",auction.current_bid??"",auction.highest_slot??"",
+  auction.status||"",auction.assignment_confirmed?1:0,auction.last_bid_at||""
+ ].join("|");
+}
+function cancelRegiaAudioAfterPaint(){
+ if(regiaAudioPaintFrame1!=null)cancelAnimationFrame(regiaAudioPaintFrame1);
+ if(regiaAudioPaintFrame2!=null)cancelAnimationFrame(regiaAudioPaintFrame2);
+ regiaAudioPaintFrame1=null;regiaAudioPaintFrame2=null;regiaAudioPaintKey="";
+}
+function scheduleRegiaAudioAfterPaint(stateKey=regiaAudioStateKey()){
+ const nextKey=String(stateKey||"");
+ if(nextKey&&nextKey===regiaAudioPaintKey&&(regiaAudioPaintFrame1!=null||regiaAudioPaintFrame2!=null))return;
+ cancelRegiaAudioAfterPaint();regiaAudioPaintKey=nextKey;
+ regiaAudioPaintFrame1=requestAnimationFrame(()=>{
+  regiaAudioPaintFrame1=null;
+  regiaAudioPaintFrame2=requestAnimationFrame(()=>{
+   regiaAudioPaintFrame2=null;regiaAudioPaintKey="";syncRegiaVoice();
+  });
+ });
+}
+function resetRegiaVoiceSnapshot(){
+ cancelRegiaAudioAfterPaint();regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
+}
 function syncRegiaVoice(){
  if(!auction)return;
  const snap={
@@ -1322,14 +1352,15 @@ async function load(runProgress=true,stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncPriceJinglesAfterRender();syncRegiaVoice();
+ render();syncPriceJinglesAfterRender();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
 }
-async function loadCore(stateSignalMs=0){
+async function loadCore(stateSignalMs=0,stateTables=[]){
  if(!league)return;
  const loadRun=++loadRunSequence;
+ const previousAuction=auction;
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
@@ -1341,7 +1372,9 @@ async function loadCore(stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncPriceJinglesAfterRender();syncRegiaVoice();
+ if(canUseFastAuctionRender(previousAuction,auction,stateTables))renderFastAuctionState(previousAuction);
+ else render();
+ syncPriceJinglesAfterRender();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
@@ -1674,6 +1707,47 @@ function fitParticipantNames(){
  });
 }
 
+/* FANTASTICA 5.5.2 - secondo tratto di LAGFIX1.
+   Un normale rilancio non modifica listone, gestione, rose o configurazione:
+   dopo la lettura autorevole aggiorna soltanto gli elementi realmente variati.
+   Tutti gli altri eventi continuano a usare render() completo. */
+function canUseFastAuctionRender(previousAuction,nextAuction,stateTables){
+ const tables=Array.isArray(stateTables)?stateTables.filter(Boolean):[];
+ if(!previousAuction||!nextAuction||!tables.length)return false;
+ if(tables.some(t=>t!=="fa_auction"&&t!=="fa_bids"))return false;
+ if(previousAuction.status!=="OPEN"||nextAuction.status!=="OPEN")return false;
+ if(nextAuction.current_player_id==null)return false;
+ return String(previousAuction.current_player_id)===String(nextAuction.current_player_id);
+}
+function renderFastBidHistory(){
+ $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
+ const hist=syncHistoryOffset(),histTotal=hist.length;
+ $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
+ $("prevEvent").disabled=auction.status!=="SOLD"&&historyOffset>=histTotal-1;
+ $("nextEvent").disabled=historyOffset<=0;
+}
+function renderFastAuctionState(previousAuction){
+ $("amount").textContent=auction.current_bid;
+ $("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ $("closed").textContent="";
+
+ const offlineBlockers=offlineClosingBlockers(),offlineNames=offlineBlockers.map(x=>x.display_name);
+ $("offlineGuard").classList.toggle("show",offlineBlockers.length>0);
+ $("offlineGuard").textContent=offlineBlockers.length?`⚠ CHIUSURA BLOCCATA — ${offlineNames.join(", ")} offline`:"";
+ $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";
+ $("pauseTimer").disabled=!auction.highest_slot||offlineBlockers.length>0;
+ $("assignNow").disabled=!auction.highest_slot;
+
+ const oldLeader=Number(previousAuction?.highest_slot||0),newLeader=Number(auction.highest_slot||0);
+ if(oldLeader!==newLeader){
+  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
+  document.querySelectorAll(".p[data-slot]").forEach(el=>el.classList.toggle("highest",Number(el.dataset.slot)===newLeader));
+  requestAnimationFrame(()=>fitRosterPanel($("leaderRoster")));
+ }
+ updateTimerVisualState();renderFastBidHistory();
+ if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
+}
+
 function render(){
  $("leagueName").textContent=league.name;
  const phase=phaseText(league);
@@ -1956,21 +2030,37 @@ $("nextEvent").onclick=async()=>{
 
 document.addEventListener("pointerdown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 document.addEventListener("keydown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
-let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0;
+let loadTimer=null,loadDueAt=0,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0;
 let pendingFullLoad=false;
-function scheduleLoad(ms=12,full=false){
+const pendingStateTables=new Set();
+const STATE_BURST_WINDOW_MS=72;
+function scheduleLoad(ms=12,full=false,sourceTable=""){
  pendingFullLoad=pendingFullLoad||full;
- clearTimeout(loadTimer);
+ if(sourceTable)pendingStateTables.add(String(sourceTable));
+ const delay=Math.max(0,Number(ms)||0),dueAt=Date.now()+delay;
+ /* Il primo segnale apre una breve finestra di raccolta. I segnali successivi
+    della stessa operazione confluiscono nello stesso caricamento; un evento
+    urgente puo' invece anticiparlo. Non viene scartato alcuno stato: la lettura
+    finale resta quella autorevole da Supabase. */
+ if(loadTimer!=null){
+  if(loadDueAt&&dueAt>=loadDueAt)return;
+  clearTimeout(loadTimer);
+ }
+ loadDueAt=dueAt;
  loadTimer=setTimeout(()=>{
+   loadTimer=null;loadDueAt=0;
    const f=pendingFullLoad;pendingFullLoad=false;
+   const stateTables=[...pendingStateTables];pendingStateTables.clear();
    const stateSignalMs=latestStateSignalMs;
-   f?load(false,stateSignalMs):loadCore(stateSignalMs);
- },ms);
+   f?load(false,stateSignalMs):loadCore(stateSignalMs,stateTables);
+ },delay);
 }
 function disconnect(){
  if(channel)db.removeChannel(channel);
  channel=null;rtConnected=false;
  clearTimeout(retry);clearTimeout(loadTimer);
+ loadTimer=null;loadDueAt=0;pendingFullLoad=false;
+ pendingStateTables.clear();
  disconnectMirror();
 }
 function showRt(payload){lastRtAt=Date.now()}
@@ -1982,7 +2072,7 @@ async function connect(){
       const d=payload?.payload||payload||{};
       const stateSignalMs=Number(d.sent_at_ms)||0;
       if(stateSignalMs>latestStateSignalMs)latestStateSignalMs=stateSignalMs;
-      scheduleLoad(18,d.table==="fa_players"||d.table==="fa_leagues");
+      scheduleLoad(STATE_BURST_WINDOW_MS,d.table==="fa_players"||d.table==="fa_leagues",d.table||"");
    })
    .on("broadcast",{event:"CELEBRATE"},payload=>{
       const d=payload?.payload||payload||{};
