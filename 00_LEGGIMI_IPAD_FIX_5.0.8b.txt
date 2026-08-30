@@ -1,0 +1,10 @@
+FANTASTICA 5.0.8b - FIX iPAD
+
+Sostituire su GitHub Pages:
+- telefono.html
+- installa.html
+- sw.js
+
+Non modificare FANTASTICA.apk.
+Non richiede nuovo EXE, APK o SQL.
+Il caricamento Supabase usa jsDelivr con fallback UNPKG e timeout, evitando il blocco infinito su Connessione.

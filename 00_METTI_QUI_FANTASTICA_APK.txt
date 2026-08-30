@@ -1,0 +1,6 @@
+Per attivare il download Android, copia nella stessa cartella GITHUB_PAGES
+l'APK release firmato e funzionante e rinominalo esattamente:
+
+FANTASTICA.apk
+
+Non rigenerare la firma: usa l'APK firmato con la FIRMA_ANDROID definitiva.

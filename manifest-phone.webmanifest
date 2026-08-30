@@ -1,0 +1,25 @@
+{
+  "id": "/zingy-pavlova-85da7d/telefono.html",
+  "name": "FANTASTICA",
+  "short_name": "FANTASTICA",
+  "start_url": "/zingy-pavlova-85da7d/telefono.html",
+  "scope": "/zingy-pavlova-85da7d/",
+  "display": "standalone",
+  "background_color": "#020b18",
+  "theme_color": "#02152a",
+  "icons": [
+    {
+      "src": "/zingy-pavlova-85da7d/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/zingy-pavlova-85da7d/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "orientation": "portrait-primary"
+}

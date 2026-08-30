@@ -1,0 +1,2 @@
+FANTASTICA.apk non e' incluso in questo archivio perche' il binario pubblicato dipende dalla firma privata.
+Rigenerare l'APK dalla cartella ANDROID usando la chiave ufficiale gia' custodita sul PC e pubblicarlo come FANTASTICA.apk.

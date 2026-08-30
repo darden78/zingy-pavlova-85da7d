@@ -1,0 +1,1336 @@
+<!doctype html><html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
+<script>
+/* FANTASTICA_APPLE_BOOT_20260817B
+   Su iPhone/iPad non colleghiamo il manifest: Aggiungi a Home conserva cosi' l'URL corrente
+   (did + lid) e la Web App riapre lo stesso posto. Sugli altri browser il manifest resta attivo. */
+(function(){
+ var ua=navigator.userAgent||"";
+ var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ if(ios){document.documentElement.classList.add("fa-ios");return}
+ var l=document.createElement("link");l.rel="manifest";l.href="./manifest-phone.webmanifest?v=514portrait2";document.head.appendChild(l);
+})();
+</script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:Arial,sans-serif;overscroll-behavior:none}body{position:fixed;top:0;right:0;bottom:0;left:0}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}.onlineDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#55e28b;margin-right:6px;vertical-align:1px}
+.entry{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;display:flex;align-items:center;justify-content:center;padding:22px;z-index:20}.entryBox{width:100%;max-width:430px;background:#202020;border-radius:18px;padding:22px;text-align:center}.entryBox{width:min(430px,100%)}.entryBox h1{font-size:28px}.entryBox label{display:block;text-align:left;color:#aaa;font-size:12px;margin-top:10px}.entryBox input{width:100%;padding:13px;border:0;border-radius:11px;font-size:19px;margin-top:4px}.entryBox button{width:100%;padding:14px;border:0;border-radius:11px;background:#2f8f57;color:#fff;font-size:18px;font-weight:900;margin-top:14px}
+.pages{position:fixed;top:0;right:0;bottom:0;left:0;width:100vw;max-width:100vw;height:var(--fa-vh,100vh);display:block;overflow:hidden;background:#000;-webkit-overflow-scrolling:auto}.page{display:none;position:absolute;top:0;left:0;right:0;width:100vw;max-width:100vw;height:var(--fa-vh,100vh);min-height:100%;overflow-x:hidden;background:#000}.page.faActive{display:block}#rosterPages{width:100%;height:100%}
+.auctionPage{overflow:hidden;touch-action:pan-x;-webkit-user-select:none;user-select:none}.auctionPage button,.auctionPage input,.auctionPage .app{touch-action:manipulation}.rosterPage{touch-action:pan-x pan-y pinch-zoom;-webkit-user-select:text;user-select:text}.app{width:100%;height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 12px 10px}.app{padding:calc(4px + env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom))}
+.topline{display:flex;align-items:center;gap:6px}.topline h1{flex:1;text-align:center;font-size:19px;margin:0}.exitBtn{border:0;background:#333;color:#fff;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:900}
+.league{text-align:center;color:#bbb;font-size:13px;font-weight:700}.name{background:#242424;border-radius:13px;padding:8px;text-align:center;font-size:19px;font-weight:900;margin-top:4px}
+#status,#info,#finance,#msg{text-align:center;margin:2px 0;line-height:1.08;font-size:13px}#wakeStatus{text-align:center;margin:0 0 2px;font-size:9px;font-weight:800;line-height:1.05}.current{text-align:center;font-weight:800;font-size:14px;margin:2px 0}
+.main{display:flex;justify-content:center;padding-top:4px}.big{width:320px;height:320px;max-width:72vw;max-height:39vh;min-width:230px;min-height:230px;border:0;border-radius:50%;background:#ef2020;color:#fff;font-size:60px;font-weight:900}.big{width:min(72vw,320px,39dvh);height:min(72vw,320px,39dvh)}
+.row{display:flex;gap:18px;margin-top:42px;margin-bottom:30px}.row{margin-top:clamp(42px,5.5dvh,68px);margin-bottom:clamp(30px,4dvh,50px)}.row button{flex:1;min-height:92px;border:0;border-radius:15px;background:#333;color:#fff;font-size:24px;font-weight:900}
+.leave{width:100%;min-height:70px;border:0;border-radius:15px;background:#b33a3a;color:#fff;font-size:20px;font-weight:900}.resume{background:#28764b!important}.disabled{opacity:.35;pointer-events:none}
+.rosterPage{overflow-y:auto;padding:10px 13px 15px;-webkit-overflow-scrolling:touch}.rosterPage{padding:calc(10px + env(safe-area-inset-top)) 13px calc(15px + env(safe-area-inset-bottom))}.rosterBox{width:100%;max-width:760px;margin:0 auto}.rosterBox h2{text-align:center;margin:4px 0}.swipeHint{text-align:center;color:#777;font-size:11px;margin-bottom:8px}.pcPageNav{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:15;width:30px;height:70px;padding:0;border:1px solid rgba(88,207,255,.42);border-radius:10px;background:rgba(3,38,72,.34);color:rgba(255,255,255,.58);font-size:30px;font-weight:900;line-height:1;cursor:pointer;box-shadow:0 0 10px rgba(0,111,204,.10);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);opacity:.55;transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,opacity .18s ease}.pcPageNav:hover,.pcPageNav:focus-visible{background:rgba(11,102,184,.82);border-color:rgba(88,207,255,.95);color:#fff;box-shadow:0 0 18px rgba(88,207,255,.34),0 0 28px rgba(0,111,204,.24);opacity:1;outline:none}#pcPagePrev{left:2px}#pcPageNext{right:2px}.pcPageNav:disabled{opacity:.16;pointer-events:none}.pcPageNav:disabled:hover,.pcPageNav:disabled:focus-visible{background:rgba(3,38,72,.34);border-color:rgba(88,207,255,.42);color:rgba(255,255,255,.58);box-shadow:0 0 10px rgba(0,111,204,.10)}@media(min-width:340px){.pcPageNav{width:38px;height:78px;font-size:34px}}.summary{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#202020;border-radius:12px;padding:10px;margin-bottom:10px}.summary div{font-size:14px}.roleSec{background:#181818;border-radius:11px;padding:8px;margin-bottom:8px}.roleHead{font-weight:900;border-bottom:1px solid #333;padding-bottom:4px;margin-bottom:3px}.rr{display:grid;grid-template-columns:1fr auto;gap:8px;padding:3px 0;border-bottom:1px solid #242424;font-size:14px}.rr span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.playerPoolPage{overflow-y:auto;padding:calc(10px + env(safe-area-inset-top)) 13px calc(15px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-user-select:text;user-select:text}.playerPoolBox{width:100%;max-width:760px;margin:0 auto}.playerPoolBox h2{text-align:center;margin:5px 0 3px}.playerPoolHint{text-align:center;color:#777;font-size:11px;margin-bottom:8px}.playerPoolMeta{text-align:center;color:#9fc7e6;font-size:12px;font-weight:800;margin-bottom:8px}.playerPoolSearch{width:100%;padding:12px 13px;border:1px solid #0b78c2;border-radius:11px;background:#061d36;color:#fff;font-size:17px;outline:none;margin:4px 0 7px}.playerPoolStatus{text-align:center;min-height:18px;color:#a9bfd4;font-size:12px;font-weight:800;margin-bottom:6px}.playerPoolList{display:grid;gap:6px;padding-bottom:12px}.playerPoolItem{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;padding:10px 12px;border:1px solid #145b8d;border-radius:11px;background:linear-gradient(180deg,#082d54,#061f3b);color:#fff;cursor:pointer}.playerPoolItem .poolName{min-width:0;font-size:16px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.playerPoolItem .poolSub{grid-column:1/2;color:#a9bfd4;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.playerPoolItem .poolValue{grid-column:2/3;grid-row:1/3;font-size:18px;font-weight:950;align-self:center}.playerPoolItem.poolSelected{border-color:#58cfff;box-shadow:0 0 14px rgba(88,207,255,.28)}.playerPoolItem.poolLocked{cursor:default;opacity:.82}.playerPoolEmpty{text-align:center;color:#9fb1c2;padding:24px 10px}.exactMax{text-align:center;color:#ffd36b;font-size:17px;font-weight:900;margin:4px 0 10px}
+.modal{position:fixed;top:0;right:0;bottom:0;left:0;background:#111;padding:15px;display:none;z-index:30}.modal.show{display:block}.modal input{width:100%;padding:10px;font-size:24px;background:#242424;color:#fff;border:0;border-radius:10px}.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}.keys button{background:#333;color:#fff;border:0;border-radius:10px;font-size:22px;padding:10px}.send{background:#278c55!important}
+@media(max-height:760px){.big{width:265px;height:265px;max-width:63vw;max-height:35vh;min-width:200px;min-height:200px;font-size:50px}.big{width:min(63vw,265px,35dvh);height:min(63vw,265px,35dvh)}.row{margin-top:26px;margin-bottom:20px}.row button{min-height:74px;font-size:21px}.leave{min-height:56px;font-size:17px}#status,#info,#finance,#msg{font-size:11px}#wakeStatus{font-size:8px}}
+@media(min-width:600px){.app{max-width:none;padding-left:clamp(22px,6vw,80px);padding-right:clamp(22px,6vw,80px)}.big{width:360px;height:360px;max-width:48vw;max-height:42vh}.row,.leave{width:100%;max-width:760px;margin-left:auto;margin-right:auto}.row button{min-height:100px}.topline,.league,.name,#status,#wakeStatus,#info,#phoneTimer,#finance,#msg,.current{max-width:900px;width:100%;margin-left:auto;margin-right:auto}.rosterBox{max-width:900px}}
+
+#phoneTimer{text-align:center;font-size:22px;font-weight:900;margin:2px 0}.roleWait{background:#3c341d!important}.celebrate{position:fixed;top:0;right:0;bottom:0;left:0;z-index:100;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;text-align:center;overflow:hidden}.celebrate.show{display:flex}.celebrate h1{font-size:48px;font-size:clamp(34px,10vw,64px);position:relative;z-index:2;margin:20px}.firework{position:absolute;width:7px;height:7px;border-radius:50%;box-shadow:0 -55px #ffdf5d,39px -39px #ff5d8f,55px 0 #65e0ff,39px 39px #8cff65,0 55px #ff9b5d,-39px 39px #c865ff,-55px 0 #fff,-39px -39px #5dffca;animation:boom 1.1s infinite ease-out}.fw1{left:25%;top:30%}.fw2{left:70%;top:35%;animation-delay:.35s}.fw3{left:50%;top:70%;animation-delay:.65s}@keyframes boom{0%{transform:scale(.1);opacity:0}25%{opacity:1}100%{transform:scale(2.2);opacity:0}}
+
+/* ===== FANTASTICA UI DISPOSITIVI 2026-08-16 ===== */
+:root{--fa-bg:#020b18;--fa-bg2:#03162d;--fa-panel:#06284b;--fa-line:#0879c7;--fa-blue:#0b66b8;--fa-cyan:#58cfff;--fa-red:#e51f2b;--fa-red2:#8e1018;--fa-green:#19a74c;--fa-muted:#a9bfd4}
+html,body{background:radial-gradient(circle at 50% 28%,#06234a 0%,#03142a 36%,#010813 100%)!important;color:#fff}
+.auctionPage{background:transparent!important}
+.app{max-width:560px!important;margin:0 auto!important;padding:calc(8px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom))!important;background:linear-gradient(180deg,rgba(2,14,31,.96),rgba(2,11,25,.98));border-left:1px solid rgba(17,104,170,.35);border-right:1px solid rgba(17,104,170,.35)}
+.topline{min-height:54px;gap:8px;border-bottom:1px solid rgba(42,126,190,.24);padding:0 2px 7px}.topline h1{font-size:clamp(22px,5.6vw,30px)!important;letter-spacing:.5px;font-weight:950;text-align:left!important}.exitBtn{background:linear-gradient(180deg,#082d54,#061e3a)!important;border:1px solid #0871bb!important;border-radius:10px!important;padding:10px 13px!important;font-size:12px!important;box-shadow:0 0 16px rgba(0,111,204,.16)}
+.league{font-size:clamp(16px,4.3vw,22px)!important;color:#fff!important;margin:7px 0 4px!important;line-height:1.05}.name{background:linear-gradient(180deg,#07315a,#052442)!important;border:1px solid #0b76bd!important;border-radius:10px!important;padding:6px 10px!important;font-size:clamp(14px,3.7vw,18px)!important;margin:3px 0 8px!important;box-shadow:inset 0 0 18px rgba(0,113,204,.06)}
+#status,#wakeStatus,#current,#phoneTimer{display:none!important}#info,#finance{font-size:clamp(14px,3.55vw,18px)!important;line-height:1.22!important;margin:3px 0!important;color:#eef8ff!important;font-weight:700}#info{color:#f6fbff!important}#finance{color:#9de3ff!important;font-size:clamp(12px,3.1vw,15px)!important}
+.main{display:flex!important;justify-content:center!important;align-items:flex-start!important;padding-top:clamp(12px,2.1dvh,20px)!important}.big{width:min(72vw,330px,36dvh)!important;height:min(72vw,330px,36dvh)!important;min-width:0!important;min-height:0!important;border-radius:50%!important;background:radial-gradient(circle at 50% 36%,#f43a42 0%,#e31d29 46%,#9b0d16 100%)!important;color:#fff!important;border:4px solid #ff4650!important;font-size:clamp(64px,18vw,108px)!important;font-weight:950!important;box-shadow:0 0 0 3px rgba(255,38,48,.23),0 0 28px rgba(242,31,42,.42),inset 0 0 32px rgba(255,255,255,.08)!important;text-shadow:0 3px 7px rgba(0,0,0,.24)}
+.row{display:flex!important;gap:clamp(20px,5vw,34px)!important;margin-top:clamp(36px,5dvh,58px)!important;margin-bottom:0!important}.row button{flex:1!important;min-height:clamp(78px,10dvh,102px)!important;border-radius:13px!important;background:linear-gradient(180deg,#083a6d,#06284e)!important;border:1px solid #0788da!important;color:#fff!important;font-size:clamp(23px,6vw,31px)!important;font-weight:950!important;box-shadow:0 0 18px rgba(0,104,190,.15)}
+#msg{min-height:20px!important;margin:12px 0 4px!important;font-size:12px!important;color:#b9d1e7!important}.leave{margin-top:auto!important;width:100%!important;min-height:clamp(66px,8.5dvh,82px)!important;border-radius:13px!important;background:linear-gradient(180deg,#c91f2b,#881018)!important;border:1px solid #ff424b!important;color:#fff!important;font-size:clamp(19px,5vw,25px)!important;font-weight:950!important;box-shadow:0 0 22px rgba(220,24,35,.20)!important}.resume{background:linear-gradient(180deg,#20a95b,#147c43)!important;border-color:#37d176!important}
+.disabled{opacity:.38!important;filter:saturate(.65)}
+/* Importo libero: sempre a tutto schermo, tasti grandi e ben separati */
+.modal{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:9999!important;background:radial-gradient(circle at 50% 18%,#062a57 0%,#03162f 34%,#010813 100%)!important;padding:calc(14px + env(safe-area-inset-top)) clamp(12px,4vw,34px) calc(16px + env(safe-area-inset-bottom))!important;overflow:hidden!important;flex-direction:column!important}.modal.show{display:flex!important}.modal h2{text-align:center!important;font-size:clamp(28px,7vw,42px)!important;line-height:1!important;margin:4px 0 clamp(14px,2.5dvh,24px)!important;letter-spacing:.6px}.modal input{flex:0 0 auto!important;width:100%!important;height:clamp(86px,14dvh,132px)!important;padding:10px 22px!important;background:linear-gradient(180deg,#073363,#06274c)!important;border:2px solid #1195e8!important;border-radius:18px!important;color:#fff!important;font-size:clamp(52px,13vw,82px)!important;font-weight:800!important;text-align:right!important;box-shadow:0 0 20px rgba(0,125,218,.17)!important}.keys{min-height:0!important;flex:1!important;display:grid!important;grid-template-columns:repeat(6,1fr)!important;grid-template-rows:repeat(4,minmax(0,1fr)) minmax(72px,.9fr)!important;gap:clamp(9px,1.45dvh,16px)!important;margin-top:clamp(14px,2dvh,22px)!important}.keys button{grid-column:span 2!important;min-width:0!important;min-height:0!important;padding:0!important;border-radius:15px!important;background:linear-gradient(180deg,#083b70,#06284e)!important;border:1px solid #0b8bdd!important;color:#fff!important;font-size:clamp(34px,9vw,58px)!important;font-weight:800!important;box-shadow:0 0 16px rgba(0,103,190,.12)!important}.keys button:nth-child(10){color:#ff5058!important}.keys button:nth-last-child(2),.keys button:last-child{grid-column:span 3!important;margin-top:clamp(8px,1.3dvh,14px)!important;font-size:clamp(21px,5.5vw,31px)!important;font-weight:950!important}.keys button:nth-last-child(2){background:linear-gradient(180deg,#0a3c6d,#06294e)!important}.keys button.send{background:linear-gradient(180deg,#25bd5b,#168b43)!important;border-color:#56df79!important;box-shadow:0 0 23px rgba(31,185,84,.26)!important}
+@media(max-height:760px){.app{padding-top:calc(5px + env(safe-area-inset-top))!important;padding-bottom:calc(8px + env(safe-area-inset-bottom))!important}.topline{min-height:44px;padding-bottom:4px}.topline h1{font-size:20px!important}.exitBtn{padding:7px 10px!important}.league{font-size:15px!important;margin:4px 0 2px!important}.name{font-size:13px!important;padding:4px 8px!important;margin-bottom:5px!important}#info{font-size:13px!important}#finance{font-size:11px!important}.main{padding-top:7px!important}.big{width:min(62vw,245px,34dvh)!important;height:min(62vw,245px,34dvh)!important;font-size:58px!important}.row{margin-top:24px!important;gap:18px!important}.row button{min-height:68px!important;font-size:21px!important}#msg{margin:7px 0 2px!important;min-height:16px!important;font-size:10px!important}.leave{min-height:54px!important;font-size:17px!important}.modal{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-bottom:calc(9px + env(safe-area-inset-bottom))!important}.modal h2{font-size:25px!important;margin:2px 0 9px!important}.modal input{height:72px!important;font-size:44px!important}.keys{gap:7px!important;margin-top:9px!important;grid-template-rows:repeat(4,minmax(0,1fr)) 58px!important}.keys button{font-size:30px!important;border-radius:11px!important}.keys button:nth-last-child(2),.keys button:last-child{margin-top:4px!important;font-size:18px!important}}
+@media(min-width:700px){.app{max-width:640px!important}.topline h1{font-size:29px!important}.league{font-size:22px!important}.name{font-size:17px!important}.big{width:min(48vw,360px,37dvh)!important;height:min(48vw,360px,37dvh)!important}.row{max-width:610px!important;width:100%!important;margin-left:auto!important;margin-right:auto!important}.leave{max-width:610px!important;margin-left:auto!important;margin-right:auto!important}.modal{padding-left:max(4vw,32px)!important;padding-right:max(4vw,32px)!important}.modal input,.modal .keys{width:min(760px,100%)!important;margin-left:auto!important;margin-right:auto!important}.modal .keys{margin-top:20px!important}}
+@media(min-width:1000px){.app{max-width:620px!important;min-height:100vh!important;border:1px solid rgba(19,99,159,.42);box-shadow:0 0 60px rgba(0,0,0,.42)}.modal input,.modal .keys{max-width:720px!important}}
+
+
+/* ===== FANTASTICA UI APPROVATA 2026-08-17 — SPAZIATURE/TASTI ===== */
+:root{--fa-action-gap:clamp(28px,4.6dvh,50px)}
+.app{position:relative!important}
+.main{padding-top:clamp(10px,1.8dvh,18px)!important}
+.big{width:min(76vw,360px,39dvh)!important;height:min(76vw,360px,39dvh)!important}
+.row{margin-top:var(--fa-action-gap)!important;margin-bottom:0!important;gap:clamp(20px,5vw,34px)!important}
+.row button{min-height:clamp(98px,12dvh,126px)!important}
+#msg{min-height:0!important;height:0!important;margin:0!important;position:relative!important;z-index:4!important;top:clamp(5px,.8dvh,9px)!important;overflow:visible!important;pointer-events:none!important}
+.leave{margin-top:var(--fa-action-gap)!important;min-height:clamp(92px,11.5dvh,118px)!important}
+@media(max-height:760px){
+ :root{--fa-action-gap:24px}
+ .big{width:min(76vw,285px,38dvh)!important;height:min(76vw,285px,38dvh)!important;font-size:64px!important}
+ .row{margin-top:var(--fa-action-gap)!important}
+ .row button{min-height:88px!important;font-size:22px!important}
+ #msg{height:0!important;min-height:0!important;margin:0!important;top:5px!important;font-size:10px!important}
+ .leave{margin-top:var(--fa-action-gap)!important;min-height:82px!important;font-size:18px!important}
+}
+@media(min-width:700px){
+ :root{--fa-action-gap:clamp(34px,4.5dvh,54px)}
+ .row button{min-height:clamp(110px,11dvh,142px)!important}
+ .leave{min-height:clamp(104px,10.5dvh,136px)!important}
+}
+
+
+/* ===== FANTASTICA APPLE LAYOUT 2026-08-17C =====
+   In verticale conserviamo esattamente la geometria approvata.
+   In orizzontale nessun blocco/contro-rotazione: iOS/iPadOS ruota normalmente
+   e torna ad usare il layout responsive generale. */
+html.fa-ios.fa-ios-portrait .big{width:var(--fa-ios-circle)!important;height:var(--fa-ios-circle)!important;max-width:none!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .row{margin-top:var(--fa-ios-gap)!important;margin-bottom:0!important}
+html.fa-ios.fa-ios-portrait .row button{min-height:var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .leave{margin-top:var(--fa-ios-gap)!important;min-height:var(--fa-ios-red-h)!important;height:var(--fa-ios-red-h)!important;flex:0 0 var(--fa-ios-red-h)!important}
+/* Il messaggio non deve occupare spazio tra i tre comandi principali. */
+html.fa-ios #msg{height:0!important;min-height:0!important;margin:0!important}
+
+/* ===== FANTASTICA IPAD LEGACY VIEWPORT FIX 2026-08-17E =====
+   Sui vecchi iPad WebKit puo' lasciare innerHeight con la misura landscape
+   dopo il ritorno in portrait. Usiamo quindi dimensioni esplicite ricavate
+   dallo schermo e non lasciamo il body come fixed containing block. */
+html.fa-ios,html.fa-ios body{width:var(--fa-vw,100%)!important;height:var(--fa-vh,100%)!important;min-height:var(--fa-vh,100%)!important;overflow:hidden!important}
+html.fa-ios body{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important}
+html.fa-ios .pages{position:absolute!important;inset:0!important;width:var(--fa-vw,100%)!important;max-width:none!important;height:var(--fa-vh,100%)!important;min-height:0!important}
+html.fa-ios .page{position:absolute!important;inset:0!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important}
+html.fa-ios .app{height:100%!important;min-height:0!important}
+html.fa-ios .modal{position:absolute!important;inset:0!important;width:100%!important;height:var(--fa-vh,100%)!important;min-height:0!important;max-height:none!important}
+
+/* Ricalcolo rigido del layout portrait su vecchi iPad: evita che il flex mantenga
+   le altezze compresse della precedente visualizzazione landscape. */
+html.fa-ios.fa-ios-portrait .app{display:flex!important;flex-direction:column!important}
+html.fa-ios.fa-ios-portrait .topline,
+html.fa-ios.fa-ios-portrait .league,
+html.fa-ios.fa-ios-portrait .name,
+html.fa-ios.fa-ios-portrait #info,
+html.fa-ios.fa-ios-portrait #finance{flex:0 0 auto!important}
+html.fa-ios.fa-ios-portrait .main{flex:0 0 auto!important;min-height:var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .big{flex:0 0 var(--fa-ios-circle)!important}
+html.fa-ios.fa-ios-portrait .row{flex:0 0 var(--fa-ios-blue-h)!important;height:var(--fa-ios-blue-h)!important;min-height:var(--fa-ios-blue-h)!important}
+html.fa-ios.fa-ios-portrait .row button{flex:1 0 0!important;height:100%!important;min-height:100%!important;max-height:none!important}
+html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
+</style>
+<script>
+/* FANTASTICA_APPLE_LAYOUT_20260817D
+   Nessun orientation lock su Apple. In portrait manteniamo le misure approvate;
+   in landscape lasciamo ruotare normalmente il sistema e il CSS responsive. */
+(function(){
+ var ua=navigator.userAgent||"";
+ var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ if(!ios)return;
+ var de=document.documentElement;
+ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+ function isPortrait(){
+  /* Sui vecchi iPad window.orientation si aggiorna prima e in modo piu affidabile
+     delle media query durante landscape -> portrait. */
+  var o=typeof window.orientation==="number"?Math.abs(window.orientation)%180:null;
+  if(o!==null)return o===0;
+  try{if(window.matchMedia)return window.matchMedia("(orientation: portrait)").matches}catch(e){}
+  return (window.innerHeight||0)>=(window.innerWidth||0);
+ }
+ function screenSides(){
+  var sw=Number(window.screen&&window.screen.width)||0,sh=Number(window.screen&&window.screen.height)||0;
+  return {short:Math.min(sw,sh),long:Math.max(sw,sh)};
+ }
+ function savedInsetKey(sides,kind){return "fa-ios-vp-inset-"+kind+"-"+sides.short+"x"+sides.long}
+ function readSavedInset(sides,kind){try{var v=parseFloat(localStorage.getItem(savedInsetKey(sides,kind)));return isFinite(v)?v:null}catch(e){return null}}
+ function saveInset(sides,kind,v){try{if(isFinite(v)&&v>=0&&v<160)localStorage.setItem(savedInsetKey(sides,kind),String(v))}catch(e){}}
+ function appleViewport(){
+  var portrait=isPortrait();
+  var rawW=window.innerWidth||document.documentElement.clientWidth||0;
+  var rawH=window.innerHeight||document.documentElement.clientHeight||0;
+  var sides=screenSides();
+  if(!sides.short||!sides.long)return {portrait:portrait,w:rawW,h:rawH};
+  var kind=portrait?"p":"l";
+  var expectedW=portrait?sides.short:sides.long;
+  var screenH=portrait?sides.long:sides.short;
+  var inset=readSavedInset(sides,kind);
+  var plausible=portrait ? (rawH>rawW*1.12) : (rawW>rawH*1.12);
+  if(plausible&&screenH>=rawH){
+   var learned=screenH-rawH;
+   if(learned>=0&&learned<160){inset=learned;saveInset(sides,kind,learned)}
+  }
+  if(inset===null)inset=0;
+  return {portrait:portrait,w:Math.max(1,expectedW),h:Math.max(1,screenH-inset)};
+ }
+ function applyAppleViewport(){
+  var v=appleViewport();
+  de.style.setProperty("--fa-vw",v.w+"px");
+  de.style.setProperty("--fa-vh",v.h+"px");
+  return v;
+ }
+ function updateAppleLayout(){
+  var v=applyAppleViewport(),w=v.w,h=v.h,portrait=v.portrait;
+  de.classList.toggle("fa-ios-portrait",portrait);
+  de.classList.remove("fa-ios-landscape","fa-ios-landscape-left","fa-ios-landscape-right");
+  if(!portrait)return;
+  var pw=w,ph=h;
+  var tablet=pw>=600;
+  var circle=tablet?Math.min(pw*.48,360,ph*.37):Math.min(pw*.58,286,ph*.31);
+  var gap=tablet?clamp(ph*.052,42,62):clamp(ph*.064,46,64);
+  var blue=tablet?clamp(ph*.115,108,142):clamp(ph*.125,102,126);
+  var red=tablet?clamp(ph*.108,102,134):clamp(ph*.118,96,120);
+  de.style.setProperty("--fa-ios-circle",circle+"px");
+  de.style.setProperty("--fa-ios-gap",gap+"px");
+  de.style.setProperty("--fa-ios-blue-h",blue+"px");
+  de.style.setProperty("--fa-ios-red-h",red+"px");
+ }
+ function forceAppleReflow(){
+  try{
+   var p=document.getElementById("pages");
+   if(!p||p.classList.contains("hidden"))return;
+   var old=p.style.display;
+   p.style.display="none";
+   void p.offsetHeight;
+   p.style.display=old||"";
+   void de.offsetHeight;
+   window.scrollTo(0,0);
+  }catch(e){}
+ }
+ function forceIPadStyleReparse(){
+  /* Alcuni iPad Mini con WebKit datato mantengono le metriche CSS/flex della
+     precedente orientation anche quando il viewport e gia tornato portrait.
+     Riparsiamo lo stylesheet senza ricaricare la pagina: sessione, realtime e
+     identita del partecipante restano intatti. */
+  try{
+   var st=document.querySelector("head style");
+   if(!st)return;
+   var clone=st.cloneNode(true);
+   st.parentNode.replaceChild(clone,st);
+   void de.offsetHeight;
+   updateAppleLayout();
+   forceAppleReflow();
+  }catch(e){}
+ }
+ function refreshAppleLayout(){
+  updateAppleLayout();
+  [80,260,650,1100,1700].forEach(function(ms){setTimeout(function(){updateAppleLayout();if(ms>=650)forceAppleReflow()},ms)});
+ }
+ refreshAppleLayout();
+ window.addEventListener("resize",refreshAppleLayout);
+ window.addEventListener("orientationchange",function(){
+  refreshAppleLayout();
+  setTimeout(forceAppleReflow,900);
+  setTimeout(function(){
+   updateAppleLayout();
+   if(/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)){
+    if(isPortrait())forceIPadStyleReparse();
+   }
+  },1250);
+  setTimeout(function(){updateAppleLayout();forceAppleReflow()},2100);
+ });
+ if(window.visualViewport)window.visualViewport.addEventListener("resize",refreshAppleLayout);
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshAppleLayout()});
+})();
+</script>
+
+</head><body>
+
+<div id="startupScreen" class="entry"><div class="entryBox" style="text-align:center">
+ <h1>⚽ FANTASTICA</h1><p>Connessione...</p>
+</div></div>
+
+<div id="loginScreen" class="entry hidden"><div class="entryBox">
+ <h1>⚽ FANTASTICA</h1><p>Entra nella tua lega</p>
+ <label>Nome lega</label><input id="loginLeague" autocomplete="off">
+ <label>Password</label><input id="loginPassword" type="password">
+ <button id="loginBtn">ENTRA</button><div id="loginMsg"></div>
+</div></div>
+
+<div id="nameScreen" class="entry hidden"><div class="entryBox">
+ <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2>
+ <div id="reclaimBox" class="hidden"><p><b>Recupero partecipante</b></p><p>La Regia ha autorizzato uno o più partecipanti a usare un nuovo dispositivo. Seleziona chi sei.</p><div id="reclaimChoices"></div><button id="backToLoginBtn" style="background:#555">TORNA INDIETRO</button></div>
+ <div id="newNameBox"><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p><input id="participantName" maxlength="30" placeholder="Il tuo nome"><button id="nameBtn">CONFERMA</button></div>
+ <div id="nameMsg"></div>
+</div></div>
+
+<div id="pages" class="pages hidden">
+ <section id="playerPoolPage" class="page playerPoolPage"><div class="playerPoolBox">
+  <div class="playerPoolHint">Elenco dei giocatori disponibili per la prossima asta</div>
+  <h2>GIOCATORI DISPONIBILI</h2>
+  <div id="playerPoolMeta" class="playerPoolMeta"></div>
+  <input id="playerPoolSearch" class="playerPoolSearch" type="search" autocomplete="off" placeholder="Cerca per nome">
+  <div id="playerPoolStatus" class="playerPoolStatus"></div>
+  <div id="playerPoolList" class="playerPoolList"></div>
+ </div></section>
+ <section class="page auctionPage faActive"><div class="app">
+  <div class="topline"><h1>⚽ FANTASTICA</h1><button id="exitBtn" class="exitBtn">ESCI</button></div>
+  <div id="leagueDisplay" class="league"></div><div id="playerName" class="name"></div><div id="status">Avvio...</div><div id="wakeStatus"></div>
+  <div id="current" class="current">Nessun giocatore selezionato</div><div id="info">MIGLIOR OFFERENTE: 0 · Nessun offerente</div><div id="phoneTimer">—</div><div id="finance"></div>
+  <div class="main"><button id="plus1" class="big">+1</button></div>
+  <div class="row"><button id="plus10">+10</button><button id="exact">IMPORTO</button></div>
+  <div id="msg"></div><button id="leave" class="leave">ABBANDONA ASTA</button>
+ </div></section>
+ <div id="rosterPages"></div>
+ <button id="pcPagePrev" class="pcPageNav" type="button" aria-label="Pagina precedente">‹</button>
+ <button id="pcPageNext" class="pcPageNav" type="button" aria-label="Pagina successiva">›</button>
+</div>
+
+<div id="celebrate" class="celebrate"><div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div><h1 id="celebrateTitle"></h1></div>
+
+<div id="modal" class="modal"><h2>OFFERTA LIBERA</h2><div id="exactMax" class="exactMax">Massimo offribile: — crediti</div><input id="display" readonly inputmode="numeric"><div class="keys"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button>C</button><button>0</button><button>⌫</button><button>ANNULLA</button><button class="send">INVIA</button></div></div>
+
+<script>
+(function(){
+ var FANTASTICA_PHONE_BUILD="20260827-v530-realtime-recovery";
+ window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
+ var faFreshCheckAt=0;
+ function faCheckPublishedPhoneVersion(force){
+  try{
+   if(!navigator.onLine)return;
+   var now=Date.now();
+   if(!force&&now-faFreshCheckAt<30000)return;
+   faFreshCheckAt=now;
+   fetch("./telefono-version.txt?t="+now,{cache:"no-store"}).then(function(r){return r&&r.ok?r.text():""}).then(function(txt){
+    var remote=String(txt||"").replace(/\s+/g,"").trim();
+    if(!remote||remote===FANTASTICA_PHONE_BUILD){try{sessionStorage.removeItem("fantastica-phone-reload-target")}catch(e){};return}
+    /* V521: se lo slot è già stato prenotato e il partecipante sta scegliendo il nome,
+       non interrompere questa fase per un aggiornamento automatico della pagina. */
+    try{
+     var ns=document.getElementById("nameScreen"),nb=document.getElementById("newNameBox");
+     if(ns&&nb&&!ns.classList.contains("hidden")&&!nb.classList.contains("hidden"))return;
+    }catch(e){}
+    var guard="";try{guard=sessionStorage.getItem("fantastica-phone-reload-target")||""}catch(e){}
+    var parts=guard.split("|");
+    if(parts[0]===remote&&now-Number(parts[1]||0)<15000)return;
+    try{sessionStorage.setItem("fantastica-phone-reload-target",remote+"|"+now)}catch(e){}
+    try{
+     var u=new URL(location.href);u.searchParams.set("_fv",remote);location.replace(u.toString());
+    }catch(e){location.reload()}
+   }).catch(function(){});
+  }catch(e){}
+ }
+ window.addEventListener("pageshow",function(){faCheckPublishedPhoneVersion(true)});
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)faCheckPublishedPhoneVersion(true)});
+ window.addEventListener("focus",function(){faCheckPublishedPhoneVersion(false)});
+ setTimeout(function(){faCheckPublishedPhoneVersion(true)},1200);
+})();
+</script>
+<script>
+(function(){
+ window.onerror=function(msg,src,line){try{var p=document.getElementById("startupScreen");var t=p&&p.querySelector("p");if(t&&!p.classList.contains("hidden"))t.textContent="Errore compatibilità browser (riga "+(line||"?")+")."}catch(e){};return false};
+ function startupText(){var e=document.getElementById("startupScreen");return e?e.querySelector("p"):null}
+ function setStartup(t){var e=startupText();if(e)e.textContent=t}
+ function supportsModernSyntax(){try{new Function("var x={a:1}; return x?.a ?? 0;");return true}catch(e){return false}}
+ function loadScript(src,ms){
+  return new Promise(function(resolve,reject){
+   var done=false,s=document.createElement("script"),timer; s.src=src;s.async=true;
+   function finish(ok,err){if(done)return;done=true;clearTimeout(timer);if(!ok)try{if(s.parentNode)s.parentNode.removeChild(s)}catch(e){};if(ok)resolve();else reject(err||new Error("SCRIPT_ERROR"))}
+   timer=setTimeout(function(){finish(false,new Error("SCRIPT_TIMEOUT"))},ms);
+   s.onload=function(){finish(true)};s.onerror=function(){finish(false,new Error("SCRIPT_ERROR"))};
+   document.head.appendChild(s);
+  });
+ }
+ window.__fantasticaLoadSupabase=async function(){
+  if(window.supabase&&window.supabase.createClient)return;
+  setStartup("Connessione...");
+  var legacy=!supportsModernSyntax();
+  var ver=legacy?"2.44.4":"2.45.3";
+  var cdns=[
+   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js",
+   "https://unpkg.com/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js"
+  ];
+  var last=null;
+  for(var i=0;i<cdns.length;i++){
+   try{await loadScript(cdns[i],5500);if(window.supabase&&window.supabase.createClient)return}catch(e){last=e}
+  }
+  setStartup("Connessione non disponibile. Tocca Ricarica in Safari.");
+  throw last||new Error("SUPABASE_CLIENT_NON_CARICATO");
+ };
+})();
+</script>
+<script>
+(async()=>{
+await window.__fantasticaLoadSupabase();
+const SUPABASE_URL="https://evjwadffhsyzltnnzgqk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5JZ7VvIiadcSkAvjpFZZxw_xgHC5ga5";
+const createClient=window.supabase&&window.supabase.createClient;
+if(!createClient){document.getElementById("startupScreen").querySelector("p").textContent="Errore caricamento connessione. Ricarica la pagina.";throw new Error("SUPABASE_CLIENT_NON_CARICATO");}
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
+let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastRegiaStateSyncMs=0,latestStateSignalSeenMs=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateRecoveryTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
+let playerPool=[],playerPoolLoaded=false,playerPoolLoading=false,playerPoolKey="",playerPoolBusy=false;
+const m=(el,t,c="")=>{el.className=c;el.textContent=t};
+let deviceId=null,pendingLogin=null;
+const DEVICE_KEY="fantastica-device-id-v476";
+function cookieGet(k){
+ const m=document.cookie.match(new RegExp("(?:^|; )"+k.replace(/[.$?*|{}()[\]\\/+^]/g,"\\$&")+"=([^;]*)"));
+ return m?decodeURIComponent(m[1]):null;
+}
+function cookieSet(k,v){
+ try{
+  var exp=new Date(Date.now()+315360000000).toUTCString();
+  document.cookie=k+"="+encodeURIComponent(v)+"; expires="+exp+"; path=/";
+  document.cookie=k+"="+encodeURIComponent(v)+"; Max-Age=315360000; Path=/; SameSite=Lax; Secure";
+ }catch(e){}
+}
+function cookieDel(k){
+ try{
+  document.cookie=k+"=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  document.cookie=k+"=; Max-Age=0; Path=/; SameSite=Lax; Secure";
+ }catch(e){}
+}
+function queryLeagueId(){
+ try{
+  var m=location.search.match(/[?&]lid=([^&]+)/);
+  return m?decodeURIComponent(m[1]):null;
+ }catch(e){return null}
+}
+function isFreshAccess(){
+ try{return /(?:[?&])fresh=1(?:&|$)/.test(location.search)}catch(e){return false}
+}
+function rememberedLeagueId(){
+ var v=queryLeagueId();
+ if(v)return v;
+ try{v=localStorage.getItem("fantastica-last-league")}catch(e){}
+ return v||cookieGet("fantastica-last-league")||null;
+}
+function bridgeLeagueToUrl(v){
+ try{
+  var u=new URL(location.href);
+  if(v){u.searchParams.set("lid",v);u.searchParams.delete("fresh")}else{u.searchParams.delete("lid")}
+  history.replaceState(null,"",u.toString());
+ }catch(e){
+  try{
+   var q=location.search.replace(/([?&])lid=[^&]*(&?)/,function(_,a,b){return a==="?"&&b?"?":(a==="?"?"":"" )});
+   q=q.replace(/^&/,"?").replace(/\?&/,"?").replace(/[?&]$/,"");
+   if(v)q+=(q?"&":"?")+"lid="+encodeURIComponent(v);
+   history.replaceState(null,"",location.pathname+q+location.hash);
+  }catch(x){}
+ }
+}
+function rememberParticipantContext(lid,sl){
+ try{localStorage.setItem("fantastica-last-league",lid);localStorage.setItem("fantastica-last-slot",String(sl))}catch(e){}
+ cookieSet("fantastica-last-league",lid);cookieSet("fantastica-last-slot",String(sl));bridgeLeagueToUrl(lid);
+}
+function clearParticipantState(){
+ try{localStorage.removeItem("fantastica-last-league");localStorage.removeItem("fantastica-last-slot")}catch(e){}
+ cookieDel("fantastica-last-league");cookieDel("fantastica-last-slot");bridgeLeagueToUrl(null);
+}
+function queryDeviceId(){
+ try{
+  var m=location.search.match(/[?&]did=([^&]+)/);
+  return m?decodeURIComponent(m[1]):null;
+ }catch(e){return null}
+}
+function bridgeDeviceIdToUrl(v){
+ try{
+  var u=new URL(location.href);
+  if(u.searchParams.get("did")!==v){u.searchParams.set("did",v);history.replaceState(null,"",u.toString())}
+ }catch(e){
+  try{if(location.search.indexOf("did=")<0)history.replaceState(null,"",location.pathname+location.search+(location.search?"&":"?")+"did="+encodeURIComponent(v)+location.hash)}catch(x){}
+ }
+}
+function idbGet(){
+ return new Promise(resolve=>{
+  try{
+   const q=indexedDB.open("fantastica-device-db",1);
+   q.onupgradeneeded=()=>q.result.createObjectStore("kv");
+   q.onerror=()=>resolve(null);
+   q.onsuccess=()=>{
+    try{
+     const tx=q.result.transaction("kv","readonly"),r=tx.objectStore("kv").get(DEVICE_KEY);
+     r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>resolve(null);
+    }catch{resolve(null)}
+   };
+  }catch{resolve(null)}
+ });
+}
+function idbSet(v){
+ try{
+  const q=indexedDB.open("fantastica-device-db",1);
+  q.onupgradeneeded=()=>q.result.createObjectStore("kv");
+  q.onsuccess=()=>{try{const tx=q.result.transaction("kv","readwrite");tx.objectStore("kv").put(v,DEVICE_KEY)}catch{}};
+ }catch{}
+}
+async function getDeviceId(){
+ if(deviceId)return deviceId;
+ var qid=queryDeviceId(),legacy=null,stored=null,cookieId=null,idbId=null;
+ try{legacy=localStorage.getItem("fantastica-device-id-v474");stored=localStorage.getItem(DEVICE_KEY)}catch(e){}
+ cookieId=cookieGet(DEVICE_KEY);
+ // Safari/iOS datati possono lasciare IndexedDB in attesa molto a lungo dopo il ripristino
+ // della Web App. Non permettiamo che questo blocchi il rientro automatico.
+ if(!qid&&!stored&&!legacy&&!cookieId){
+  try{idbId=await Promise.race([idbGet(),new Promise(function(resolve){setTimeout(function(){resolve(null)},600)})])}catch(e){idbId=null}
+ }
+ var f=qid||stored||legacy||cookieId||idbId;
+ if(!f){
+  var ru=(window.crypto&&typeof window.crypto.randomUUID==="function")?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==="x"?r:(r&3|8);return v.toString(16)});
+  f="web:"+ru;
+ }
+ deviceId=f;
+ try{localStorage.setItem(DEVICE_KEY,f);localStorage.setItem("fantastica-device-id-v474",f)}catch(e){}
+ cookieSet(DEVICE_KEY,f);idbSet(f);bridgeDeviceIdToUrl(f);
+ return f;
+}
+
+const roleNames={P:"PORTIERI",D:"DIFENSORI",C:"CENTROCAMPISTI",A:"ATTACCANTI"};
+function roleArticle(r){return r==="A"?"GLI":"I"}
+const serverNow=()=>Date.now()+serverOffset;
+async function syncServerClock(){
+ try{
+  const t0=Date.now();
+  const {data}=await db.rpc("fa_server_time");
+  const t1=Date.now();
+  if(data&&data.epoch_ms)serverOffset=Number(data.epoch_ms)-((t0+t1)/2);
+ }catch{}
+}
+setInterval(syncServerClock,30000);
+function audioCtx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;window.__faAudio=window.__faAudio||new C();return window.__faAudio}
+function tone(freq,dur=.12,vol=.12,type="sine",delay=0){const c=audioCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur)}catch{}}
+function drum(){tone(90,.14,.22,"square");tone(55,.18,.12,"sine")}
+function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,"sawtooth",d);tone(70,.28,.15,"sine",d+.05)})}
+function showCelebration(title,final=false){$("celebrateTitle").textContent=title;$("celebrate").classList.add("show");fireworksSound();setTimeout(()=>$("celebrate").classList.remove("show"),final?7000:5000)}
+
+let wakeLock=null,wakeWanted=false,wakeWatchdog=null,wakeGeneration=0,legacyWakeVideo=null,legacyWakePlaying=false;
+const LEGACY_WAKE_SRC="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMqbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlV0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHNbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAThzdGJsAAAAuHN0c2QAAAAAAAAAAQAAAKhhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MS4xOS4xMDEgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALmF2Y0MBQsAe/+EAFmdCwB7ZHsBEAAADAAQAAAMACDxYuSABAAVoy4PLIAAAABBwYXNwAAAAAQAAAAEAAAAUYnRydAAAAAAAAApAAAAAAAAAABhzdHRzAAAAAAAAAAEAAAACAABAAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAACAAAAAQAAABxzdHN6AAAAAAAAAAAAAAACAAAChgAAAAoAAAAUc3RjbwAAAAAAAAABAAADWgAAAGF1ZHRhAAAAWW1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALGlsc3QAAAAkqXRvbwAAABxkYXRhAAAAAQAAAABMYXZmNjEuNy4xMDMAAAAIZnJlZQAAAphtZGF0AAACcAYF//9s3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NCByMzEwOCAzMWUxOWY5IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyMyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTAgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MToweDExMSBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MCBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0wIHdlaWdodHA9MCBrZXlpbnQ9MjUwIGtleWludF9taW49MSBzY2VuZWN1dD00MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTQwIHJjPWNyZiBtYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAAA5liIQFv///D0UAAU9/gAAAAAZBmjgK+oA=";
+function setWakeStatus(t,c){
+ var e=$("wakeStatus");if(!e)return;e.textContent=t||"";e.className=c||"";
+}
+function hasNativeWakeLock(){
+ try{return !!(navigator&&navigator.wakeLock&&navigator.wakeLock.request)}catch(e){return false}
+}
+function legacyWakeElement(){
+ if(legacyWakeVideo)return legacyWakeVideo;
+ try{
+  var v=document.createElement("video");
+  v.setAttribute("playsinline","");v.setAttribute("webkit-playsinline","");
+  v.setAttribute("muted","");v.muted=true;v.loop=true;v.preload="auto";
+  v.src=LEGACY_WAKE_SRC;
+  v.style.position="fixed";v.style.left="0";v.style.bottom="0";
+  v.style.width="1px";v.style.height="1px";v.style.opacity="0.01";
+  v.style.pointerEvents="none";v.style.zIndex="-1";
+  document.body.appendChild(v);legacyWakeVideo=v;return v;
+ }catch(e){return null}
+}
+function legacyWakeGestureRetry(){
+ if(!wakeWanted||document.hidden||hasNativeWakeLock())return;
+ startLegacyWake();
+}
+function armLegacyWakeGesture(){
+ try{document.addEventListener("touchstart",legacyWakeGestureRetry,false);document.addEventListener("click",legacyWakeGestureRetry,false)}catch(e){}
+}
+function disarmLegacyWakeGesture(){
+ try{document.removeEventListener("touchstart",legacyWakeGestureRetry,false);document.removeEventListener("click",legacyWakeGestureRetry,false)}catch(e){}
+}
+function startLegacyWake(){
+ if(!wakeWanted||document.hidden||hasNativeWakeLock())return Promise.resolve(false);
+ var v=legacyWakeElement();
+ if(!v){setWakeStatus("SCHERMO: BLOCCO NON SUPPORTATO","warn");return Promise.resolve(false)}
+ try{
+  var p=v.play();
+  if(p&&typeof p.then==="function"){
+   return p.then(function(){legacyWakePlaying=true;disarmLegacyWakeGesture();setWakeStatus("SCHERMO: ATTIVO (COMPAT.)","ok");return true})
+    .catch(function(){legacyWakePlaying=false;armLegacyWakeGesture();setWakeStatus("SCHERMO: TOCCA PER ATTIVARE","warn");return false});
+  }
+  legacyWakePlaying=true;disarmLegacyWakeGesture();setWakeStatus("SCHERMO: ATTIVO (COMPAT.)","ok");return Promise.resolve(true);
+ }catch(e){
+  legacyWakePlaying=false;armLegacyWakeGesture();setWakeStatus("SCHERMO: TOCCA PER ATTIVARE","warn");return Promise.resolve(false);
+ }
+}
+function pauseLegacyWake(){
+ try{if(legacyWakeVideo)legacyWakeVideo.pause()}catch(e){}
+ legacyWakePlaying=false;
+}
+async function requestWakeLock(force=false){
+ if(!wakeWanted||document.hidden)return;
+ if(!hasNativeWakeLock()){await startLegacyWake();return}
+ try{
+   if(force&&wakeLock){
+     try{await wakeLock.release()}catch(e){}
+     wakeLock=null;
+   }
+   if(wakeLock&&!wakeLock.released){setWakeStatus("SCHERMO: ATTIVO","ok");return}
+   const gen=++wakeGeneration;
+   const wl=await navigator.wakeLock.request("screen");
+   if(gen!==wakeGeneration){try{await wl.release()}catch(e){};return}
+   wakeLock=wl;setWakeStatus("SCHERMO: ATTIVO","ok");
+   wl.addEventListener("release",()=>{
+     if(wakeLock===wl)wakeLock=null;
+     if(wakeWanted&&!document.hidden)setTimeout(()=>requestWakeLock(false),250);
+   });
+ }catch(e){
+   wakeLock=null;setWakeStatus("SCHERMO: BLOCCO RIFIUTATO","warn");
+   if(wakeWanted&&!document.hidden)setTimeout(()=>requestWakeLock(false),1500);
+ }
+}
+function startKeepAwake(){
+ wakeWanted=true;
+ requestWakeLock(false);
+ clearInterval(wakeWatchdog);
+ let ticks=0;
+ wakeWatchdog=setInterval(()=>{
+   if(!wakeWanted||document.hidden)return;
+   ticks++;
+   if(hasNativeWakeLock())requestWakeLock(ticks%4===0);
+   else if(!legacyWakePlaying)startLegacyWake();
+ },6000);
+}
+async function stopKeepAwake(){
+ wakeWanted=false;
+ clearInterval(wakeWatchdog);wakeWatchdog=null;
+ wakeGeneration++;
+ try{if(wakeLock)await wakeLock.release()}catch(e){}
+ wakeLock=null;pauseLegacyWake();disarmLegacyWakeGesture();setWakeStatus("","");
+}
+async function ensureAuth(){
+ const {data:{session}}=await db.auth.getSession();
+ if(session)return session;
+ const {data,error}=await db.auth.signInAnonymously();
+ if(error)throw error;
+ return data.session;
+}
+async function tryPendingNameRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_pending_name_v521",{p_device_id:await getDeviceId()});
+  if(error||!data||!data.ok||!data.pending_name)return false;
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  $("startupScreen").classList.add("hidden");
+  $("loginScreen").classList.add("hidden");
+  $("pages").classList.add("hidden");
+  $("nameLeague").textContent=data.league_name||"";
+  $("reclaimBox").classList.add("hidden");
+  $("newNameBox").classList.remove("hidden");
+  $("nameScreen").classList.remove("hidden");
+  $("participantName").value="";
+  m($("nameMsg"),"Completa l'iscrizione scegliendo il tuo nome.","warn");
+  return true;
+ }catch(e){return false}
+}
+async function tryDeviceRestore(){
+ try{
+  var targetLeague=rememberedLeagueId();
+  if(!targetLeague)return false;
+  const {data,error}=await db.rpc("fa_restore_participant_by_device_league",{p_device_id:await getDeviceId(),p_league_id:targetLeague});
+  if(error)return false;
+  if(!data||!data.ok){clearParticipantState();return false}
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  await enterGame();return true;
+ }catch(e){return false}
+}
+async function tryCurrentDeviceRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_participant_by_current_device",{p_device_id:await getDeviceId()});
+  if(error||!data||!data.ok)return false;
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  await enterGame();return true;
+ }catch(e){return false}
+}
+async function trySessionRestore(){
+ try{
+  const {data,error}=await db.rpc("fa_restore_participant_by_session",{p_device_id:await getDeviceId()});
+  if(error||!data||!data.ok)return false;
+  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+  await enterGame();return true;
+ }catch(e){return false}
+}
+function showLogin(){
+ $("startupScreen").classList.add("hidden");
+ league=null;leagueId=null;slot=null;auction=null;slotData=null;slots=[];catalog=[];
+ if(channel)try{db.removeChannel(channel)}catch{};channel=null;
+ $("pages").classList.add("hidden");$("nameScreen").classList.add("hidden");$("loginScreen").classList.remove("hidden");
+ $("loginPassword").value="";m($("loginMsg"),"");
+}
+$("exitBtn").onclick=async()=>{try{await db.rpc("fa_forget_current_device",{p_device_id:await getDeviceId()})}catch(e){}stopKeepAwake();clearParticipantState();showLogin()};
+
+async function finishDeviceJoin(data){
+ leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
+ $("loginScreen").classList.add("hidden");$("loginPassword").value="";
+ if(data.needs_name){$("nameLeague").textContent=data.league_name;$("reclaimBox").classList.add("hidden");$("newNameBox").classList.remove("hidden");$("nameScreen").classList.remove("hidden");return}
+ await enterGame();
+}
+function showReclaim(data){
+ leagueId=data.league_id;
+ $("loginScreen").classList.add("hidden");
+ $("nameLeague").textContent=data.league_name;
+ $("newNameBox").classList.add("hidden");
+ $("reclaimBox").classList.remove("hidden");
+ $("nameScreen").classList.remove("hidden");
+ const cand=Array.isArray(data.candidates)?data.candidates:[];
+ $("reclaimChoices").innerHTML=cand.map(x=>`<button data-reclaim-slot="${x.slot}">${x.name}</button>`).join("")+(data.can_join_new?'<button id="joinAsNew" style="background:#315f8a">NUOVO PARTECIPANTE</button>':"");
+ document.querySelectorAll("[data-reclaim-slot]").forEach(b=>b.onclick=()=>claimParticipant(+b.dataset.reclaimSlot));
+ if($("joinAsNew"))$("joinAsNew").onclick=()=>claimParticipant(0);
+ m($("nameMsg"),cand.length>1?"Se ci sono più partecipanti in attesa, scegli il tuo nome.":"Seleziona il partecipante da recuperare.","warn");
+}
+async function claimParticipant(claimSlot){
+ try{
+  m($("nameMsg"),"Associazione dispositivo...");
+  const {data,error}=await db.rpc("fa_join_participant_device_v511",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:claimSlot});
+  if(error||!data||!data.ok){m($("nameMsg"),"Errore: "+((error&&error.message)||(data&&data.error)),"bad");return}
+  $("nameScreen").classList.add("hidden");$("reclaimBox").classList.add("hidden");
+  await finishDeviceJoin(data);
+ }catch(e){m($("nameMsg"),"Errore: "+e.message,"bad")}
+}
+$("backToLoginBtn").onclick=()=>{
+ $("nameScreen").classList.add("hidden");
+ $("reclaimBox").classList.add("hidden");
+ $("loginScreen").classList.remove("hidden");
+};
+$("loginBtn").onclick=async()=>{
+ try{
+  await ensureAuth();m($("loginMsg"),"Accesso...");
+  pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
+  const {data,error}=await db.rpc("fa_join_participant_device_v511",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
+  if(error||!data||!data.ok){m($("loginMsg"),data&&data.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
+  if(data.needs_reclaim){showReclaim(data);return}
+  await finishDeviceJoin(data);
+ }catch(e){m($("loginMsg"),"Errore: "+e.message,"bad")}
+};
+$("nameBtn").onclick=async()=>{
+ const name=$("participantName").value.trim();if(!name)return;
+ const {data,error}=await db.rpc("fa_set_my_participant_name",{p_league_id:leagueId,p_name:name});
+ if(error||!data||!data.ok){m($("nameMsg"),"Errore: "+((error&&error.message)||(data&&data.error)),"bad");return}
+ slot=data.slot;$("nameScreen").classList.add("hidden");await enterGame();
+};
+
+async function invalidateParticipant(){
+ try{await stopKeepAwake()}catch(e){}
+ clearParticipantState();
+ league=null;leagueId=null;slot=null;auction=null;slotData=null;slots=[];catalog=[];
+ showLogin();
+}
+async function validateParticipant(){
+ if(!leagueId||!slot)return false;
+ try{
+  const r=await db.rpc("fa_my_participant",{p_league_id:leagueId});
+  const d=r&&r.data;
+  if(r.error||!d||!d.ok||Number(d.slot)!==Number(slot)||!d.display_name)return false;
+  return true;
+ }catch(e){return false}
+}
+async function enterGame(){
+ $("startupScreen").classList.add("hidden");
+ const lr=await db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle();
+ if(lr.error||!lr.data){await invalidateParticipant();return}
+ if(!(await validateParticipant())){await invalidateParticipant();return}
+ league=lr.data;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
+ await heartbeat(true);await load();connect();startKeepAwake();
+}
+const HEARTBEAT_MIN_MS=18000;
+async function heartbeat(force=false){
+ if(!leagueId||!slot)return false;
+ const now=Date.now();
+ if(heartbeatInFlight||(!force&&now-lastHeartbeatAt<HEARTBEAT_MIN_MS))return true;
+ heartbeatInFlight=true;lastHeartbeatAt=now;
+ try{
+  const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
+  if(error||!data||!data.ok){
+   if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return false}
+   m($("status"),"Riconnessione...","warn");return false
+  }
+  return true;
+ }catch{return false}
+ finally{heartbeatInFlight=false}
+}
+setInterval(()=>{if(!document.hidden)heartbeat(false)},20000);
+
+async function reportAuctionVisibility(visible){
+ if(!leagueId||!slot||!db)return false;
+ try{
+  const {data,error}=await db.rpc("fa_set_my_auction_visibility",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible});
+  return !error&&(!data||data.ok!==false);
+ }catch(e){return false}
+}
+
+async function load(){
+ if(!leagueId)return;
+ const [l,a,s]=await Promise.all([
+  db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
+  db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control").eq("league_id",leagueId).order("slot")
+ ]);
+ if(!l.data){await invalidateParticipant();return}
+ league=l.data;auction=a.data;slots=s.data||[];
+ let pq=db.from("fa_players").select("id,name,team,role,value,assigned_slot,assigned_price,assigned_at").eq("league_id",leagueId);
+ if(auction&&auction.current_player_id)pq=pq.or(`assigned_slot.not.is.null,id.eq.${auction.current_player_id}`);
+ else pq=pq.not("assigned_slot","is",null);
+ const p=await pq;
+ catalog=p.data||[];slotData=slots.find(x=>x.slot===slot);
+ lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
+ if(!slotData||!slotData.display_name||slotData.member_enabled===false){await invalidateParticipant();return}
+ render();
+}
+async function loadCore(){
+ if(!leagueId)return;
+ const [l,a,s]=await Promise.all([
+  db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
+  db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
+  db.from("fa_slots").select("league_id,slot,display_name,last_seen_at,active,abandoned,legacy_access,credit_adjustment,member_enabled,manual_control").eq("league_id",leagueId).order("slot")
+ ]);
+ if(!l.data)return;
+ league=l.data;auction=a.data;slots=s.data||[];slotData=slots.find(x=>x.slot===slot);
+ render();
+}
+const slotName=n=>(slots.find(x=>x.slot===n)||{}).display_name||`Posto ${n}`;
+const cp=()=>currentPlayerState||catalog.find(p=>p.id===(auction&&auction.current_player_id));
+function rosterInfo(sl){
+ const ps=catalog.filter(p=>p.assigned_slot===sl),sm=slots.find(s=>s.slot===sl);
+ const total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
+ if(sm&&sm._summary)return{ps,spent:sm._summary.spent,remain:sm._summary.remain,total:sm._summary.total,max:sm._summary.max};
+ const spent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),remain=league.credits_initial-spent+Number((sm&&sm.credit_adjustment)||0),max=Math.max(0,remain-Math.max(0,total-ps.length-1)*1);
+ return{ps,spent,remain,total,max}
+}
+function roleCount(sl,role){
+ const sm=slots.find(s=>s.slot===sl);
+ if(sm&&sm._summary&&sm._summary.role_counts&&sm._summary.role_counts[role]!==undefined)return sm._summary.role_counts[role];
+ return catalog.filter(p=>p.assigned_slot===sl&&p.role===role).length
+}
+function roleLimit(role){return league["roster_"+role.toLowerCase()]}
+function playerPoolPhaseAllowed(){
+ if(!league||league.auction_complete)return false;
+ if(league.auction_session==="REPAIR"&&league.repair_stage!=="AUCTION")return false;
+ return true;
+}
+function roleHasAnyVacancy(role){
+ if(!league||!role)return false;
+ const lim=Number(roleLimit(role)||0);
+ return slots.some(s=>Number(s._summary&&s._summary.role_counts&&s._summary.role_counts[role]||0)<lim);
+}
+function playerPoolEligibleRoles(){
+ if(!league)return [];
+ if(league.auction_mode==="ROLE")return league.active_role&&roleHasAnyVacancy(league.active_role)?[league.active_role]:[];
+ return ["P","D","C","A"].filter(roleHasAnyVacancy);
+}
+function playerPoolContextKey(){
+ if(!league)return "";
+ return [league.auction_session||"MAIN",league.repair_stage||"",league.auction_mode||"FREE",league.active_role||"",Number(league.role_phase||0),playerPoolEligibleRoles().join("")].join("|");
+}
+function playerPoolAuctionLocked(){return !!(auction&&auction.status==="OPEN"&&auction.current_player_id&&auction.highest_slot)}
+function playerPoolFits(p){
+ if(!p||p.assigned_slot!=null||p.in_current_list===false||!String(p.team||"").trim())return false;
+ return playerPoolEligibleRoles().includes(String(p.role||"").toUpperCase());
+}
+function playerPoolEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]||c))}
+function sortPlayerPool(){playerPool.sort((a,b)=>Number(b.value||0)-Number(a.value||0)||String(a.name||"").localeCompare(String(b.name||""),"it"))}
+function renderPlayerPool(){
+ const listEl=$("playerPoolList"),meta=$("playerPoolMeta"),status=$("playerPoolStatus"),search=$("playerPoolSearch");
+ if(!listEl||!meta||!status||!search)return;
+ const roles=playerPoolEligibleRoles();
+ meta.textContent=league&&league.auction_mode==="ROLE"?(roles.length?`Ruolo attivo: ${roles[0]}`:"Nessun ruolo da completare"):`Asta libera · ${roles.join(" · ")||"nessun ruolo disponibile"}`;
+ if(!playerPoolPhaseAllowed())status.textContent=league&&league.auction_complete?"Aste concluse":"Selezione non disponibile in questa fase";
+ else if(playerPoolAuctionLocked())status.textContent="ASTA IN CORSO · consultazione attiva, selezione bloccata";
+ else status.textContent="Tocca un giocatore per proporlo come prossimo in asta";
+ const q=String(search.value||"").trim().toLocaleLowerCase("it");
+ const rows=playerPool.filter(p=>!q||String(p.name||"").toLocaleLowerCase("it").includes(q));
+ if(!rows.length){listEl.innerHTML='<div class="playerPoolEmpty">Nessun giocatore disponibile</div>';return}
+ const locked=playerPoolAuctionLocked()||!playerPoolPhaseAllowed();
+ listEl.innerHTML=rows.map(p=>`<button type="button" class="playerPoolItem${Number(auction&&auction.current_player_id)===Number(p.id)?" poolSelected":""}${locked?" poolLocked":""}" data-player-id="${Number(p.id)}"><span class="poolName">${playerPoolEsc(p.name)}</span><span class="poolSub">${playerPoolEsc(p.role)} · ${playerPoolEsc(p.team||"—")}</span><span class="poolValue">${Number(p.value||0)}</span></button>`).join("");
+ listEl.querySelectorAll("[data-player-id]").forEach(btn=>btn.addEventListener("click",()=>selectPlayerFromPhone(Number(btn.dataset.playerId))));
+}
+async function loadPlayerPool(force=false){
+ if(!leagueId||!slot)return;
+ const key=playerPoolContextKey();
+ if(!playerPoolPhaseAllowed()){playerPool=[];playerPoolLoaded=true;playerPoolKey=key;renderPlayerPool();return}
+ if(!force&&playerPoolLoaded&&playerPoolKey===key){renderPlayerPool();return}
+ if(playerPoolLoading)return;
+ playerPoolLoading=true;
+ try{
+  const {data,error}=await db.rpc("fa_phone_player_pool_v520",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
+  if(error){$("playerPoolStatus").textContent=error.message;return}
+  if(!data||data.ok===false){if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return}$("playerPoolStatus").textContent=(data&&data.error)||"Elenco non disponibile";return}
+  playerPool=(data.players||[]).map(p=>({...p,assigned_slot:null,in_current_list:true}));sortPlayerPool();playerPoolLoaded=true;playerPoolKey=key;renderPlayerPool();
+ }finally{playerPoolLoading=false}
+}
+function applyPlayerPoolEvent(d){
+ if(!playerPoolLoaded||!d||d.id==null)return;
+ const id=Number(d.id),idx=playerPool.findIndex(p=>Number(p.id)===id);
+ if(d.assigned_slot!=null){if(idx>=0)playerPool.splice(idx,1);renderPlayerPool();return}
+ const p={id,name:d.name,team:d.team,role:d.role,value:Number(d.value||0),assigned_slot:null,in_current_list:d.in_current_list!==false};
+ if(playerPoolFits(p)){if(idx>=0)playerPool[idx]=p;else playerPool.push(p);sortPlayerPool()}else if(idx>=0)playerPool.splice(idx,1);
+ renderPlayerPool();
+}
+async function selectPlayerFromPhone(playerId){
+ if(playerPoolBusy||!playerPoolPhaseAllowed())return;
+ if(playerPoolAuctionLocked()){renderPlayerPool();return}
+ playerPoolBusy=true;$("playerPoolStatus").textContent="Selezione...";
+ try{
+  const {data,error}=await db.rpc("fa_phone_select_player_v520",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_player_id:playerId});
+  if(error){$("playerPoolStatus").textContent=error.message;return}
+  if(!data||data.ok===false){
+   if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return}
+   $("playerPoolStatus").textContent=data&&data.error==="ASTA_GIA_INIZIATA"?"Asta già iniziata: selezione bloccata":((data&&data.error)||"Selezione non disponibile");
+   requestState();return;
+  }
+  $("playerPoolStatus").textContent=data.auto_assigned?"Giocatore assegnato automaticamente":"Giocatore selezionato";
+  requestState();
+ }finally{playerPoolBusy=false}
+}
+
+function purchaseOrderValue(p){const t=Date.parse((p&&p.assigned_at)||"");return Number.isFinite(t)?t:Number.MAX_SAFE_INTEGER}
+function comparePurchaseOrder(a,b){const ta=purchaseOrderValue(a),tb=purchaseOrderValue(b);return ta!==tb?ta-tb:Number((a&&a.id)||0)-Number((b&&b.id)||0)}
+function rosterPage(s){
+ const r=rosterInfo(s.slot);let h=`<section class="page rosterPage"><div class="rosterBox"><div class="swipeHint">← scorri / trascina per vedere le altre rose →</div><h2>${s.display_name}</h2><div class="summary"><div>Crediti rimasti <b>${r.remain}</b></div><div>Spesi <b>${r.spent}</b></div><div>Rosa <b>${r.ps.length}/${r.total}</b></div><div>Max spendibile <b>${r.max}</b></div></div>`;
+ for(const role of ["P","D","C","A"]){const lim=roleLimit(role),arr=r.ps.filter(p=>p.role===role).sort(comparePurchaseOrder);h+=`<div class="roleSec"><div class="roleHead">${role} ${arr.length}/${lim}</div>${arr.map(p=>`<div class="rr"><span>${p.name}</span><b>${p.assigned_price}</b></div>`).join("")||"<div class='rr'><span>—</span><span></span></div>"}</div>`}return h+"</div></section>"
+}
+function renderRosterPages(){$("rosterPages").innerHTML=slots.filter(s=>s.member_enabled!==false&&s.display_name).map(rosterPage).join("");faAfterRosterRender()}
+const rosterDirectLastFetch=new Map(),rosterDirectInFlight=new Set();
+function rosterVisibleSlots(){return slots.filter(s=>s.member_enabled!==false&&s.display_name)}
+function rosterSlotForPage(index){const s=rosterVisibleSlots()[Number(index)-2];return s?Number(s.slot):null}
+async function loadRosterDirect(sl,force=false){
+ sl=Number(sl);
+ if(!leagueId||!sl||!db)return false;
+ const now=Date.now(),last=rosterDirectLastFetch.get(sl)||0;
+ if(!force&&now-last<2000)return true;
+ if(rosterDirectInFlight.has(sl))return false;
+ rosterDirectInFlight.add(sl);
+ try{
+  const {data,error}=await db.from("fa_players").select("id,name,team,role,value,assigned_slot,assigned_price,assigned_at").eq("league_id",leagueId).eq("assigned_slot",sl);
+  if(error)return false;
+  catalog=catalog.filter(p=>Number(p.assigned_slot)!==sl).concat(data||[]);
+  rosterDirectLastFetch.set(sl,Date.now());
+  renderRosterPages();
+  return true;
+ }catch(e){return false}
+ finally{rosterDirectInFlight.delete(sl)}
+}
+function refreshVisibleRosterDirect(force=false){const sl=rosterSlotForPage(faPageIndex);if(sl)loadRosterDirect(sl,force)}
+async function requestRosters(index=faPageIndex){
+ if(Number(index)<2)return;
+ if(!$('rosterPages').children.length)renderRosterPages();
+ const directSlot=rosterSlotForPage(index>0?index:1);
+ if(directSlot)loadRosterDirect(directSlot,false);
+ if(rosterCacheLoaded)return;
+ if(rosterRequestPending||!(channel&&rtConnected))return;
+ rosterRequestPending=true;
+ try{await channel.send({type:"broadcast",event:"REQUEST_ROSTERS",payload:{slot}})}catch{rosterRequestPending=false}
+ setTimeout(()=>{if(!rosterCacheLoaded)rosterRequestPending=false},1500);
+}
+function render(){
+ if(!auction||!slotData)return;$("leagueDisplay").textContent=league.name;$("playerName").textContent=slotData.display_name;
+ const player=cp(),own=rosterInfo(slot),best=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ $("current").textContent=player?`${player.name} · ${player.role} · ${player.team||"—"} · Q ${player.value!=null?player.value:"—"}`:"Nessun giocatore selezionato";
+ $("info").textContent=`MIGLIOR OFFERENTE: ${auction.current_bid} · ${best}${auction.paused?" · PAUSA":""}`;
+ $("finance").textContent=`Crediti ${own.remain} · Spesi ${own.spent} · Max spendibile ${own.max}`;
+ if($("exactMax"))$("exactMax").textContent=`Massimo offribile: ${own.max} crediti`;
+
+ const anyActive=slots.some(x=>x.active);
+ let active=slotData.active&&!slotData.abandoned&&auction.status==="OPEN"&&!!player&&!player.assigned_slot&&anyActive;
+ const rolePhaseComplete=league.auction_mode==="ROLE"&&league.active_role&&roleCount(slot,league.active_role)>=roleLimit(league.active_role);
+ if(rolePhaseComplete)active=false;
+ if(player&&roleCount(slot,player.role)>=roleLimit(player.role)){active=false;m($("msg"),"RUOLO COMPLETO","warn")}
+ ["plus1","plus10","exact"].forEach(id=>{$(id).disabled=!active;$(id).classList.toggle("disabled",!active)});
+
+ const auctionPrepared=!!auction.current_player_id&&anyActive;
+ if(league.auction_complete){const done=league.auction_session==="REPAIR"?"FINE MERCATO DI RIPARAZIONE":"FINE DELLE ASTE";m($("msg"),done,"ok");$("leave").textContent=league.auction_session==="REPAIR"?"MERCATO CONCLUSO":"ASTE CONCLUSE";$("leave").className="leave disabled"}
+ else if(rolePhaseComplete){m($("msg"),"");$("leave").textContent="RUOLO COMPLETATO";$("leave").className="leave disabled roleWait"}
+ else if(auction.status==="SOLD"){m($("msg"),"✓ AGGIUDICATO","ok");$("leave").textContent="ASTA TERMINATA";$("leave").className="leave disabled"}
+ else if(!auctionPrepared){m($("msg"),"IN ATTESA DELLA PROSSIMA ASTA","warn");$("leave").textContent="IN ATTESA";$("leave").className="leave disabled"}
+ else if(!slotData.active){m($("msg"),"NON PARTECIPI A QUESTA ASTA","warn");$("leave").textContent="NON IN GARA";$("leave").className="leave disabled"}
+ else if(auction.highest_slot===slot){$("leave").textContent="MAGGIORE OFFERENTE";$("leave").className="leave disabled"}
+ else if(slotData.abandoned){$("leave").textContent="RIPRENDI ASTA";$("leave").className="leave resume"}
+ else{if(["IN ATTESA DELLA PROSSIMA ASTA","NON PARTECIPI A QUESTA ASTA"].includes($("msg").textContent))m($("msg"),"");$("leave").textContent="ABBANDONA ASTA";$("leave").className="leave"}
+}
+function timerTick(){
+ if(!(auction&&auction.highest_slot)||auction.paused||auction.status!=="OPEN"||!auction.timer_deadline){$("phoneTimer").textContent=(auction&&auction.paused)?"⏸ PAUSA":"—";return}
+ const left=Math.max(0,new Date(auction.timer_deadline).getTime()-serverNow());$("phoneTimer").textContent=(left/1000).toFixed(1)+" s";
+ const sec=Math.ceil(left/1000);if(sec>=1&&sec<=5&&sec!==lastDrumSecond){lastDrumSecond=sec;drum()}if(sec>5)lastDrumSecond=null;
+}
+setInterval(timerTick,100);
+let loadTimer=null,rtConnected=false,lastRtAt=0;
+let pendingFullLoad=false;
+function scheduleLoad(ms=12,full=false){
+ pendingFullLoad=pendingFullLoad||full;
+ clearTimeout(loadTimer);
+ loadTimer=setTimeout(()=>{
+   const f=pendingFullLoad;pendingFullLoad=false;
+   f?load():loadCore();
+ },ms);
+}
+function showRt(payload){lastRtAt=Date.now()}
+function applyRegiaState(d){
+ if(!d||!d.league||!d.auction)return;
+ const oldPoolKey=playerPoolContextKey();
+ league={...(league||{}),...d.league};
+ auction={...(auction||{}),...d.auction};
+ currentPlayerState=d.current_player||null;
+ slots=(d.participants||[]).map(x=>({
+  league_id:leagueId,slot:x.slot,display_name:x.display_name,active:!!x.active,abandoned:!!x.abandoned,
+  _summary:{spent:Number(x.spent||0),remain:Number(x.remain||0),total:Number(x.total||0),max:Number(x.max||0),count:Number(x.roster_count||0),role_counts:x.role_counts||{P:0,D:0,C:0,A:0}}
+ }));
+ const rosterCountFromRegia=slots.reduce((n,s)=>n+Number(s._summary&&s._summary.count||0),0);
+ const rosterCountLocal=catalog.filter(p=>p.assigned_slot).length;
+ if(rosterCountFromRegia!==rosterCountLocal)rosterCacheLoaded=false;
+ slotData=slots.find(x=>x.slot===slot);
+ if(!slotData){invalidateParticipant();return}
+ lastRegiaStateAt=Date.now();
+ const stateSyncMs=Number(d.state_sync_ms)||0;
+ if(stateSyncMs>lastRegiaStateSyncMs)lastRegiaStateSyncMs=stateSyncMs;
+ if(d.sent_at_ms)serverOffset=Number(d.sent_at_ms)-Date.now();
+ lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
+ const newPoolKey=playerPoolContextKey();
+ if(playerPoolLoaded&&oldPoolKey!==newPoolKey){playerPoolLoaded=false;playerPoolKey="";if(faPageIndex===0)loadPlayerPool(true)}
+ else if(playerPoolLoaded){playerPool=playerPool.filter(playerPoolFits);renderPlayerPool()}
+ if(slotData){render();renderRosterPages();if(faPageIndex>=2)refreshVisibleRosterDirect(false)}
+}
+
+function requestState(afterStateMs=0){
+ if(!(channel&&rtConnected))return false;
+ const payload={slot};
+ if(Number(afterStateMs)>0)payload.after_state_ms=Number(afterStateMs);
+ channel.send({type:"broadcast",event:"REQUEST_STATE",payload}).catch(()=>{});
+ return true;
+}
+async function trackPhonePresence(){
+ if(!(channel&&rtConnected&&slot)||presenceTracked)return presenceTracked;
+ try{
+  const status=await channel.track({kind:"phone",slot:Number(slot),online_at:new Date().toISOString()});
+  presenceTracked=status==="ok";
+ }catch{presenceTracked=false}
+ return presenceTracked;
+}
+function untrackPhonePresence(){
+ if(!(channel&&presenceTracked))return;
+ presenceTracked=false;
+ try{channel.untrack().catch(()=>{})}catch{}
+}
+function hasFreshRegiaState(signalLocalAt,signalServerAt){
+ if(Number(signalServerAt)>0)return lastRegiaStateSyncMs>=Number(signalServerAt);
+ return lastRegiaStateAt>=Number(signalLocalAt||0);
+}
+function scheduleStateFallback(delay=2200,signalLocalAt=Date.now(),signalServerAt=0){
+ clearTimeout(stateFallbackTimer);
+ stateFallbackTimer=setTimeout(async()=>{
+  if(!leagueId||document.hidden)return;
+  if(hasFreshRegiaState(signalLocalAt,signalServerAt))return;
+  const now=Date.now();
+  if(now-lastFallbackLoadAt<30000)return;
+  lastFallbackLoadAt=now;
+  await load();
+ },delay);
+}
+/* V530 — STATE non genera piu' una richiesta duplicata immediata da ogni telefono.
+   La Regia invia gia' PHONE_STATE dopo la propria lettura. Solo in caso di mancata
+   risposta parte un recupero sfalsato per posto; il load diretto resta il paracadute. */
+function scheduleStateRecovery(payload){
+ clearTimeout(stateRecoveryTimer);
+ const d=payload&&payload.payload||payload||{};
+ const signalLocalAt=Date.now();
+ const signalServerAt=Number(d.sent_at_ms)||0;
+ if(signalServerAt>latestStateSignalSeenMs)latestStateSignalSeenMs=signalServerAt;
+ const slotIndex=Math.max(0,Math.min(10,(Number(slot)||1)-1));
+ const recoveryDelay=500+slotIndex*140;
+ stateRecoveryTimer=setTimeout(()=>{
+  if(!leagueId||document.hidden)return;
+  if(hasFreshRegiaState(signalLocalAt,signalServerAt))return;
+  requestState(signalServerAt);
+ },recoveryDelay);
+ scheduleStateFallback(2200,signalLocalAt,signalServerAt);
+}
+async function connect(force=false){
+ if(!leagueId||document.hidden||(!force&&rtConnected)||connectInFlight)return;
+ connectInFlight=true;
+ clearTimeout(retry);retry=null;
+ if(channel)try{await db.removeChannel(channel)}catch{}
+ rtConnected=false;presenceTracked=false;
+ channel=db.channel("fantastica:"+leagueId,{config:{presence:{key:`phone:${Number(slot)}`}}})
+ .on("broadcast",{event:"STATE"},payload=>{
+   showRt(payload);
+   scheduleStateRecovery(payload);
+ })
+ .on("broadcast",{event:"PHONE_STATE"},payload=>{
+   const d=payload&&payload.payload||payload||{};
+   const stateSyncMs=Number(d.state_sync_ms)||0;
+   if(stateSyncMs>0&&latestStateSignalSeenMs>0&&stateSyncMs<latestStateSignalSeenMs)return;
+   applyRegiaState(d);
+ })
+ .on("broadcast",{event:"ROSTER_STATE"},payload=>{
+   const d=payload&&payload.payload||payload||{};
+   catalog=(d.players||[]).map(p=>({...p}));
+   rosterCacheLoaded=true;rosterRequestPending=false;
+   renderRosterPages();
+ })
+ .on("broadcast",{event:"PLAYER_POOL"},payload=>{
+   const d=payload&&payload.payload||payload||{};
+   applyPlayerPoolEvent(d);
+ })
+ .on("broadcast",{event:"CELEBRATE"},payload=>{
+   const d=payload&&payload.payload||payload||{};
+   if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE"||d.kind==="GLOBAL_COMPLETE");
+ })
+ .subscribe(async st=>{
+   if(st==="SUBSCRIBED"){
+     rtConnected=true;connectInFlight=false;
+     $("status").className="ok";$("status").textContent="● ONLINE";
+     heartbeat(false);
+     await reportAuctionVisibility(true);
+     await trackPhonePresence();
+     requestState();
+   }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
+     rtConnected=false;connectInFlight=false;presenceTracked=false;
+     clearTimeout(retry);retry=setTimeout(connect,1200);
+   }
+ })
+}
+
+document.addEventListener("pointerdown",()=>{
+ try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
+ if(wakeWanted&&!document.hidden)requestWakeLock(false);
+},{passive:true});
+
+const pagesEl=$("pages");
+function syncViewportHeight(){
+ try{
+  /* Su Apple --fa-vh e --fa-vw sono gestiti dal layout dedicato sopra. */
+  if(document.documentElement.classList.contains("fa-ios"))return;
+  document.documentElement.style.setProperty("--fa-vh",window.innerHeight+"px");
+ }catch(e){}
+}
+syncViewportHeight();window.addEventListener("resize",syncViewportHeight);window.addEventListener("orientationchange",function(){setTimeout(syncViewportHeight,120)});
+var faTouchX=null,faTouchY=null,faPageIndex=1,faPendingPageIndex=null,faGestureLock=null;
+var faPcArrowMode=!/(Android|iPhone|iPad|iPod)/i.test(navigator.userAgent||"")&&!!(window.matchMedia&&window.matchMedia("(hover:hover) and (pointer:fine)").matches);
+const pcPagePrev=$("pcPagePrev"),pcPageNext=$("pcPageNext");
+if(faPcArrowMode){pcPagePrev.style.display="block";pcPageNext.style.display="block"}
+function faPageList(){return pagesEl.querySelectorAll(".page")}
+function faUpdatePcNav(){
+ if(!faPcArrowMode)return;
+ var list=faPageList();
+ pcPagePrev.disabled=faPageIndex<=0;
+ pcPageNext.disabled=list.length>1&&faPageIndex>=list.length-1;
+}
+function faActivatePage(index){
+ var list=faPageList(),i;
+ if(!list.length)return false;
+ if(index<0)index=0;
+ if(index>=list.length){
+  if(index>=2){faPendingPageIndex=index;requestRosters(index)}
+  return false;
+ }
+ for(i=0;i<list.length;i++)list[i].classList.remove("faActive");
+ list[index].classList.add("faActive");
+ faPageIndex=index;faPendingPageIndex=null;
+ faUpdatePcNav();
+ if(index===0)loadPlayerPool(true);
+ if(index>=2)refreshVisibleRosterDirect(false);
+ try{window.scrollTo(0,0)}catch(e){}
+ return true;
+}
+function faAfterRosterRender(){
+ var list=faPageList(),wanted=faPendingPageIndex!==null?faPendingPageIndex:faPageIndex;
+ if(faPcArrowMode)list.forEach(function(page){var hint=page.querySelector(".swipeHint");if(hint)hint.textContent="← usa le frecce laterali per vedere le altre rose →"});
+ if(!list.length)return;
+ if(wanted>=list.length)wanted=list.length-1;
+ if(wanted<0)wanted=0;
+ faActivatePage(wanted);
+}
+pagesEl.addEventListener("touchstart",function(ev){
+ if(!ev.touches||ev.touches.length!==1)return;
+ faTouchX=ev.touches[0].clientX;faTouchY=ev.touches[0].clientY;faGestureLock=null;
+},{passive:true});
+pagesEl.addEventListener("touchmove",function(ev){
+ if(faTouchX===null||!ev.touches||ev.touches.length!==1)return;
+ var dx=ev.touches[0].clientX-faTouchX,dy=ev.touches[0].clientY-faTouchY;
+ if(!faGestureLock&&(Math.abs(dx)>100||Math.abs(dy)>100))faGestureLock=Math.abs(dx)>Math.abs(dy)*1.08?"x":"y";
+ if(faGestureLock==="x"){
+  if(ev.cancelable)ev.preventDefault();
+  ev.stopPropagation();
+ }
+},{passive:false});
+pagesEl.addEventListener("touchend",function(ev){
+ if(faTouchX===null||!ev.changedTouches||!ev.changedTouches.length){faTouchX=faTouchY=null;faGestureLock=null;return}
+ var dx=ev.changedTouches[0].clientX-faTouchX,dy=ev.changedTouches[0].clientY-faTouchY,target=faPageIndex;
+ if((faGestureLock==="x"||Math.abs(dx)>Math.abs(dy)*1.15)&&Math.abs(dx)>=100){
+  target=dx<0?faPageIndex+1:faPageIndex-1;
+  if(target>=2)requestRosters(target);
+  faActivatePage(target);
+  if(ev.cancelable)ev.preventDefault();
+ }
+ faTouchX=faTouchY=null;faGestureLock=null;
+},{passive:false});
+pagesEl.addEventListener("touchcancel",function(){faTouchX=faTouchY=null;faGestureLock=null},{passive:true});
+
+/* PC: stessa navigazione delle rose con trascinamento orizzontale del mouse
+   e swipe orizzontale da trackpad. Non interviene sui touch di telefono/tablet. */
+var faMouseStartX=null,faMouseStartY=null,faMousePointerId=null,faMouseDragged=false,faSuppressClick=false,faWheelAt=0;
+function faDesktopTargetIndex(dx){
+ var target=dx<0?faPageIndex+1:faPageIndex-1;
+ if(target>=2)requestRosters(target);
+ faActivatePage(target);
+}
+pagesEl.addEventListener("pointerdown",function(ev){
+ if(faPcArrowMode)return;
+ if(ev.pointerType!=="mouse"&&ev.pointerType!=="pen")return;
+ if(ev.button!==0)return;
+ faMouseStartX=ev.clientX;faMouseStartY=ev.clientY;faMousePointerId=ev.pointerId;faMouseDragged=false;
+ try{pagesEl.setPointerCapture(ev.pointerId)}catch(e){}
+},{passive:true});
+pagesEl.addEventListener("pointermove",function(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faMouseDragged=true;
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
+function faEndDesktopSwipe(ev){
+ if(faMouseStartX===null||ev.pointerId!==faMousePointerId)return;
+ var dx=ev.clientX-faMouseStartX,dy=ev.clientY-faMouseStartY;
+ if(faMouseDragged&&Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.08){
+  faDesktopTargetIndex(dx);
+  faSuppressClick=true;
+  setTimeout(function(){faSuppressClick=false},80);
+  if(ev.cancelable)ev.preventDefault();
+ }
+ try{pagesEl.releasePointerCapture(ev.pointerId)}catch(e){}
+ faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+}
+pagesEl.addEventListener("pointerup",faEndDesktopSwipe,{passive:false});
+pagesEl.addEventListener("pointercancel",function(ev){
+ if(ev.pointerId===faMousePointerId){
+  faMouseStartX=faMouseStartY=faMousePointerId=null;faMouseDragged=false;
+ }
+},{passive:true});
+pagesEl.addEventListener("click",function(ev){
+ if(faSuppressClick){ev.preventDefault();ev.stopPropagation();faSuppressClick=false}
+},true);
+pagesEl.addEventListener("wheel",function(ev){
+ if(faPcArrowMode)return;
+ var now=Date.now();
+ if(now-faWheelAt<320)return;
+ if(Math.abs(ev.deltaX)>28&&Math.abs(ev.deltaX)>Math.abs(ev.deltaY)*1.15){
+  faWheelAt=now;
+  faDesktopTargetIndex(-ev.deltaX);
+  if(ev.cancelable)ev.preventDefault();
+ }
+},{passive:false});
+pcPagePrev.addEventListener("click",function(ev){
+ if(!faPcArrowMode)return;
+ ev.preventDefault();ev.stopPropagation();
+ faActivatePage(faPageIndex-1);
+});
+pcPageNext.addEventListener("click",function(ev){
+ if(!faPcArrowMode)return;
+ ev.preventDefault();ev.stopPropagation();
+ var target=faPageIndex+1;
+ if(target>=2)requestRosters(target);
+ faActivatePage(target);
+});
+faUpdatePcNav();
+
+function eventInsideAuction(ev){
+ const el=ev.target instanceof Element?ev.target:null;
+ return !!(el&&el.closest(".auctionPage"));
+}
+document.addEventListener("dblclick",ev=>{
+ if(eventInsideAuction(ev)){ev.preventDefault();ev.stopPropagation()}
+},{passive:false});
+document.addEventListener("gesturestart",ev=>{
+ if(eventInsideAuction(ev))ev.preventDefault();
+},{passive:false});
+document.addEventListener("gesturechange",ev=>{
+ if(eventInsideAuction(ev))ev.preventDefault();
+},{passive:false});
+document.addEventListener("gestureend",ev=>{
+ if(eventInsideAuction(ev))ev.preventDefault();
+},{passive:false});
+
+const errs={COOLDOWN:"Attendi: l'offerta è appena cambiata.",NON_PARTECIPI:"Non partecipi a questa asta.",SEI_FUORI_ASTA:"Sei fuori asta.",OFFERTA_TROPPO_BASSA:"Offerta troppo bassa.",ASTA_CHIUSA:"Asta chiusa.",ASTA_APPENA_CHIUSA:"Asta appena terminata.",RUOLO_COMPLETO:"Ruolo completo.",ROSA_COMPLETA:"Rosa completa.",CREDITI_INSUFFICIENTI:"Crediti insufficienti.",NESSUN_GIOCATORE:"Nessun giocatore selezionato.",NON_AUTORIZZATO:"Accesso non autorizzato."};
+async function bid(kind,exact=null){
+ if(busy)return;
+ busy=true;
+ const oldBid=auction&&auction.current_bid||0;
+ const optimistic=kind==="PLUS1"?oldBid+1:kind==="PLUS10"?oldBid+10:(exact!=null?exact:oldBid);
+ if(auction){auction.current_bid=optimistic;auction.highest_slot=slot}
+ $("info").textContent=`MIGLIOR OFFERENTE: ${optimistic} · ${slotName(slot)}`;
+ m($("msg"),"Invio offerta...","warn");
+ const {data,error}=await db.rpc("fa_place_bid_v521",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_kind:kind,p_exact:exact});
+ busy=false;
+ if(error){m($("msg"),error.message,"bad");scheduleLoad(20)}
+ else if(data&&data.ok){
+ if(auction){auction.current_bid=data.amount;auction.highest_slot=slot;auction.paused=!!data.paused;auction.timer_deadline=data.timer_deadline||null}
+ m($("msg"),"✓ Offerta accettata: "+data.amount,"ok");render();
+ requestState();
+}
+ else if(data&&data.error==="SUPERA_MASSIMO"){m($("msg"),`Massimo spendibile: ${data.max_spend}`,"warn");scheduleLoad(20)}
+ else if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant()}
+ else{m($("msg"),errs[data&&data.error]||(data&&data.error),"warn");scheduleLoad(20)}
+}
+$("plus1").onclick=()=>bid("PLUS1");$("plus10").onclick=()=>bid("PLUS10");
+$("leave").onclick=async()=>{
+ if(!slotData.active||auction.highest_slot===slot)return;
+ const wasAbandoned=!!slotData.abandoned;
+ slotData.abandoned=!wasAbandoned;
+ m($("msg"),wasAbandoned?"Rientro...":"Abbandono asta...","warn");
+ render();
+ const {data,error}=await db.rpc("fa_leave_v475",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false,p_rejoin:wasAbandoned});
+ if(error)m($("msg"),error.message,"bad");
+ else if(data&&data.auto_awarded)m($("msg"),`✓ Asta conclusa: aggiudicato a ${slotName(data.slot)} per ${data.amount}`,"ok");
+ else if(data&&data.ok)m($("msg"),wasAbandoned?"✓ Sei rientrato":"✓ Hai abbandonato","ok");
+ else if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return}
+ else m($("msg"),data&&data.error,"warn");
+ scheduleLoad(25);
+};
+const modal=$("modal"),disp=$("display");$("exact").onclick=()=>{disp.value="";const own=rosterInfo(slot);if($("exactMax"))$("exactMax").textContent=`Massimo offribile: ${own.max} crediti`;modal.classList.add("show")};
+$("playerPoolSearch").addEventListener("input",renderPlayerPool);document.querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{const t=b.textContent;if(t==="INVIA"){if(disp.value){modal.classList.remove("show");bid("EXACT",Number(disp.value))}}else if(t==="ANNULLA")modal.classList.remove("show");else if(t==="C")disp.value="";else if(t==="⌫")disp.value=disp.value.slice(0,-1);else if(/^\d$/.test(t))disp.value+=t});
+setInterval(()=>{if(leagueId&&!document.hidden)requestState()},30000);
+function resumeLightSync(forceReconnect=false){
+ clearTimeout(resumeTimer);
+ resumeTimer=setTimeout(async()=>{
+  if(document.hidden||!leagueId)return;
+  const now=Date.now();
+  if(now-lastResumeSyncAt<1200)return;
+  lastResumeSyncAt=now;
+  if(!(await validateParticipant())){await invalidateParticipant();return}
+  if(wakeWanted)requestWakeLock(true);
+  await reportAuctionVisibility(true);
+  heartbeat(false);
+  if(forceReconnect){
+   rtConnected=false;presenceTracked=false;
+   connect(true);
+  }else if(rtConnected){
+   trackPhonePresence();requestState();
+  }else connect();
+  scheduleStateFallback();
+ },180);
+}
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden)resumeLightSync(true);
+ else{reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateRecoveryTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
+});
+window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted)});
+window.addEventListener("pagehide",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
+window.addEventListener("beforeunload",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
+
+function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))])}
+(async()=>{
+ try{
+  await withTimeout(ensureAuth(),8000,"Connessione Supabase non disponibile");
+  syncServerClock();
+  let restored=false;
+  /* V521: protezione additiva della sola finestra credenziali -> scelta nome.
+     Se non esiste una prenotazione incompleta, si prosegue nelle routine storiche senza modificarle. */
+  try{restored=await withTimeout(tryPendingNameRestore(),8000,"Ripristino iscrizione in corso lento")}catch{}
+  if(restored)return;
+  if(isFreshAccess()){
+   // QR/reinstallazione: prova prima il Device ID corrente. Su Safari/iOS datati,
+   // se lo storage della Web App non è disponibile in tempo, usa come fallback
+   // la sessione Supabase già autenticata (solo se identifica un unico partecipante).
+   clearParticipantState();
+   try{restored=await withTimeout(tryCurrentDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}
+   if(!restored){try{restored=await withTimeout(trySessionRestore(),8000,"Ripristino sessione lento")}catch{}}
+   if(!restored)showLogin();
+   return;
+  }
+  try{restored=await withTimeout(tryDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}
+  if(!restored){try{restored=await withTimeout(tryCurrentDeviceRestore(),8000,"Ripristino dispositivo lento")}catch{}}
+  if(!restored){try{restored=await withTimeout(trySessionRestore(),8000,"Ripristino sessione lento")}catch{}}
+  if(!restored)showLogin();
+ }catch(e){
+  $("startupScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+  m($("loginMsg"),"Connessione non riuscita. Verifica Internet e riprova.","bad");
+ }
+})();
+})();
+</script>
+<script>
+/* V528.1: fix PWA applicato SOLO a iPad.
+   iPhone, Android e gli altri browser mantengono esattamente la registrazione V526. */
+(function(){
+ var ua=navigator.userAgent||"";
+ var isIPad=/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ if(isIPad)return;
+ if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));
+})();
+</script>
+</body></html>

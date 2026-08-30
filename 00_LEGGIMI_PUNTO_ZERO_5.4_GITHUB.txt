@@ -1,0 +1,8 @@
+FANTASTICA 5.4 — GITHUB PAGES COMPLETO
+
+Pubblicare tutto il contenuto di questa cartella nella root del repository GitHub Pages.
+Non caricare soltanto pc.html e telefono.html durante una ricostruzione da zero.
+
+Per un nuovo progetto Supabase aggiornare:
+- config.js;
+- SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY dentro telefono.html.

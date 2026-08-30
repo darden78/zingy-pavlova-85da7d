@@ -1,0 +1,10 @@
+FANTASTICA WEB 5.0.8c - COMPATIBILITA DISPOSITIVI MENO RECENTI
+
+Fix mirato al client telefono/tablet.
+- telefono.html non usa optional chaining/nullish coalescing nel codice applicativo.
+- Su browser moderni resta Supabase JS 2.45.3.
+- Su browser che non interpretano la sintassi moderna viene caricato automaticamente Supabase JS 2.44.4 come fallback legacy.
+- installa.html usa sintassi conservativa.
+- cache Service Worker aggiornata.
+
+Non modifica EXE, APK, Supabase o logica asta.
