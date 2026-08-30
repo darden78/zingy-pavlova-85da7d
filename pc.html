@@ -799,7 +799,7 @@ const PRICE_JINGLE_SOURCES=new Map([
 const priceJingleAudios=new Map();
 const priceJingleHandled=new Set();
 let priceJinglePending=[],priceJingleQueue=[],priceJingleActive=false,priceJingleCurrentAudio=null;
-let regiaAudioPaintFrame1=null,regiaAudioPaintFrame2=null;
+let regiaAudioPaintFrame1=null,regiaAudioPaintFrame2=null,regiaAudioPaintKey="";
 function priceJingleAudioLocked(){return priceJingleActive||priceJingleQueue.length>0||priceJinglePending.length>0}
 function priceJingleAudioFor(threshold){
  let a=priceJingleAudios.get(threshold);
@@ -846,14 +846,27 @@ function flushPriceJinglesAfterVisualUpdate(){
 function cancelRegiaAudioAfterPaint(){
  if(regiaAudioPaintFrame1!=null)cancelAnimationFrame(regiaAudioPaintFrame1);
  if(regiaAudioPaintFrame2!=null)cancelAnimationFrame(regiaAudioPaintFrame2);
- regiaAudioPaintFrame1=null;regiaAudioPaintFrame2=null;
+ regiaAudioPaintFrame1=null;regiaAudioPaintFrame2=null;regiaAudioPaintKey="";
 }
-function scheduleRegiaAudioAfterPaint(){
+function regiaAudioStateKey(){
+ if(!auction)return "";
+ return [
+  auction.current_player_id??"",auction.current_bid??"",auction.highest_slot??"",
+  auction.status||"",auction.assignment_confirmed?1:0,auction.last_bid_at||""
+ ].join("|");
+}
+function scheduleRegiaAudioAfterPaint(stateKey=regiaAudioStateKey()){
+ const nextKey=String(stateKey||"");
+ /* Lo stesso rilancio genera piu' STATE tecnici (offerta, timer, event_cursor).
+    Se il contenuto audio e' identico, il secondo STATE non deve annullare e
+    ricominciare l'attesa gia' avviata dopo il primo aggiornamento visivo. */
+ if(nextKey&&nextKey===regiaAudioPaintKey&&(regiaAudioPaintFrame1!=null||regiaAudioPaintFrame2!=null))return;
  cancelRegiaAudioAfterPaint();
+ regiaAudioPaintKey=nextKey;
  regiaAudioPaintFrame1=requestAnimationFrame(()=>{
   regiaAudioPaintFrame1=null;
   regiaAudioPaintFrame2=requestAnimationFrame(()=>{
-   regiaAudioPaintFrame2=null;
+   regiaAudioPaintFrame2=null;regiaAudioPaintKey="";
    flushPriceJinglesAfterVisualUpdate();
    syncRegiaVoice();
   });
@@ -1294,7 +1307,7 @@ async function load(runProgress=true,stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();scheduleRegiaAudioAfterPaint();
+ render();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -1313,7 +1326,7 @@ async function loadCore(stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();scheduleRegiaAudioAfterPaint();
+ render();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
@@ -1929,7 +1942,41 @@ $("nextEvent").onclick=async()=>{
 document.addEventListener("pointerdown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 document.addEventListener("keydown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0,lastImmediateAuctionSignalMs=0;
-let pendingFullLoad=false;
+let pendingFullLoad=false,lastImmediateBidVisualKey="",lastImmediateBidVisualSignalMs=0;
+function immediateBidVisualKey(a){
+ if(!a||a.status!=="OPEN"||!a.current_player_id||!a.highest_slot||Number(a.current_bid||0)<=0||!a.last_bid_at)return "";
+ return [a.current_player_id,a.current_bid,a.highest_slot,a.last_bid_at].join("|");
+}
+function immediateAuctionControlKey(a){
+ if(!a)return "";
+ return [
+  a.status||"",a.paused?1:0,a.paused_remaining_ms??"",a.timer_deadline||"",
+  a.manual_timer_started?1:0,a.offline_hold?1:0,a.offline_resume_timer?1:0,
+  a.assignment_confirmed?1:0,a.highest_slot??""
+ ].join("|");
+}
+function renderImmediateAuctionControls(){
+ const offlineBlockers=offlineClosingBlockers(),offlineNames=offlineBlockers.map(x=>x.display_name);
+ $("offlineGuard").classList.toggle("show",offlineBlockers.length>0&&auction.status==="OPEN");
+ $("offlineGuard").textContent=offlineBlockers.length?`⚠ CHIUSURA BLOCCATA — ${offlineNames.join(", ")} offline`:"";
+ $("pauseTimer").textContent=auction.paused?"▶ AVVIA TIMER":"⏸ PAUSA TIMER";
+ $("pauseTimer").disabled=!auction.highest_slot||auction.status==="SOLD"||offlineBlockers.length>0;
+ $("assignNow").disabled=!auction.highest_slot||auction.status==="SOLD";
+ updateTimerVisualState();
+}
+function renderImmediateBidVisual(previousAuction){
+ $("amount").textContent=auction.current_bid;
+ $("who").textContent=auction.highest_slot?slotName(auction.highest_slot):"Nessun offerente";
+ $("closed").textContent="";
+ renderImmediateAuctionControls();
+ const oldLeader=Number(previousAuction?.highest_slot||0),newLeader=Number(auction.highest_slot||0);
+ if(oldLeader!==newLeader){
+  $("leaderRoster").innerHTML=auction.highest_slot?rosterHTML(auction.highest_slot):`<div class="rosterHead">Nessun maggiore offerente.</div>`;
+  document.querySelectorAll(".p[data-slot]").forEach(el=>el.classList.toggle("highest",Number(el.dataset.slot)===newLeader));
+  requestAnimationFrame(()=>fitRosterPanel($("leaderRoster")));
+ }
+ if(manualAuctionSlot!==null)renderManualAuctionPanel(manualAuctionSlot);
+}
 function applyImmediateAuctionState(d,stateSignalMs=0){
  if(!league||d?.table!=="fa_auction"||d?.op==="DELETE"||!d?.auction)return false;
  const incoming=d.auction;
@@ -1941,8 +1988,33 @@ function applyImmediateAuctionState(d,stateSignalMs=0){
  // Il recupero autorevole parte comunque subito dopo tramite scheduleLoad().
  const guardRun=++loadRunSequence;
  if(guardRun>lastAppliedLoadRun)lastAppliedLoadRun=guardRun;
+ const previousAuction=auction;
+ const previousControlKey=immediateAuctionControlKey(previousAuction);
  auction={...(auction||{}),...incoming};
- render();scheduleRegiaAudioAfterPaint();
+ const bidKey=immediateBidVisualKey(auction);
+ const sameBidBurst=!!bidKey&&bidKey===lastImmediateBidVisualKey&&signalMs>0&&lastImmediateBidVisualSignalMs>0&&signalMs-lastImmediateBidVisualSignalMs<=250;
+ if(sameBidBurst){
+  lastImmediateBidVisualSignalMs=signalMs;
+  // Tutti i dati vengono comunque incorporati. Aggiorna i soli controlli se il
+  // STATE tecnico ha davvero cambiato timer/pausa/offline; event_cursor da solo
+  // non produce alcuna mutazione grafica.
+  if(previousControlKey!==immediateAuctionControlKey(auction))renderImmediateAuctionControls();
+  return true;
+ }
+ const isNewBidVisual=!!bidKey&&(
+  !previousAuction||Number(previousAuction.current_bid)!==Number(auction.current_bid)||
+  Number(previousAuction.highest_slot||0)!==Number(auction.highest_slot||0)||
+  String(previousAuction.last_bid_at||"")!==String(auction.last_bid_at||"")||
+  String(previousAuction.current_player_id||"")!==String(auction.current_player_id||"")
+ );
+ if(isNewBidVisual){
+  lastImmediateBidVisualKey=bidKey;lastImmediateBidVisualSignalMs=signalMs;
+  renderImmediateBidVisual(previousAuction);
+  scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
+  return true;
+ }
+ lastImmediateBidVisualKey=bidKey;lastImmediateBidVisualSignalMs=signalMs;
+ render();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
  return true;
 }
 function scheduleLoad(ms=12,full=false){
@@ -1958,6 +2030,7 @@ function disconnect(){
  if(channel)db.removeChannel(channel);
  channel=null;rtConnected=false;
  clearTimeout(retry);clearTimeout(loadTimer);
+ lastImmediateBidVisualKey="";lastImmediateBidVisualSignalMs=0;
  disconnectMirror();
 }
 function showRt(payload){lastRtAt=Date.now()}
