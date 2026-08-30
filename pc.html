@@ -899,11 +899,6 @@ function syncPriceJinglesAfterRender(){
    il MUTE agisce solo sulla sintesi vocale e non su fireworksSound(). */
 const REGIA_VOICE_MUTE_KEY="fantastica-regia-voice-muted-v521";
 let regiaVoiceMuted=false,regiaVoiceSnapshot=null,regiaAwardTimer=null,regiaCelebrationSuppressUntil=0;
-/* FANTASTICA 5.5.1 - LAGFIX1 client-only.
-   Voce e jingle vengono valutati dopo che il nuovo stato e' stato disegnato.
-   Gli STATE tecnici della stessa offerta non annullano e non riavviano
-   inutilmente l'attesa audio gia' programmata. */
-let regiaAudioPaintFrame1=null,regiaAudioPaintFrame2=null,regiaAudioPaintKey="";
 try{regiaVoiceMuted=localStorage.getItem(REGIA_VOICE_MUTE_KEY)==="1"}catch{}
 function regiaItalianVoice(){
  try{return (speechSynthesis.getVoices?.()||[]).find(v=>/^it(?:-|_)/i.test(v.lang||""))||null}catch{return null}
@@ -1112,32 +1107,7 @@ function scheduleRegiaAwardVoice(winnerSlot){
   regiaSpeakAward(winnerName);
  },700);
 }
-function regiaAudioStateKey(){
- if(!auction)return "";
- return [
-  auction.current_player_id??"",auction.current_bid??"",auction.highest_slot??"",
-  auction.status||"",auction.assignment_confirmed?1:0,auction.last_bid_at||""
- ].join("|");
-}
-function cancelRegiaAudioAfterPaint(){
- if(regiaAudioPaintFrame1!=null)cancelAnimationFrame(regiaAudioPaintFrame1);
- if(regiaAudioPaintFrame2!=null)cancelAnimationFrame(regiaAudioPaintFrame2);
- regiaAudioPaintFrame1=null;regiaAudioPaintFrame2=null;regiaAudioPaintKey="";
-}
-function scheduleRegiaAudioAfterPaint(stateKey=regiaAudioStateKey()){
- const nextKey=String(stateKey||"");
- if(nextKey&&nextKey===regiaAudioPaintKey&&(regiaAudioPaintFrame1!=null||regiaAudioPaintFrame2!=null))return;
- cancelRegiaAudioAfterPaint();regiaAudioPaintKey=nextKey;
- regiaAudioPaintFrame1=requestAnimationFrame(()=>{
-  regiaAudioPaintFrame1=null;
-  regiaAudioPaintFrame2=requestAnimationFrame(()=>{
-   regiaAudioPaintFrame2=null;regiaAudioPaintKey="";syncRegiaVoice();
-  });
- });
-}
-function resetRegiaVoiceSnapshot(){
- cancelRegiaAudioAfterPaint();regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null;
-}
+function resetRegiaVoiceSnapshot(){regiaVoiceSnapshot=null;clearTimeout(regiaAwardTimer);regiaAwardTimer=null}
 function syncRegiaVoice(){
  if(!auction)return;
  const snap={
@@ -1352,7 +1322,7 @@ async function load(runProgress=true,stateSignalMs=0){
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
- render();syncPriceJinglesAfterRender();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
+ render();syncPriceJinglesAfterRender();syncRegiaVoice();
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
@@ -1374,7 +1344,7 @@ async function loadCore(stateSignalMs=0,stateTables=[]){
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
  if(canUseFastAuctionRender(previousAuction,auction,stateTables))renderFastAuctionState(previousAuction);
  else render();
- syncPriceJinglesAfterRender();scheduleRegiaAudioAfterPaint(regiaAudioStateKey());
+ syncPriceJinglesAfterRender();syncRegiaVoice();
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
 const presenceSeen=new Set();
