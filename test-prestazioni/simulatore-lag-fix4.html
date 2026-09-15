@@ -9,7 +9,7 @@
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.7</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.8</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
   <div class="warning"><b>Ordine corretto:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
@@ -33,7 +33,7 @@
     <div class="metric"><small>RPC mediana</small><b id="mRpc50">—</b></div>
     <div class="metric"><small>RPC p95</small><b id="mRpc95">—</b></div>
     <div class="metric"><small>RPC massimo</small><b id="mRpcMax">—</b></div>
-    <div class="metric"><small>Errori offerte</small><b id="mErrors">0</b></div>
+    <div class="metric"><small>Errori test (totali)</small><b id="mErrors">0</b></div>
     <div class="metric"><small>Video immediato p95</small><b id="mVideo95">—</b></div>
     <div class="metric"><small>Video immediato max</small><b id="mVideoMax">—</b></div>
     <div class="metric"><small>Immediato oltre 1 s</small><b id="mOver1s">0</b></div>
@@ -44,7 +44,7 @@
     <div class="metric"><small>Dati REST stimati</small><b id="mRestBytes">0 MB</b></div>
     <div class="metric"><small>Richieste telefoni</small><b id="mRequests">0</b></div>
     <div class="metric"><small>PHONE_STATE inviati</small><b id="mPhoneStates">0</b></div>
-    <div class="metric"><small>Micro-offline 1 s</small><b id="mMicro">—</b></div>
+    <div class="metric"><small>Prove con durata non valida</small><b id="mInvalid">0</b></div><div class="metric"><small>Micro-offline 1 s</small><b id="mMicro">—</b></div>
     <div class="metric"><small>Offline reale 5 s</small><b id="mOffline">—</b></div>
     <div class="metric"><small>Recuperi deadline</small><b id="mTimerRecoveries">0</b></div>
    </div>
@@ -70,7 +70,7 @@ const fmt=v=>Number.isFinite(v)?Math.round(v)+" ms":"—";
 function percentile(values,p){if(!values.length)return null;const a=[...values].sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.max(0,Math.ceil(a.length*p/100)-1))]}
 function addLog(text,kind=""){const line=`${new Date().toLocaleTimeString("it-IT")}  ${text}`;state.log.push({at:new Date().toISOString(),text,kind});const d=document.createElement("div");d.textContent=line;if(kind==="bad")d.className="badText";if(kind==="ok")d.className="ready";$("log").appendChild(d);$("log").scrollTop=$("log").scrollHeight}
 function setStatus(text,kind=""){const e=$("status");e.textContent=text;e.className="status"+(kind?" "+kind:"")}
-function paint(){const rpc=state.bids.map(x=>x.rpc_ms),bids=state.bids.length,states=state.diag?.states||0,loads=state.diag?.loads||0,bytes=state.diag?.rest_payload_bytes||0,micro=state.faults.find(x=>x.kind==="TRANSIENT_1S"),off=state.faults.find(x=>x.kind==="OFFLINE_5S");$("mAuctions").textContent=state.auctions;$("mBids").textContent=bids;$("mRpc50").textContent=fmt(percentile(rpc,50));$("mRpc95").textContent=fmt(percentile(rpc,95));$("mRpcMax").textContent=fmt(rpc.length?Math.max(...rpc):null);$("mErrors").textContent=state.errors.length;$("mVideo95").textContent=fmt(state.diag?.fast_p95_ms);$("mVideoMax").textContent=fmt(state.diag?.fast_max_ms);$("mOver1s").textContent=state.diag?.fast_over_1000_ms??0;$("mStates").textContent=states;$("mLoads").textContent=loads;$("mStatesBid").textContent=bids?(states/bids).toFixed(2):"—";$("mLoadsBid").textContent=bids?(loads/bids).toFixed(2):"—";$("mRestBytes").textContent=(bytes/1048576).toFixed(2)+" MB";$("mRequests").textContent=state.diag?.request_state_received||0;$("mPhoneStates").textContent=state.diag?.phone_states_sent||0;$("mMicro").textContent=micro?(micro.outcome||(micro.pass?"PASS":"FAIL")):"—";$("mOffline").textContent=off?(off.outcome||(off.pass?"PASS":"FAIL")):"—";$("mTimerRecoveries").textContent=state.timerWaitRecoveries}
+function paint(){const rpc=state.bids.map(x=>x.rpc_ms),bids=state.bids.length,states=state.diag?.states||0,loads=state.diag?.loads||0,bytes=state.diag?.rest_payload_bytes||0,micro=state.faults.findLast(x=>x.kind==="TRANSIENT_1S"),off=state.faults.findLast(x=>x.kind==="OFFLINE_5S");$("mAuctions").textContent=state.auctions;$("mBids").textContent=bids;$("mRpc50").textContent=fmt(percentile(rpc,50));$("mRpc95").textContent=fmt(percentile(rpc,95));$("mRpcMax").textContent=fmt(rpc.length?Math.max(...rpc):null);$("mErrors").textContent=state.errors.length;$("mInvalid").textContent=state.faults.filter(x=>!x.timing_valid).length;$("mVideo95").textContent=fmt(state.diag?.fast_p95_ms);$("mVideoMax").textContent=fmt(state.diag?.fast_max_ms);$("mOver1s").textContent=state.diag?.fast_over_1000_ms??0;$("mStates").textContent=states;$("mLoads").textContent=loads;$("mStatesBid").textContent=bids?(states/bids).toFixed(2):"—";$("mLoadsBid").textContent=bids?(loads/bids).toFixed(2):"—";$("mRestBytes").textContent=(bytes/1048576).toFixed(2)+" MB";$("mRequests").textContent=state.diag?.request_state_received||0;$("mPhoneStates").textContent=state.diag?.phone_states_sent||0;$("mMicro").textContent=micro?(micro.outcome||(micro.pass?"PASS":"FAIL")):"—";$("mOffline").textContent=off?(off.outcome||(off.pass?"PASS":"FAIL")):"—";$("mTimerRecoveries").textContent=state.timerWaitRecoveries}
 function makeClient(storageKey){return createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:40}}})}
 async function ensureAuth(client){const s=await client.auth.getSession();if(s.data?.session)return s.data.session;const r=await client.auth.signInAnonymously();if(r.error)throw r.error;return r.data.session}
 async function timedRpc(client,name,args){const t=performance.now();const r=await client.rpc(name,args);return {...r,elapsed:performance.now()-t}}
@@ -186,6 +186,27 @@ function evaluateFaultFix4(kind,durationMs,waitMs,observedMs,before,after,trace)
  return {timingValid,traceValid,pass,outcome:!timingValid?"NON VALIDA":pass?"PASS":"FAIL"};
 }
 function canContinueDiagnostic45(before,after){return !!(before&&after&&after.current_player_id===before.current_player_id&&after.status==="OPEN"&&!after.paused&&!after.offline_hold&&Number.isFinite(Date.parse(after.timer_deadline)));}
+function nextFault48(s){
+ // Leave auction four exclusively to the UI-stall test. Never extend the run.
+ for(const [kind,duration,minAuction] of [["TRANSIENT_1S",1000,0],["OFFLINE_5S",5000,2]]){
+  const attempts=s.faults.filter(x=>x.kind===kind);
+  if(s.auctions<minAuction||s.auctions===3||attempts.length>=3||attempts.some(x=>x.pass||!x.retryable))continue;
+  return {kind,duration};
+ }
+ return null;
+}
+function failureReasons48(s){
+ const reasons=[];
+ if(!s.completed||s.stop)reasons.push("prova incompleta");
+ if(s.errors.length)reasons.push(`${s.errors.length} errori del test`);
+ for(const kind of ["TRANSIENT_1S","OFFLINE_5S"]){if(!s.faults.some(x=>x.kind===kind&&x.pass))reasons.push(`${kind}: manca una prova valida superata`);}
+ if(s.auctions<4||s.finalize.length!==s.auctions)reasons.push("chiusure insufficienti o mancanti");
+ for(const c of s.finalize)if(!Number.isFinite(c.server_delay_ms)||c.server_delay_ms<0||c.server_delay_ms>1000||c.fallback)reasons.push(`asta ${c.player_id}: chiusura ${Math.round(c.server_delay_ms)} ms`);
+ const st=s.stall,c=s.finalize.find(x=>x.player_id===st?.player_id);
+ if(!(st?.run_id===s.runId&&st.duration_ms>=5900&&c&&Date.parse(c.at)>=st.start_server_ms&&Date.parse(c.at)<=st.end_server_ms))reasons.push("chiusura durante blocco UI non verificata");
+ if(s.details44?.complete!==true||s.details44?.dropped>0||s.phoneEventsDropped)reasons.push("diagnostica incompleta");
+ return reasons;
+}
 async function controlledFault(kind,durationMs){
  await collectTrace();const traceStart=state.traceCursor;
  const before=await probeAuction(),phone=state.phones.find(p=>p.slot!==Number(before?.highest_slot))||state.phones[0],began=performance.now();
@@ -206,9 +227,11 @@ async function controlledFault(kind,durationMs){
  state.faults.push(sample);paint();
  addLog(`${kind==="TRANSIENT_1S"?"Micro-offline ignorato":"Pausa e ripartenza automatica"}: ${verdict.outcome}.`,pass?"ok":"bad");
  if(!pass){
-  state.errors.push({at:new Date().toISOString(),phase:"FAULT",kind,error:"VERIFICA_OFFLINE_FALLITA",sample});
-  if(!canContinueDiagnostic45(before,after))throw new Error(`Verifica ${kind}: ${verdict.outcome} — asta non pronta per proseguire`);
-  addLog(`Verifica ${kind}: ${verdict.outcome} conservato. Asta attiva: proseguo la raccolta diagnostica; risultato complessivo non superato.`,"bad");
+  const healthy=canContinueDiagnostic45(before,after);
+  sample.retryable=!timingValid&&traceValid&&healthy;
+  if(!sample.retryable)state.errors.push({at:new Date().toISOString(),phase:"FAULT",kind,error:"VERIFICA_OFFLINE_FALLITA",sample});
+  if(!healthy)throw new Error(`Verifica ${kind}: ${verdict.outcome} — asta non pronta per proseguire`);
+  addLog(sample.retryable?`Durata imprecisa: conservo il tentativo e riprovo in una successiva asta, massimo 3 tentativi per tipo.`:`Verifica ${kind}: FAIL conservato; proseguo solo la diagnostica.`,"bad");
  }
  return after.timer_deadline;
 }
@@ -296,8 +319,7 @@ async function run(){
    state.currentPlayer=player.id;
    addLog(`Asta ${state.auctions+1}: ${player.name}.`);await sleep(180);
    let phone=state.phones[bidderIndex++%8],bid=await placeBid(phone,"APERTURA");if(!bid){await sleep(1200);continue}
-   if(state.auctions===0&&!state.faults.some(x=>x.kind==="TRANSIENT_1S"))bid.timer_deadline=await controlledFault("TRANSIENT_1S",1000);
-   if(state.auctions===2&&!state.faults.some(x=>x.kind==="OFFLINE_5S"))bid.timer_deadline=await controlledFault("OFFLINE_5S",5000);
+   const fault=nextFault48(state);if(fault)bid.timer_deadline=await controlledFault(fault.kind,fault.duration);
    const rounds=3;
    for(let n=0;n<rounds&&!state.stop&&Date.now()<endAt;n++){
     const finalDeadline=await waitUntilFinalFive(bid.timer_deadline);if(state.stop||!finalDeadline)break;
@@ -316,15 +338,15 @@ async function run(){
   await fetchDetails44();
   state.endedAt=new Date().toISOString();state.completed=!state.stop&&Date.now()>=endAt;
   const passed=report().success;
-  setStatus(state.stop?"Test fermato: INCOMPLETO.":passed?"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.":"FIX4 NON SUPERATA: controlla il rapporto.",passed?"ok":"bad");
+  setStatus(state.stop?"Test fermato: INCOMPLETO.":passed?"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.":"FIX4 NON SUPERATA: "+failureReasons48(state).join("; "),passed?"ok":"bad");
  }catch(e){state.errors.push({at:new Date().toISOString(),phase:"RUN",error:e.message});state.endedAt=new Date().toISOString();setStatus("Test interrotto: "+e.message,"bad");addLog(e.message,"bad")}
- finally{try{await collectTrace();}catch(e){state.errors.push({at:new Date().toISOString(),phase:"TRACE",error:e.message});addLog("Registro finale non recuperato: "+e.message,"bad");}if(!state.details44&&state.monitor){try{await fetchDetails44();}catch(e){addLog(e.message,"bad");}}state.running=false;$("prepare").disabled=false;$("start").disabled=false;$("stop").disabled=true;$("download").disabled=false;paint()}
+ finally{try{await collectTrace();}catch(e){state.errors.push({at:new Date().toISOString(),phase:"TRACE",error:e.message});addLog("Registro finale non recuperato: "+e.message,"bad");}if(!state.details44&&state.monitor){try{await fetchDetails44();}catch(e){addLog(e.message,"bad");}}if(state.completed){const reasons=failureReasons48(state);setStatus(reasons.length?"FIX4 NON SUPERATA: "+reasons.join("; "):"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.",reasons.length?"bad":"ok");}state.running=false;$("prepare").disabled=false;$("start").disabled=false;$("stop").disabled=true;$("download").disabled=false;paint()}
 }
 function fix4Pass(s,faultPass){
  const stall=s.stall,closure=s.finalize.find(x=>x.player_id===stall?.player_id);
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
-function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.7",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&state.details44?.complete===true&&state.phoneEventsDropped===0,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.8",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
 function download(){const blob=new Blob([JSON.stringify(report(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;setStatus("Arresto in corso: attendo la chiamata attuale...")};$("download").onclick=download;paint();
 </script>
