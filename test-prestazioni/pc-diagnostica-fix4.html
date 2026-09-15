@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4</title>
+<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.3</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
@@ -186,7 +186,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 /* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
 #leagueHome{max-width:900px;padding-top:3vh}
-/* FIX 40-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
+/* FIX 4.30-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
 #leagueHome{max-height:calc(100vh - 28px);overflow-y:auto;overflow-x:hidden;padding-bottom:28px;scrollbar-gutter:stable}
 #leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
 #leagueHome .authTabs{background:#061b31;border:1px solid #123f67;border-radius:13px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.28)}
@@ -725,7 +725,7 @@ body{overflow:hidden!important}
 #diagPanel .diagTitle{color:#42f5a4;font-size:15px;margin-bottom:6px}#diagPanel .diagGrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}#diagPanel b{color:#ffe169}#diagPanel .diagHint{font-size:11px;color:#b9c9d8;margin-top:7px;font-weight:600}#diagPanel button{margin-top:8px;background:#f5bf26;color:#111;border:0;border-radius:8px;padding:7px 10px;font-weight:900;cursor:pointer}
 </style>
 <aside id="diagPanel" aria-live="polite">
- <div class="diagTitle">REGIA DIAGNOSTICA FIX 4 · VIDEO IMMEDIATO</div>
+ <div class="diagTitle">REGIA DIAGNOSTICA FIX 4.3 · VIDEO IMMEDIATO</div>
  <div class="diagGrid">
   <span>Segnali STATE: <b id="diagStates">0</b></span><span>Aggiornamenti: <b id="diagLoads">0</b></span>
   <span>Immediato mediana: <b id="diagFastP50">—</b></span><span>Immediato p95: <b id="diagFastP95">—</b></span>
@@ -762,7 +762,7 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4.3",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
 function diagPaint(){const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
@@ -1352,9 +1352,15 @@ async function sendPresenceSnapshot(){
  if(sig===lastPresenceSnapshot){commitPresence(arr);return}
  presenceSnapshotBusy=true;
  try{
-  const {data,error}=await db.rpc("fa_regia_presence_snapshot_fix3",{p_league_id:league.id,p_online_slots:arr});
+  const {data,error}=await db.rpc("fa_regia_presence_snapshot_fix4",{p_league_id:league.id,p_online_slots:arr});
   if(!error&&data?.ok!==false){
-   lastPresenceSnapshot=sig;commitPresence(arr);
+   const effective=Array.isArray(data?.effective_online_slots)?data.effective_online_slots:arr;
+   const deferred=Array.isArray(data?.deferred_offline_slots)?data.deferred_offline_slots:[];
+   lastPresenceSnapshot=deferred.length?"":sig;commitPresence(effective);
+   if(deferred.length){
+    recordPresenceEvent("OFFLINE_DEFERRED_RECENT_HEARTBEAT",null,{slots:deferred});
+    schedulePresenceSnapshot(500);
+   }
    if(data?.resumed){diag.timerAutoResumes++;recordPresenceEvent("TIMER_AUTO_RESUME",null,{timer_deadline:data.timer_deadline||null})}
    scheduleLoad(8,false);
   }else recordPresenceEvent("SNAPSHOT_ERROR",null,{error:error?.message||data?.error||"SCONOSCIUTO"});
