@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.3</title>
+<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.4</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
@@ -186,7 +186,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 /* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
 #leagueHome{max-width:900px;padding-top:3vh}
-/* FIX 4.30-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
+/* FIX 4.40-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
 #leagueHome{max-height:calc(100vh - 28px);overflow-y:auto;overflow-x:hidden;padding-bottom:28px;scrollbar-gutter:stable}
 #leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
 #leagueHome .authTabs{background:#061b31;border:1px solid #123f67;border-radius:13px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.28)}
@@ -725,7 +725,7 @@ body{overflow:hidden!important}
 #diagPanel .diagTitle{color:#42f5a4;font-size:15px;margin-bottom:6px}#diagPanel .diagGrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}#diagPanel b{color:#ffe169}#diagPanel .diagHint{font-size:11px;color:#b9c9d8;margin-top:7px;font-weight:600}#diagPanel button{margin-top:8px;background:#f5bf26;color:#111;border:0;border-radius:8px;padding:7px 10px;font-weight:900;cursor:pointer}
 </style>
 <aside id="diagPanel" aria-live="polite">
- <div class="diagTitle">REGIA DIAGNOSTICA FIX 4.3 · VIDEO IMMEDIATO</div>
+ <div class="diagTitle">REGIA DIAGNOSTICA FIX 4.4 · VIDEO IMMEDIATO</div>
  <div class="diagGrid">
   <span>Segnali STATE: <b id="diagStates">0</b></span><span>Aggiornamenti: <b id="diagLoads">0</b></span>
   <span>Immediato mediana: <b id="diagFastP50">—</b></span><span>Immediato p95: <b id="diagFastP95">—</b></span>
@@ -744,10 +744,12 @@ body{overflow:hidden!important}
 </aside>
 
 <script type="module">
+import {DiagnosticRecorder,makePackets} from "./diagnostics-fix44.js";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config-fix4.js?v=fantastica-test-lag-fix4";
 if(new URL(SUPABASE_URL).hostname!=="nbsxpjwivhnyiqtaxehk.supabase.co")throw new Error("FIX4: configurazione fuori ambiente TEST");
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{realtime:{worker:true,heartbeatIntervalMs:25000}}),$=id=>document.getElementById(id);
+const diag44=new DiagnosticRecorder();let lastUiTick44=0;const flush44=new Map();
 let fix4Worker=null,fix4Session=null,fix4Stall=null,fix4Status={ready:false},fix4Run=null;
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="",rosterSwapSourceId=null,rosterSwapMode="";
 let repairDraft={listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE",creditLimits:{}};
@@ -762,27 +764,28 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4.3",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4.4",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
 function diagPaint(){const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
  const restMs=performance.now()-started,bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
  diag.restPayloadBytes+=payloadBytes;
- requestAnimationFrame(()=>{const sample={at:new Date().toISOString(),kind,rest_ms:restMs,rest_payload_bytes:payloadBytes,state_to_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};diag.last=sample;diag.samples.push(sample);if(diag.samples.length>1000)diag.samples.splice(0,diag.samples.length-1000);diagPaint()});
+ requestAnimationFrame(()=>{const sample={at:new Date().toISOString(),kind,rest_ms:restMs,rest_payload_bytes:payloadBytes,state_to_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};if(sample.state_to_video_ms>=1000)record44("slow_video",{...sample,view:"full"});diag.last=sample;diag.samples.push(sample);if(diag.samples.length>1000)diag.samples.splice(0,diag.samples.length-1000);diagPaint()});
 }
 function diagRecordFast(stateSignalMs){
  const bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
  requestAnimationFrame(()=>{
   const sample={at:new Date().toISOString(),signal_to_fast_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};
-  diag.lastFast=sample;diag.fastSamples.push(sample);if(diag.fastSamples.length>1000)diag.fastSamples.splice(0,diag.fastSamples.length-1000);diagPaint();
+  if(sample.signal_to_fast_video_ms>=1000)record44("slow_video",{...sample,view:"fast"});diag.lastFast=sample;diag.fastSamples.push(sample);if(diag.fastSamples.length>1000)diag.fastSamples.splice(0,diag.fastSamples.length-1000);diagPaint();
   requestAnimationFrame(()=>syncRegiaVoice());
  });
 }
-function resetDiagnostics(){
+function resetDiagnostics(runId=null){
+ diag44.reset(runId);lastUiTick44=0;fix4Worker?.postMessage({type:"reset_diag",run_id:runId});
  diag.startedAt=new Date().toISOString();diag.states=0;diag.stateByTable={};diag.stateByOperation={};diag.requestStateReceived=0;diag.phoneStatesSent=0;diag.restPayloadBytes=0;diag.longTasks=0;diag.presenceTransientDrops=0;diag.presenceConfirmedOffline=0;diag.presenceRecoveries=0;diag.timerAutoResumes=0;diag.presenceEvents=[];diag.samples=[];diag.fastSamples=[];diag.last=null;diag.lastFast=null;diagPaint();
 }
 try{new PerformanceObserver(list=>{for(const e of list.getEntries())if(e.duration>=50)diag.longTasks++;diagPaint()}).observe({type:"longtask",buffered:true})}catch{}
-diagEl("diagDownload").onclick=()=>{const blob=new Blob([JSON.stringify(diagSummary(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-diagnostica-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+diagEl("diagDownload").onclick=()=>{const blob=new Blob([JSON.stringify({...diagSummary(),diagnostics_44:diag44.snapshot()},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-diagnostica-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
@@ -1768,14 +1771,25 @@ window.addEventListener("resize",()=>requestAnimationFrame(()=>{fitParticipantNa
 setInterval(timer,100);
 db.auth.onAuthStateChange((_event,session)=>{fix4Session=session;});
 db.auth.getSession().then(r=>{fix4Session=r.data?.session;});
+function record44(kind,extra={}){diag44.add({source:"ui",kind,at:new Date().toISOString(),server_estimate_ms:Date.now()+serverOffset,clock_offset_ms:serverOffset,player_id:auction?.current_player_id,deadline:auction?.timer_deadline,...extra});}
+async function sendDetails44(p){
+ if(!p?.request_id||p.run_id!==diag44.runId||!channel)return;
+ try{
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{flush44.delete(p.request_id);reject(Error("Worker senza risposta"));},6000);flush44.set(p.request_id,()=>{clearTimeout(timer);resolve();});fix4Worker?.postMessage({type:"flush_diag",request_id:p.request_id});});
+  const waitUi=performance.now();while(finalizeBusy&&performance.now()-waitUi<6000)await new Promise(r=>setTimeout(r,25));
+  const snapshot=diag44.snapshot();
+  for(const packet of makePackets(snapshot,p.request_id)){const sent=await channel.send({type:"broadcast",event:"DIAG44_PACKET",payload:packet});if(sent!=="ok")break;}
+ }catch(e){record44("export_error",{error:e.message});}
+}
 function fix4Send(){
+ const now=performance.now();if(lastUiTick44&&now-lastUiTick44>750)record44("ui_tick_gap",{gap_ms:now-lastUiTick44});lastUiTick44=now;
  if(!fix4Worker)return;
  const active=league?.id==="13622072-cec9-4932-8181-5f2cfd07876a"&&auction?.status==="OPEN"&&!auction.paused&&!!auction.timer_deadline;
- fix4Worker.postMessage({type:"state",url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY,token:fix4Session?.access_token||null,leagueId:league?.id,active,deadline:auction?.timer_deadline,offset:serverOffset});
+ fix4Worker.postMessage({type:"state",url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY,token:fix4Session?.access_token||null,leagueId:league?.id,active,deadline:auction?.timer_deadline,offset:serverOffset,player_id:auction?.current_player_id,run_id:diag44.runId});
 }
 try{
- fix4Worker=new Worker("./finalize-worker-fix4.js");
- fix4Worker.onmessage=({data})=>{fix4Status={...fix4Status,...data,received_at:new Date().toISOString()};document.getElementById("fix4WorkerStatus").textContent="Controllo separato: "+(data.error?data.error:data.ready?"attivo":"in attesa");};
+ fix4Worker=new Worker("./finalize-worker-fix4.js?v=44");
+ fix4Worker.onmessage=({data})=>{if(data.diag_event){if(data.diag_event.run_id===diag44.runId)diag44.add(data.diag_event);return;}if(data.flush_ack){flush44.get(data.flush_ack)?.();flush44.delete(data.flush_ack);return;}fix4Status={...fix4Status,...data,received_at:new Date().toISOString()};document.getElementById("fix4WorkerStatus").textContent="Controllo separato: "+(data.error?data.error:data.ready?"attivo":"in attesa");};
  fix4Worker.onerror=()=>{fix4Status={ready:false,error:"Worker non disponibile"};document.getElementById("fix4WorkerStatus").textContent=fix4Status.error;};
  setInterval(fix4Send,250);
 }catch(e){fix4Status={ready:false,error:e.message};}
@@ -1793,16 +1807,17 @@ function fix4HandleStall(payload){
 
 async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
- finalizeBusy=true;
+ finalizeBusy=true;const attemptId=crypto.randomUUID(),started=performance.now(),attemptContext={player_id:auction?.current_player_id,deadline:auction?.timer_deadline};record44("close_request",{...attemptContext,attempt_id:attemptId});
  try{
   const {data,error}=await db.rpc("fa_finalize_v475",{p_league_id:league.id});
+  record44("close_response",{...attemptContext,attempt_id:attemptId,rpc_ms:performance.now()-started,ok:!error&&data?.ok!==false,expired:data?.expired??null,error:error?.message||data?.error||null});
   if(error||data?.ok===false){
     msg($("status"),"Errore assegnazione: "+(error?.message||data?.error||"errore sconosciuto"),"bad");
     await load(false);
   }else if(data?.expired){
     await load(false);
   }
- }finally{finalizeBusy=false}
+ }catch(e){record44("close_error",{...attemptContext,attempt_id:attemptId,rpc_ms:performance.now()-started,error:e.message});throw e;}finally{finalizeBusy=false}
 }
 
 function renderList(){
@@ -2076,7 +2091,8 @@ async function connect(){
       }else pushPhoneState();
    })
    .on("broadcast",{event:"FIX4_STALL"},p=>fix4HandleStall(p?.payload||p))
- .on("broadcast",{event:"DIAG_RESET"},()=>{resetDiagnostics()})
+ .on("broadcast",{event:"DIAG_RESET"},p=>{resetDiagnostics((p?.payload||p)?.run_id||null)})
+ .on("broadcast",{event:"DIAG44_REQUEST"},p=>sendDetails44(p?.payload||p))
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
       if(st==="SUBSCRIBED"){

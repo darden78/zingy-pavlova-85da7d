@@ -2,14 +2,14 @@
 <html lang="it">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fantastica · Simulatore lag Fix 4.2</title>
+<title>Fantastica · Simulatore lag Fix 4.4</title>
 <style>
 :root{color-scheme:dark;--bg:#071426;--card:#10243a;--gold:#f4bd2d;--green:#27d684;--red:#ff5c6c;--muted:#aebfd0}*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#061120,#10294a);color:#fff;font:16px/1.42 system-ui,sans-serif;min-height:100vh}.wrap{max-width:1050px;margin:auto;padding:22px}.hero{background:#08182bd9;border:1px solid #2e557c;border-radius:18px;padding:20px;box-shadow:0 18px 50px #0006}h1{margin:0 0 8px;color:var(--gold);font-size:clamp(25px,4vw,40px)}h2{margin:0 0 12px;font-size:20px}.note{color:var(--muted);margin:5px 0}.warning{background:#3b2d08;border:1px solid #b89022;padding:10px 12px;border-radius:10px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid #294b6b;border-radius:15px;padding:16px}.form{display:grid;grid-template-columns:1fr 160px;gap:10px}label{display:block;color:var(--muted);font-size:13px;font-weight:800;margin-bottom:5px}input,select{width:100%;border:1px solid #477296;border-radius:9px;background:#071626;color:#fff;padding:11px;font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:900;font-size:15px;cursor:pointer;background:var(--gold);color:#151006}button.secondary{background:#2d638e;color:#fff}button.stop{background:#a92d3b;color:#fff}button:disabled{opacity:.4;cursor:not-allowed}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.status{margin-top:12px;border-radius:10px;padding:11px;background:#091a2d;color:var(--muted);font-weight:800}.status.ok{color:#74f6b5;border:1px solid #247a55}.status.bad{color:#ff8995;border:1px solid #80313b}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#08182a;border-radius:10px;padding:10px}.metric small{display:block;color:var(--muted);font-weight:700}.metric b{display:block;color:var(--gold);font-size:20px;margin-top:3px}.log{height:260px;overflow:auto;background:#06111f;border-radius:10px;padding:10px;font:12px/1.45 ui-monospace,monospace;white-space:pre-wrap}.steps{margin:6px 0 0;padding-left:22px}.steps li{margin:6px 0}.ready{color:var(--green)}.badText{color:var(--red)}@media(max-width:760px){.grid,.form{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.2</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.4</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
   <div class="warning"><b>Ordine corretto:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
@@ -55,6 +55,7 @@
 </main>
 
 <script type="module">
+import {PacketCollector} from "./diagnostics-fix44.js";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config-fix4.js?v=fantastica-test-lag-fix4";
 
@@ -62,7 +63,7 @@ if(new URL(SUPABASE_URL).hostname!=="nbsxpjwivhnyiqtaxehk.supabase.co")throw new
 const LEAGUE_NAME="TEST LAG AUTOMATICO";
 const LEAGUE_ID="13622072-cec9-4932-8181-5f2cfd07876a";
 const $=id=>document.getElementById(id);
-const state={completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
+const state={details44:null,completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const serverNow=()=>Date.now()+state.serverOffset;
 const fmt=v=>Number.isFinite(v)?Math.round(v)+" ms":"—";
@@ -82,9 +83,20 @@ async function connectPhone(phone){
  });
 }
 async function heartbeatAll(){for(const p of state.phones){if(p.suspended)continue;try{await p.db.rpc("fa_heartbeat_fix3",{p_league_id:LEAGUE_ID,p_slot:p.slot,p_device_token:p.deviceId,p_allow_legacy:false})}catch{}}}
+let pending44=null;
+function receive44(p){if(!pending44)return;try{const result=pending44.collector.accept(p);if(result)pending44.finish(null,result);}catch(e){pending44.finish(e);}}
+async function fetchDetails44(){
+ const requestId=crypto.randomUUID();state.details44=null;
+ return new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>pending44?.finish(Error("Rapporto Regia incompleto: manca diagnostica 4.4")),15000);
+  pending44={collector:new PacketCollector(state.runId,requestId),finish:(err,result)=>{clearTimeout(timer);pending44=null;if(err)reject(err);else{state.details44=result;resolve(result);}}};
+  state.monitor.send({type:"broadcast",event:"DIAG44_REQUEST",payload:{run_id:state.runId,request_id:requestId}}).then(status=>{if(status!=="ok")pending44?.finish(Error("Richiesta rapporto non inviata"));}).catch(e=>pending44?.finish(e));
+ });
+}
 async function connectMonitor(){
  state.monitor=state.org.channel("fantastica:"+LEAGUE_ID)
   .on("broadcast",{event:"FIX4_STALL_DONE"},p=>{const d=p?.payload||p;if(d.run_id===state.runId)state.stall=d;})
+  .on("broadcast",{event:"DIAG44_PACKET"},p=>receive44(p?.payload||p))
   .on("broadcast",{event:"DIAG_STATS"},payload=>{state.diag=payload?.payload||payload||null;paint()})
   .subscribe(status=>{if(status==="SUBSCRIBED")addLog("Collegamento con la Regia diagnostica in ascolto.","ok")});
 }
@@ -241,10 +253,10 @@ async function waitForSale(deadline){
  state.finalize.push(sample);return {delay,observed,fallback:false};
 }
 async function run(){
- if(!state.prepared||state.running)return;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
+ if(!state.prepared||state.running)return;state.details44=null;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
  $("prepare").disabled=true;$("start").disabled=true;$("stop").disabled=false;$("download").disabled=true;const duration=Number($("minutes").value)*60000,endAt=Date.now()+duration;setStatus("Test in corso. Lascia aperte entrambe le pagine...");addLog(`Avvio test realistico di ${$("minutes").value} minuti.`,"ok");
  try{
-  try{await state.monitor?.send({type:"broadcast",event:"DIAG_RESET",payload:{sent_at:new Date().toISOString()}});await sleep(200)}catch{}
+  try{await state.monitor?.send({type:"broadcast",event:"DIAG_RESET",payload:{sent_at:new Date().toISOString(),run_id:state.runId}});await sleep(200)}catch{}
   const cursor=await state.org.from("fa_fix4_trace").select("id").eq("league_id",LEAGUE_ID).order("id",{ascending:false}).limit(1);
   if(cursor.error)throw new Error("Registro server non accessibile: "+cursor.error.message);
   state.traceCursor=cursor.data?.[0]?.id||0;
@@ -272,17 +284,18 @@ async function run(){
   }
   if(!state.stop&&(!state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)||!state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass)))throw new Error("Il test non ha completato entrambe le prove offline");
   await collectTrace();
+  await fetchDetails44();
   state.endedAt=new Date().toISOString();state.completed=!state.stop&&Date.now()>=endAt;
   const passed=report().success;
   setStatus(state.stop?"Test fermato: INCOMPLETO.":passed?"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.":"FIX4 NON SUPERATA: controlla il rapporto.",passed?"ok":"bad");
  }catch(e){state.errors.push({at:new Date().toISOString(),phase:"RUN",error:e.message});state.endedAt=new Date().toISOString();setStatus("Test interrotto: "+e.message,"bad");addLog(e.message,"bad")}
- finally{state.running=false;$("prepare").disabled=false;$("start").disabled=false;$("stop").disabled=true;$("download").disabled=false;paint()}
+ finally{if(!state.details44&&state.monitor){try{await fetchDetails44();}catch(e){addLog(e.message,"bad");}}state.running=false;$("prepare").disabled=false;$("start").disabled=false;$("stop").disabled=true;$("download").disabled=false;paint()}
 }
 function fix4Pass(s,faultPass){
  const stall=s.stall,closure=s.finalize.find(x=>x.player_id===stall?.player_id);
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
-function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.2",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass),completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.4",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&state.details44?.complete===true,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
 function download(){const blob=new Blob([JSON.stringify(report(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;setStatus("Arresto in corso: attendo la chiamata attuale...")};$("download").onclick=download;paint();
 </script>
