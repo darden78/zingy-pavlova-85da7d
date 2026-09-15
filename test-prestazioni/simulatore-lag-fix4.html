@@ -9,7 +9,7 @@
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.8</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.9</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
   <div class="warning"><b>Ordine corretto:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
@@ -75,7 +75,30 @@ function makeClient(storageKey){return createClient(SUPABASE_URL,SUPABASE_PUBLIS
 async function ensureAuth(client){const s=await client.auth.getSession();if(s.data?.session)return s.data.session;const r=await client.auth.signInAnonymously();if(r.error)throw r.error;return r.data.session}
 async function timedRpc(client,name,args){const t=performance.now();const r=await client.rpc(name,args);return {...r,elapsed:performance.now()-t}}
 async function syncClock(){const t0=Date.now(),r=await state.org.rpc("fa_server_time"),t1=Date.now();if(r.error||!r.data?.epoch_ms)throw new Error("Impossibile sincronizzare l'orologio Supabase");state.serverOffset=Number(r.data.epoch_ms)-(t0+t1)/2}
-async function removePhoneChannels(){clearInterval(state.heartbeat);state.heartbeat=null;for(const p of state.phones){if(p.channel)try{await p.db.removeChannel(p.channel)}catch{}}state.phones=[];if(state.monitor){try{await state.org.removeChannel(state.monitor)}catch{}state.monitor=null}}
+async function removePhoneChannels(){clearInterval(state.heartbeat);state.heartbeat=null;for(const p of state.phones){p.suspended=true;clearTimeout(p.reconnectTimer49);if(p.channel)try{await p.db.removeChannel(p.channel)}catch{}}state.phones=[];if(state.monitor){try{await state.org.removeChannel(state.monitor)}catch{}state.monitor=null}}
+function scheduleReconnect49(phone,channel){
+ if(phone.suspended||phone.channel!==channel||phone.reconnectTimer49||phone.reconnecting49||state.stop)return;
+ if((phone.reconnectAttempts49||0)>=3){phoneEvent45("reconnect_limit",phone);return;}
+ phone.reconnectTimer49=setTimeout(async()=>{
+  phone.reconnectTimer49=null;
+  if(phone.suspended||phone.channel!==channel||state.stop)return;
+  phone.reconnecting49=true;phone.reconnectAttempts49=(phone.reconnectAttempts49||0)+1;
+  phoneEvent45("unexpected_closed_reconnect",phone,{attempt:phone.reconnectAttempts49});
+  // Invalidate the old channel before removal so its CLOSED callback cannot reopen it.
+  phone.channel=null;let connected=false;
+  try{
+   await phone.db.removeChannel(channel);
+   if(phone.suspended||state.stop)return;
+   await connectPhone(phone);connected=true;
+   if(!phone.suspended&&!state.stop){const r=await loggedHeartbeat45(phone);if(r.error||r.data?.ok===false)throw new Error(r.error?.message||r.data?.error||"Heartbeat fallito");phoneEvent45("unexpected_closed_recovered",phone);}
+  }catch(e){phoneEvent45("unexpected_closed_reconnect_error",phone,{error:e.message});}
+  finally{
+   phone.reconnecting49=false;
+   // Retry failed closed/connecting channels, never a successfully joined one.
+   if(phone.channel&&!connected)scheduleReconnect49(phone,phone.channel);
+  }
+ },500);
+}
 async function connectPhone(phone,restoreSuspended=false){
  return new Promise((resolve,reject)=>{
   let done=false;
@@ -85,6 +108,7 @@ async function connectPhone(phone,restoreSuspended=false){
   phone.channel=channel;
   channel.subscribe(async status=>{
    phoneEvent45("channel_status",phone,{status});
+   if(status==="CLOSED"&&done)scheduleReconnect49(phone,channel);
    if(phone.channel!==channel||(phone.suspended&&!(restoreSuspended&&!done)))return;
    if(status==="SUBSCRIBED"){
     try{
@@ -162,7 +186,7 @@ async function probeAuction(){
  return r.data;
 }
 async function dropPresence(phone){
- phone.suspended=true;phoneEvent45("disconnect_request",phone);
+ phone.suspended=true;clearTimeout(phone.reconnectTimer49);phoneEvent45("disconnect_request",phone);
  if(phone.channel){try{await phone.db.removeChannel(phone.channel)}catch{}}
  phone.channel=null;phoneEvent45("channel_removed",phone);
 }
@@ -346,7 +370,7 @@ function fix4Pass(s,faultPass){
  const stall=s.stall,closure=s.finalize.find(x=>x.player_id===stall?.player_id);
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
-function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.8",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.9",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
 function download(){const blob=new Blob([JSON.stringify(report(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;setStatus("Arresto in corso: attendo la chiamata attuale...")};$("download").onclick=download;paint();
 </script>
