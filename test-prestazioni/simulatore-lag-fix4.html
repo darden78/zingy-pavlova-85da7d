@@ -2,16 +2,16 @@
 <html lang="it">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fantastica · Simulatore lag Fix 4.10.1</title>
+<title>Fantastica · Simulatore lag Fix 4.12</title>
 <style>
 :root{color-scheme:dark;--bg:#071426;--card:#10243a;--gold:#f4bd2d;--green:#27d684;--red:#ff5c6c;--muted:#aebfd0}*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#061120,#10294a);color:#fff;font:16px/1.42 system-ui,sans-serif;min-height:100vh}.wrap{max-width:1050px;margin:auto;padding:22px}.hero{background:#08182bd9;border:1px solid #2e557c;border-radius:18px;padding:20px;box-shadow:0 18px 50px #0006}h1{margin:0 0 8px;color:var(--gold);font-size:clamp(25px,4vw,40px)}h2{margin:0 0 12px;font-size:20px}.note{color:var(--muted);margin:5px 0}.warning{background:#3b2d08;border:1px solid #b89022;padding:10px 12px;border-radius:10px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid #294b6b;border-radius:15px;padding:16px}.form{display:grid;grid-template-columns:1fr 160px;gap:10px}label{display:block;color:var(--muted);font-size:13px;font-weight:800;margin-bottom:5px}input,select{width:100%;border:1px solid #477296;border-radius:9px;background:#071626;color:#fff;padding:11px;font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:900;font-size:15px;cursor:pointer;background:var(--gold);color:#151006}button.secondary{background:#2d638e;color:#fff}button.stop{background:#a92d3b;color:#fff}button:disabled{opacity:.4;cursor:not-allowed}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.status{margin-top:12px;border-radius:10px;padding:11px;background:#091a2d;color:var(--muted);font-weight:800}.status.ok{color:#74f6b5;border:1px solid #247a55}.status.bad{color:#ff8995;border:1px solid #80313b}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#08182a;border-radius:10px;padding:10px}.metric small{display:block;color:var(--muted);font-weight:700}.metric b{display:block;color:var(--gold);font-size:20px;margin-top:3px}.log{height:260px;overflow:auto;background:#06111f;border-radius:10px;padding:10px;font:12px/1.45 ui-monospace,monospace;white-space:pre-wrap}.steps{margin:6px 0 0;padding-left:22px}.steps li{margin:6px 0}.ready{color:var(--green)}.badText{color:var(--red)}@media(max-width:760px){.grid,.form{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.10.1</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.12</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
-  <div class="warning"><b>Ordine corretto:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
+  <div class="warning"><b>Collaudo 4.12:</b> con la Regia pronta, premi <b>COLLAUDO COMPLETO · 10 MIN + CONTROLLI</b>. Non premere PREPARA o AVVIA separatamente per questa prova. <br><b>Configurazione:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
 
  <section class="grid">
@@ -19,9 +19,9 @@
    <h2>1 · Preparazione</h2>
    <div class="form">
     <div><label for="password">Password della lega tecnica</label><input id="password" type="password" autocomplete="off" value="12345" placeholder="Inserisci la password"></div>
-    <div><label for="minutes">Durata test</label><select id="minutes"><option value="5" selected>5 minuti</option><option value="10">10 minuti</option><option value="20">20 minuti</option><option value="30">30 minuti</option></select></div>
+    <div><label for="minutes">Durata test</label><select id="minutes"><option value="5">5 minuti</option><option value="10" selected>10 minuti</option><option value="20">20 minuti</option><option value="30">30 minuti</option></select></div>
    </div>
-   <div class="buttons"><button id="prepare">PREPARA 8 TELEFONI</button><button id="start" disabled>AVVIA TEST</button><button id="stop" class="stop" disabled>FERMA</button><button id="download" class="secondary" disabled>SCARICA RAPPORTO</button></div>
+   <div class="buttons"><button id="suite412">COLLAUDO COMPLETO · 10 MIN + CONTROLLI</button><button id="prepare">PREPARA 8 TELEFONI</button><button id="start" disabled>AVVIA TEST</button><button id="stop" class="stop" disabled>FERMA</button><button id="download" class="secondary" disabled>SCARICA RAPPORTO</button></div>
    <div id="status" class="status">In attesa. Apri prima la Regia diagnostica sul portatile.</div>
   </div>
 
@@ -63,7 +63,8 @@ if(new URL(SUPABASE_URL).hostname!=="nbsxpjwivhnyiqtaxehk.supabase.co")throw new
 const LEAGUE_NAME="TEST LAG AUTOMATICO";
 const LEAGUE_ID="13622072-cec9-4932-8181-5f2cfd07876a";
 const $=id=>document.getElementById(id);
-const state={frozenReport411:null,waitDiagnostics411:[],preparing:false,archivedReports:[],preparationErrors:[],phoneEvents:[],phoneEventsDropped:0,details44:null,completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
+let suiteBusy412=false,suiteCancelled412=false,suiteResult412=null;
+const state={extended412:false,closedProbe412:null,frozenReport411:null,waitDiagnostics411:[],preparing:false,archivedReports:[],preparationErrors:[],phoneEvents:[],phoneEventsDropped:0,details44:null,completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
 // Observational only: the same native timeout and the same acceptance thresholds.
 async function measuredOfflineWait411(ms){
  const started=performance.now(),wallStarted=Date.now();
@@ -308,6 +309,10 @@ function nextFault48(s){
 }
 function failureReasons48(s){
  const reasons=[];
+ if(s.extended412){
+  if(s.closedProbe412?.pass!==true)reasons.push("recupero CLOSED indotto non verificato");
+  if(!(s.requestedDuration412>=600000))reasons.push("durata estesa inferiore a 10 minuti");
+ }
  const phoneErrors=(s.phoneEvents||[]).filter(e=>!e.cancelled&&(e.type.endsWith("_error")||e.type==="reconnect_limit"||(e.type==="heartbeat_response"&&e.ok!==true)));
  const appErrors=(s.details44?.records||[]).filter(e=>e.kind?.endsWith("_error")||(e.kind==="presence_event"&&e.presence_type==="SNAPSHOT_ERROR")||(["close_response","presence_response"].includes(e.kind)&&e.ok!==true));
  if(phoneErrors.length)reasons.push(`${phoneErrors.length} errori diagnostici dei telefoni`);
@@ -347,7 +352,7 @@ async function controlledFaultBody410(kind,durationMs){
  await collectTrace();const faultTrace=state.trace.filter(x=>x.id>traceStart);
  const verdict=evaluateFaultFix4(kind,durationMs,reconnectRequestedAt-droppedAt,reconnectedAt-droppedAt,before,after,faultTrace);
  const {timingValid,traceValid,pass}=verdict;
- const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.10.1",wait_diagnostic:waitDiagnostic,outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
+ const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.12",wait_diagnostic:waitDiagnostic,outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
  state.faults.push(sample);paint();
  addLog(`${kind==="TRANSIENT_1S"?"Micro-offline ignorato":"Pausa e ripartenza automatica"}: ${verdict.outcome}.`,pass?"ok":"bad");
  if(!pass){
@@ -430,7 +435,7 @@ async function waitForSale(deadline){
  state.finalize.push(sample);return {delay,observed,fallback:false};
 }
 async function run(){
- if(!state.prepared||state.running||state.preparing)return;state.prepared=false;state.frozenReport411=null;state.waitDiagnostics411=[];state.details44=null;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[...state.preparationErrors];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
+ if(!state.prepared||state.running||state.preparing)return;state.prepared=false;state.frozenReport411=null;state.waitDiagnostics411=[];state.details44=null;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.extended412=true;state.closedProbe412=null;state.requestedDuration412=Number($("minutes").value)*60000;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[...state.preparationErrors];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
  $("prepare").disabled=true;$("start").disabled=true;$("stop").disabled=false;$("download").disabled=true;const duration=Number($("minutes").value)*60000,endAt=Date.now()+duration;setStatus("Test in corso. Lascia aperte entrambe le pagine...");addLog(`Avvio test realistico di ${$("minutes").value} minuti.`,"ok");
  try{
   try{await state.monitor?.send({type:"broadcast",event:"DIAG_RESET",payload:{sent_at:new Date().toISOString(),run_id:state.runId}});await sleep(200)}catch{}
@@ -446,6 +451,7 @@ async function run(){
    addLog(`Asta ${state.auctions+1}: ${player.name}.`);await sleep(180);
    let phone=state.phones[bidderIndex++%8],bid=await placeBid(phone,"APERTURA");if(!bid){await sleep(1200);continue}
    const fault=nextFault48(state);if(fault)bid.timer_deadline=await controlledFault(fault.kind,fault.duration);
+   if(state.auctions>=4&&!fault&&!state.closedProbe412)bid.timer_deadline=await closedProbe412();
    const rounds=3;
    for(let n=0;n<rounds&&!state.stop&&Date.now()<endAt;n++){
     const finalDeadline=await waitUntilFinalFive(bid.timer_deadline);if(state.stop||!finalDeadline)break;
@@ -475,9 +481,77 @@ function fix4Pass(s,faultPass){
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
 function report(){return state.frozenReport411||buildReport411();}
-function buildReport411(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.10.1",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,offline_wait_diagnostics:state.waitDiagnostics411,report_frozen_at:new Date().toISOString(),clock_measurement:state.clockMeasurement||null,preparation_errors:state.preparationErrors,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
-function download(){const blob=new Blob([JSON.stringify({...report(),previous_reports:state.archivedReports},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-$("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;clearInterval(state.heartbeat);for(const p of state.phones)cancelPhone410(p);setStatus("Arresto in corso: attendo le chiamate già inviate e raccolgo il rapporto...")};$("download").onclick=download;paint();
+function buildReport411(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.12",closed_probe:state.closedProbe412,extended_test:state.extended412,requested_duration_ms:state.requestedDuration412,league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,offline_wait_diagnostics:state.waitDiagnostics411,report_frozen_at:new Date().toISOString(),clock_measurement:state.clockMeasurement||null,preparation_errors:state.preparationErrors,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function download(){const blob=new Blob([JSON.stringify({...report(),run_success:report().success,success:suiteResult412?suiteResult412.success:report().success,complete_suite:suiteResult412,previous_reports:state.archivedReports},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function requestStop412(){state.stop=true;clearInterval(state.heartbeat);for(const p of state.phones)cancelPhone410(p);setStatus("Arresto in corso: attendo le chiamate già inviate e raccolgo il rapporto...");}
+function viewEvidence412(){return JSON.parse(JSON.stringify({phone_events:state.phoneEvents,errors:state.errors,preparation_errors:state.preparationErrors,log:state.log}));}
+async function closedProbe412(){
+ const sample={kind:"SDK_CLOSED_INDUCED",mechanism:"public_channel_unsubscribe_without_suspended",pass:false,at:new Date().toISOString()};state.closedProbe412=sample;
+ const from=state.phoneEvents.length,before=await probeAuction(),phone=state.phones.find(p=>p.slot!==Number(before?.highest_slot)&&!p.suspended&&!p.disposed);
+ if(!phone||!canContinueDiagnostic45(before,before))throw Error("CLOSED: asta o telefono non pronti");
+ sample.slot=phone.slot;sample.player_id=before.current_player_id;sample.before=before;
+ const old=phone.channel,attempts=phone.reconnectAttempts49||0,started=performance.now();
+ phoneEvent45("injected_closed_request",phone,{reason:"controlled_test"});
+ try{
+  // Exercise the REAL SDK callback and the existing recovery, never call the recovery directly.
+  const status=await old.unsubscribe();sample.unsubscribe_result=status;
+  if(status!=="ok")throw Error("CLOSED: unsubscribe non confermato: "+status);
+  while(!state.stop&&performance.now()-started<12000){
+   const events=state.phoneEvents.slice(from);
+   if(events.some(e=>e.slot===phone.slot&&e.type==="unexpected_closed_recovered"))break;
+   await sleep(50);
+  }
+  if(state.stop)throw Error("CLOSED: test interrotto");
+  const events=state.phoneEvents.slice(from),closed=events.some(e=>e.slot===phone.slot&&e.type==="channel_status"&&e.status==="CLOSED"&&!e.suspended);
+  const recovered=events.some(e=>e.slot===phone.slot&&e.type==="unexpected_closed_recovered");
+  if(!closed||!recovered||phone.channel===old||!phone.connected410||(phone.reconnectAttempts49||0)!==attempts+1)throw Error("CLOSED: manca sequenza completa o recupero al primo tentativo");
+  sample.recovery_ms=performance.now()-started;
+  if(sample.recovery_ms>12000)throw Error("CLOSED: recupero oltre 12 secondi");
+  const after=await probeAuction();sample.after=after;
+  if(!canContinueDiagnostic45(before,after))throw Error("CLOSED: asta non ripartita correttamente");
+  sample.pass=true;addLog("CLOSED indotto: nuovo canale, track, heartbeat e asta attiva verificati.","ok");return after.timer_deadline;
+ }catch(e){sample.error=e.message;throw e;}
+ finally{sample.events=state.phoneEvents.slice(from);sample.finished_at=new Date().toISOString();}
+}
+async function completeSuite412(){
+ if(suiteBusy412||state.running||state.preparing)return;
+ suiteBusy412=true;suiteCancelled412=false;$("download").disabled=true;$("suite412").disabled=true;$("stop").disabled=false;
+ const suite={version:"4.12",started_at:new Date().toISOString(),success:false,stages:[]};suiteResult412=suite;
+ try{
+  if(document.visibilityState!=="visible")throw Error("Lascia il simulatore visibile per avviare il collaudo");
+  const first={name:"prepare_initial",pass:false};suite.stages.push(first);
+  await prepare();if(suiteCancelled412)throw Error("Collaudo interrotto dall’utente");first.evidence=viewEvidence412();first.pass=state.prepared&&state.phones.length===8;
+  if(!first.pass)throw Error("Prima preparazione non riuscita");
+  const stop={name:"stop_pending_closed_then_prepare",pass:false};suite.stages.push(stop);
+  const phones=[...state.phones],p=phones[0],old=p.channel,from=state.phoneEvents.length;
+  phoneEvent45("injected_closed_before_stop",p);
+  const result=await old.unsubscribe();
+  stop.unsubscribe_result=result;stop.pending_before_stop=!!p.reconnectTimer49&&!p.reconnecting49;
+  if(result!=="ok"||!stop.pending_before_stop)throw Error("Stop: finestra di riconnessione pendente non verificata");
+  requestStop412();await removePhoneChannels();await sleep(1200);
+  stop.events=state.phoneEvents.slice(from);
+  stop.no_reopen=!stop.events.some(e=>e.type==="unexpected_closed_reconnect"||e.type==="heartbeat_request"||e.type==="presence_track_request");
+  stop.all_disposed=phones.every(p=>p.disposed&&p.channel===null&&!p.reconnectTimer49);
+  if(!stop.no_reopen||!stop.all_disposed||state.monitor)throw Error("Stop: attività residua dopo pulizia");
+  stop.evidence=viewEvidence412();
+  if(suiteCancelled412)throw Error("Collaudo interrotto dall’utente");
+  await prepare();if(suiteCancelled412)throw Error("Collaudo interrotto dall’utente");stop.new_prepare_evidence=viewEvidence412();
+  stop.pass=state.prepared&&state.phones.length===8&&state.phones.every(p=>!phones.includes(p)&&!p.disposed);
+  if(!stop.pass)throw Error("Nuova preparazione non riuscita");
+  if([...stop.events,...first.evidence.phone_events,...stop.new_prepare_evidence.phone_events].some(e=>e.type.endsWith("_error")||(e.type==="heartbeat_response"&&e.ok!==true)))throw Error("Errore diagnostico durante il ciclo preliminare");
+  const main={name:"extended_auction_run",pass:false};suite.stages.push(main);
+  $("minutes").value="10";await run();main.pass=report().success;main.run_id=report().run_id;
+  suite.success=suite.stages.every(x=>x.pass)&&main.pass;
+ }catch(e){suite.error=e.message;suite.failure_evidence=viewEvidence412();requestStop412();await removePhoneChannels();state.prepared=false;}
+ finally{
+  suite.ended_at=new Date().toISOString();suiteBusy412=false;
+  $("suite412").disabled=false;$("start").disabled=true;$("stop").disabled=true;$("download").disabled=false;
+  setStatus(suite.success?"✓ COLLAUDO COMPLETO SUPERATO — scarica il rapporto.":"COLLAUDO NON SUPERATO — scarica il rapporto: "+(suite.error||report().failure_reasons.join("; ")),suite.success?"ok":"bad");
+ }
+}
+$("suite412").onclick=completeSuite412;
+$("prepare").onclick=()=>{if(!suiteBusy412){suiteResult412=null;prepare();}};
+$("start").onclick=()=>{if(!suiteBusy412)run();};
+$("stop").onclick=()=>{if(suiteBusy412)suiteCancelled412=true;requestStop412();};$("download").onclick=download;paint();
 </script>
 </body></html>
-
