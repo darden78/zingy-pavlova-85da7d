@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.5</title>
+<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.10.1</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
@@ -725,7 +725,7 @@ body{overflow:hidden!important}
 #diagPanel .diagTitle{color:#42f5a4;font-size:15px;margin-bottom:6px}#diagPanel .diagGrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}#diagPanel b{color:#ffe169}#diagPanel .diagHint{font-size:11px;color:#b9c9d8;margin-top:7px;font-weight:600}#diagPanel button{margin-top:8px;background:#f5bf26;color:#111;border:0;border-radius:8px;padding:7px 10px;font-weight:900;cursor:pointer}
 </style>
 <aside id="diagPanel" aria-live="polite">
- <div class="diagTitle">REGIA DIAGNOSTICA FIX 4.5 · VIDEO IMMEDIATO</div>
+ <div class="diagTitle">REGIA DIAGNOSTICA FIX 4.10.1 · VIDEO IMMEDIATO</div>
  <div class="diagGrid">
   <span>Segnali STATE: <b id="diagStates">0</b></span><span>Aggiornamenti: <b id="diagLoads">0</b></span>
   <span>Immediato mediana: <b id="diagFastP50">—</b></span><span>Immediato p95: <b id="diagFastP95">—</b></span>
@@ -764,18 +764,20 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4.5",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA TEST PRESTAZIONI · REGIA DIAGNOSTICA FIX 4.10.1",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
 function diagPaint(){const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
+ const player_id=auction?.current_player_id;
  const restMs=performance.now()-started,bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
  diag.restPayloadBytes+=payloadBytes;
- requestAnimationFrame(()=>{const sample={at:new Date().toISOString(),kind,rest_ms:restMs,rest_payload_bytes:payloadBytes,state_to_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};if(sample.state_to_video_ms>=1000)record44("slow_video",{...sample,view:"full"});diag.last=sample;diag.samples.push(sample);if(diag.samples.length>1000)diag.samples.splice(0,diag.samples.length-1000);diagPaint()});
+ requestAnimationFrame(()=>{const sample={player_id,at:new Date().toISOString(),kind,rest_ms:restMs,rest_payload_bytes:payloadBytes,state_to_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};if(sample.state_to_video_ms>=1000)record44("slow_video",{...sample,view:"full"});diag.last=sample;diag.samples.push(sample);if(diag.samples.length>1000)diag.samples.splice(0,diag.samples.length-1000);diagPaint()});
 }
 function diagRecordFast(stateSignalMs){
+ const player_id=auction?.current_player_id;
  const bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
  requestAnimationFrame(()=>{
-  const sample={at:new Date().toISOString(),signal_to_fast_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};
+  const sample={player_id,at:new Date().toISOString(),signal_to_fast_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};
   if(sample.signal_to_fast_video_ms>=1000)record44("slow_video",{...sample,view:"fast"});diag.lastFast=sample;diag.fastSamples.push(sample);if(diag.fastSamples.length>1000)diag.fastSamples.splice(0,diag.fastSamples.length-1000);diagPaint();
   requestAnimationFrame(()=>syncRegiaVoice());
  });
@@ -1322,6 +1324,7 @@ const presenceSeen=new Set();
 const presenceCommitted=new Set();
 const presenceOfflineTimers=new Map();
 const online=s=>!!s&&presenceCommitted.has(Number(s.slot));
+let connectionEpoch410=0;
 let presenceSnapshotTimer=null,presenceSnapshotBusy=false,presenceSnapshotPending=false,lastPresenceSnapshot="",presenceWarmupUntil=0;
 function recordPresenceEvent(type,slot=null,extra={}){
  const item={at:new Date().toISOString(),type,slot,...extra};
@@ -1351,7 +1354,8 @@ function schedulePresenceSnapshot(delay=25){
  presenceSnapshotTimer=setTimeout(()=>{presenceSnapshotTimer=null;record44("presence_schedule_fired");sendPresenceSnapshot();},Math.max(delay,warmup));
 }
 async function sendPresenceSnapshot(){
- if(!league)return;
+ if(!league||!channel||!rtConnected)return;
+ const epoch=connectionEpoch410;
  if(presenceSnapshotBusy){record44("presence_queued_busy");presenceSnapshotPending=true;return}
  const arr=[...presenceSeen].sort((a,b)=>a-b),sig=arr.join(",");
  if(sig===lastPresenceSnapshot){record44("presence_skipped_unchanged",{online_slots:arr,signature:sig});commitPresence(arr);return}
@@ -1359,6 +1363,7 @@ async function sendPresenceSnapshot(){
  record44("presence_request",{attempt_id:presenceAttempt,online_slots:arr,previous_signature:lastPresenceSnapshot});
  try{
   const {data,error}=await db.rpc("fa_regia_presence_snapshot_fix4",{p_league_id:league.id,p_online_slots:arr});
+  if(epoch!==connectionEpoch410)return;
   record44("presence_response",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,ok:!error&&data?.ok!==false,error:error?.message||data?.error||null,effective_online_slots:data?.effective_online_slots||null,deferred_offline_slots:data?.deferred_offline_slots||null,blocked:data?.blocked??null,resumed:data?.resumed??null,timer_deadline:data?.timer_deadline||null});
   if(!error&&data?.ok!==false){
    const effective=Array.isArray(data?.effective_online_slots)?data.effective_online_slots:arr;
@@ -1370,8 +1375,8 @@ async function sendPresenceSnapshot(){
    }
    if(data?.resumed){diag.timerAutoResumes++;recordPresenceEvent("TIMER_AUTO_RESUME",null,{timer_deadline:data.timer_deadline||null})}
    scheduleLoad(8,false);
-  }else recordPresenceEvent("SNAPSHOT_ERROR",null,{error:error?.message||data?.error||"SCONOSCIUTO"});
- }catch(e){record44("presence_error",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,error:e.message});throw e;}finally{
+  }else {recordPresenceEvent("SNAPSHOT_ERROR",null,{error:error?.message||data?.error||"SCONOSCIUTO"});schedulePresenceSnapshot(1000);}
+ }catch(e){record44("presence_error",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,error:e.message});if(epoch===connectionEpoch410)schedulePresenceSnapshot(1000);}finally{
   presenceSnapshotBusy=false;
   if(presenceSnapshotPending){presenceSnapshotPending=false;schedulePresenceSnapshot(0)}
  }
@@ -1781,6 +1786,7 @@ async function sendDetails44(p){
  try{
   await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{flush44.delete(p.request_id);reject(Error("Worker senza risposta"));},6000);flush44.set(p.request_id,()=>{clearTimeout(timer);resolve();});fix4Worker?.postMessage({type:"flush_diag",request_id:p.request_id});});
   const waitUi=performance.now();while(finalizeBusy&&performance.now()-waitUi<6000)await new Promise(r=>setTimeout(r,25));
+  if(finalizeBusy)throw Error("Finalizzazione UI ancora in corso: diagnostica incompleta");
   const snapshot=diag44.snapshot();
   for(const packet of makePackets(snapshot,p.request_id)){const sent=await channel.send({type:"broadcast",event:"DIAG44_PACKET",payload:packet});if(sent!=="ok")break;}
  }catch(e){record44("export_error",{error:e.message});}
@@ -2048,8 +2054,10 @@ function scheduleLoad(ms=12,full=false){
  },Math.max(0,wait));
 }
 function disconnect(){
- if(channel)db.removeChannel(channel);
- channel=null;rtConnected=false;
+ connectionEpoch410++;
+ const old=channel;channel=null;rtConnected=false;
+ if(old)db.removeChannel(old);
+ lastPresenceSnapshot="";presenceSeen.clear();presenceCommitted.clear();
  clearTimeout(retry);clearTimeout(loadTimer);clearTimeout(presenceSnapshotTimer);
  for(const timer of presenceOfflineTimers.values())clearTimeout(timer);
  presenceOfflineTimers.clear();presenceSnapshotPending=false;
@@ -2059,6 +2067,7 @@ function disconnect(){
 function showRt(payload){lastRtAt=Date.now()}
 async function connect(){
  disconnect();
+ const epoch=connectionEpoch410;
  channel=db.channel("fantastica:"+league.id)
    .on("broadcast",{event:"STATE"},payload=>{
       showRt(payload);
@@ -2099,15 +2108,16 @@ async function connect(){
  .on("broadcast",{event:"DIAG44_REQUEST"},p=>sendDetails44(p?.payload||p))
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
+      if(epoch!==connectionEpoch410)return;
       if(st==="SUBSCRIBED"){
-        rtConnected=true;
+        clearTimeout(retry);rtConnected=true;
         presenceWarmupUntil=performance.now()+PRESENCE_OFFLINE_GRACE_MS;
         syncPhonePresence();
         msg($("status"),"🟢 CONNESSO · FIX4","ok");
       }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
         rtConnected=false;
         
-        retry=setTimeout(connect,700);
+        clearTimeout(retry);retry=setTimeout(()=>{if(epoch===connectionEpoch410)connect();},700);
       }
    });
  connectMirror();

@@ -2,14 +2,14 @@
 <html lang="it">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fantastica · Simulatore lag Fix 4.5</title>
+<title>Fantastica · Simulatore lag Fix 4.10.1</title>
 <style>
 :root{color-scheme:dark;--bg:#071426;--card:#10243a;--gold:#f4bd2d;--green:#27d684;--red:#ff5c6c;--muted:#aebfd0}*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#061120,#10294a);color:#fff;font:16px/1.42 system-ui,sans-serif;min-height:100vh}.wrap{max-width:1050px;margin:auto;padding:22px}.hero{background:#08182bd9;border:1px solid #2e557c;border-radius:18px;padding:20px;box-shadow:0 18px 50px #0006}h1{margin:0 0 8px;color:var(--gold);font-size:clamp(25px,4vw,40px)}h2{margin:0 0 12px;font-size:20px}.note{color:var(--muted);margin:5px 0}.warning{background:#3b2d08;border:1px solid #b89022;padding:10px 12px;border-radius:10px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid #294b6b;border-radius:15px;padding:16px}.form{display:grid;grid-template-columns:1fr 160px;gap:10px}label{display:block;color:var(--muted);font-size:13px;font-weight:800;margin-bottom:5px}input,select{width:100%;border:1px solid #477296;border-radius:9px;background:#071626;color:#fff;padding:11px;font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:900;font-size:15px;cursor:pointer;background:var(--gold);color:#151006}button.secondary{background:#2d638e;color:#fff}button.stop{background:#a92d3b;color:#fff}button:disabled{opacity:.4;cursor:not-allowed}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.status{margin-top:12px;border-radius:10px;padding:11px;background:#091a2d;color:var(--muted);font-weight:800}.status.ok{color:#74f6b5;border:1px solid #247a55}.status.bad{color:#ff8995;border:1px solid #80313b}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#08182a;border-radius:10px;padding:10px}.metric small{display:block;color:var(--muted);font-weight:700}.metric b{display:block;color:var(--gold);font-size:20px;margin-top:3px}.log{height:260px;overflow:auto;background:#06111f;border-radius:10px;padding:10px;font:12px/1.45 ui-monospace,monospace;white-space:pre-wrap}.steps{margin:6px 0 0;padding-left:22px}.steps li{margin:6px 0}.ready{color:var(--green)}.badText{color:var(--red)}@media(max-width:760px){.grid,.form{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.9</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.10.1</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
   <div class="warning"><b>Ordine corretto:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
@@ -33,7 +33,7 @@
     <div class="metric"><small>RPC mediana</small><b id="mRpc50">—</b></div>
     <div class="metric"><small>RPC p95</small><b id="mRpc95">—</b></div>
     <div class="metric"><small>RPC massimo</small><b id="mRpcMax">—</b></div>
-    <div class="metric"><small>Errori test (totali)</small><b id="mErrors">0</b></div>
+    <div class="metric"><small>Errori test registrati</small><b id="mErrors">0</b></div>
     <div class="metric"><small>Video immediato p95</small><b id="mVideo95">—</b></div>
     <div class="metric"><small>Video immediato max</small><b id="mVideoMax">—</b></div>
     <div class="metric"><small>Immediato oltre 1 s</small><b id="mOver1s">0</b></div>
@@ -63,7 +63,29 @@ if(new URL(SUPABASE_URL).hostname!=="nbsxpjwivhnyiqtaxehk.supabase.co")throw new
 const LEAGUE_NAME="TEST LAG AUTOMATICO";
 const LEAGUE_ID="13622072-cec9-4932-8181-5f2cfd07876a";
 const $=id=>document.getElementById(id);
-const state={phoneEvents:[],phoneEventsDropped:0,details44:null,completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
+const state={frozenReport411:null,waitDiagnostics411:[],preparing:false,archivedReports:[],preparationErrors:[],phoneEvents:[],phoneEventsDropped:0,details44:null,completed:false,trace:[],traceCursor:0,runId:null,stall:null,currentPlayer:null,prepared:false,running:false,stop:false,phones:[],org:null,monitor:null,heartbeat:null,serverOffset:0,startedAt:null,endedAt:null,auctions:0,bids:[],errors:[],finalize:[],faults:[],timerWaitRecoveries:0,simulatorReads:0,diag:null,log:[]};
+// Observational only: the same native timeout and the same acceptance thresholds.
+async function measuredOfflineWait411(ms){
+ const started=performance.now(),wallStarted=Date.now();
+ const sample={requested_ms:ms,started_at:new Date().toISOString(),visibility_start:document.visibilityState||"unknown",focus_start:document.hasFocus?.()??null,visibility_changes:[],long_tasks:[]};
+ const visibility=()=>sample.visibility_changes.push({elapsed_ms:performance.now()-started,state:document.visibilityState});
+ document.addEventListener?.("visibilitychange",visibility);
+ let observer=null;
+ try{if(typeof PerformanceObserver!=="undefined"){
+  observer=new PerformanceObserver(list=>{for(const e of list.getEntries())if(e.startTime>=started)sample.long_tasks.push({start_ms:e.startTime-started,duration_ms:e.duration});});
+  observer.observe({type:"longtask",buffered:false});
+ }}catch{observer=null;}
+ const complete=()=>{
+  if(observer){for(const e of observer.takeRecords())if(e.startTime>=started)sample.long_tasks.push({start_ms:e.startTime-started,duration_ms:e.duration});observer.disconnect();}
+  document.removeEventListener?.("visibilitychange",visibility);
+  sample.elapsed_ms=performance.now()-started;sample.wakeup_late_ms=sample.elapsed_ms-ms;
+  sample.wall_elapsed_ms=Date.now()-wallStarted;sample.visibility_end=document.visibilityState||"unknown";sample.focus_end=document.hasFocus?.()??null;
+  sample.stopped=state.stop;state.waitDiagnostics411.push(sample);
+ };
+ try{await sleep(ms);}finally{complete();}
+ return sample;
+}
+function freezeReport411(){state.frozenReport411=JSON.parse(JSON.stringify(buildReport411()));return state.frozenReport411;}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const serverNow=()=>Date.now()+state.serverOffset;
 const fmt=v=>Number.isFinite(v)?Math.round(v)+" ms":"—";
@@ -74,84 +96,141 @@ function paint(){const rpc=state.bids.map(x=>x.rpc_ms),bids=state.bids.length,st
 function makeClient(storageKey){return createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:40}}})}
 async function ensureAuth(client){const s=await client.auth.getSession();if(s.data?.session)return s.data.session;const r=await client.auth.signInAnonymously();if(r.error)throw r.error;return r.data.session}
 async function timedRpc(client,name,args){const t=performance.now();const r=await client.rpc(name,args);return {...r,elapsed:performance.now()-t}}
-async function syncClock(){const t0=Date.now(),r=await state.org.rpc("fa_server_time"),t1=Date.now();if(r.error||!r.data?.epoch_ms)throw new Error("Impossibile sincronizzare l'orologio Supabase");state.serverOffset=Number(r.data.epoch_ms)-(t0+t1)/2}
-async function removePhoneChannels(){clearInterval(state.heartbeat);state.heartbeat=null;for(const p of state.phones){p.suspended=true;clearTimeout(p.reconnectTimer49);if(p.channel)try{await p.db.removeChannel(p.channel)}catch{}}state.phones=[];if(state.monitor){try{await state.org.removeChannel(state.monitor)}catch{}state.monitor=null}}
+async function syncClock(){const t0=Date.now(),r=await state.org.rpc("fa_server_time"),t1=Date.now();if(r.error||!r.data?.epoch_ms)throw new Error("Impossibile sincronizzare l'orologio Supabase");state.serverOffset=Number(r.data.epoch_ms)-(t0+t1)/2;state.clockMeasurement={measured_at:new Date(t1).toISOString(),rtt_ms:t1-t0,offset_ms:state.serverOffset};}
+function cancelPhone410(phone){
+ phone.suspended=true;phone.disposed=true;
+ clearTimeout(phone.reconnectTimer49);phone.reconnectTimer49=null;
+ phone.cancelConnect410?.();
+}
+function assertPhone410(phone,restore=false){
+ if(state.stop||phone.disposed||(phone.suspended&&!restore))throw new Error("Operazione telefono annullata");
+}
+async function removePhoneChannels(){
+ clearInterval(state.heartbeat);state.heartbeat=null;
+ const phones=[...state.phones];
+ // Invalidate ALL phones before the first asynchronous removal.
+ for(const p of phones)cancelPhone410(p);
+ await Promise.allSettled(phones.flatMap(p=>[p.heartbeatPending410,p.reconnectTask410]).filter(Boolean));
+ for(const p of phones){const ch=p.channel;p.channel=null;if(ch){try{const result=await p.db.removeChannel(ch);if(result!=="ok")phoneEvent45("cleanup_error",p,{error:String(result)});}catch(e){phoneEvent45("cleanup_error",p,{error:e.message});}}p.db.auth.stopAutoRefresh();}
+ state.phones=[];
+ if(state.monitor){const ch=state.monitor;state.monitor=null;try{await state.org.removeChannel(ch)}catch(e){state.errors.push({phase:"CLEANUP",error:e.message});}}
+}
 function scheduleReconnect49(phone,channel){
- if(phone.suspended||phone.channel!==channel||phone.reconnectTimer49||phone.reconnecting49||state.stop)return;
+ if(phone.disposed||phone.suspended||phone.channel!==channel||phone.reconnectTimer49||phone.reconnecting49||state.stop)return;
  if((phone.reconnectAttempts49||0)>=3){phoneEvent45("reconnect_limit",phone);return;}
- phone.reconnectTimer49=setTimeout(async()=>{
+ phone.reconnectTimer49=setTimeout(()=>{
+  phone.reconnectTask410=(async()=>{
   phone.reconnectTimer49=null;
-  if(phone.suspended||phone.channel!==channel||state.stop)return;
+  if(phone.disposed||phone.suspended||phone.channel!==channel||state.stop)return;
   phone.reconnecting49=true;phone.reconnectAttempts49=(phone.reconnectAttempts49||0)+1;
   phoneEvent45("unexpected_closed_reconnect",phone,{attempt:phone.reconnectAttempts49});
-  // Invalidate the old channel before removal so its CLOSED callback cannot reopen it.
-  phone.channel=null;let connected=false;
+  phone.cancelConnect410?.();phone.channel=null;let connected=false;
   try{
-   await phone.db.removeChannel(channel);
-   if(phone.suspended||state.stop)return;
-   await connectPhone(phone);connected=true;
-   if(!phone.suspended&&!state.stop){const r=await loggedHeartbeat45(phone);if(r.error||r.data?.ok===false)throw new Error(r.error?.message||r.data?.error||"Heartbeat fallito");phoneEvent45("unexpected_closed_recovered",phone);}
-  }catch(e){phoneEvent45("unexpected_closed_reconnect_error",phone,{error:e.message});}
+   const removed=await phone.db.removeChannel(channel);if(removed!=="ok")throw new Error("Rimozione canale: "+removed);
+   assertPhone410(phone);
+   await connectPhone(phone);assertPhone410(phone);
+   const r=await loggedHeartbeat45(phone);assertPhone410(phone);
+   if(r.error||r.data?.ok!==true)throw new Error(r.error?.message||r.data?.error||"Heartbeat fallito");
+   connected=phone.connected410===true;
+   if(connected)phoneEvent45("unexpected_closed_recovered",phone);
+  }catch(e){phoneEvent45("unexpected_closed_reconnect_error",phone,{error:e.message,cancelled:state.stop||phone.disposed||phone.suspended});}
   finally{
    phone.reconnecting49=false;
-   // Retry failed closed/connecting channels, never a successfully joined one.
-   if(phone.channel&&!connected)scheduleReconnect49(phone,phone.channel);
+   if(!connected&&!phone.disposed&&!phone.suspended&&!state.stop){
+    // Removal failure retains the old handle so the bounded retry can remove it again.
+    if(!phone.channel)phone.channel=channel;
+    scheduleReconnect49(phone,phone.channel);
+   }
   }
+  })();
  },500);
 }
 async function connectPhone(phone,restoreSuspended=false){
+ assertPhone410(phone,restoreSuspended);
  return new Promise((resolve,reject)=>{
-  let done=false;
-  const finish=(error)=>{if(done)return;done=true;clearTimeout(timeout);error?reject(error):resolve();};
+  let done=false,tracking=false;
+  const finish=(error)=>{if(done)return;done=true;clearTimeout(timeout);if(phone.cancelConnect410===cancel)phone.cancelConnect410=null;error?reject(error):resolve();};
+  const cancel=()=>finish(new Error("Connessione annullata"));phone.cancelConnect410=cancel;
   const timeout=setTimeout(()=>finish(new Error(`Realtime non connesso per Virtuale ${phone.slot}`)),12000);
   const channel=phone.db.channel("fantastica:"+LEAGUE_ID,{config:{presence:{key:`phone:${phone.slot}`}}});
-  phone.channel=channel;
+  phone.channel=channel;phone.connected410=false;
   channel.subscribe(async status=>{
+   if(phone.channel!==channel||phone.disposed)return;
    phoneEvent45("channel_status",phone,{status});
+   if(state.stop||(phone.suspended&&!(restoreSuspended&&!done)))return;
+   if(status!=="SUBSCRIBED")phone.connected410=false;
    if(status==="CLOSED"&&done)scheduleReconnect49(phone,channel);
-   if(phone.channel!==channel||(phone.suspended&&!(restoreSuspended&&!done)))return;
-   if(status==="SUBSCRIBED"){
+   if(status==="SUBSCRIBED"&&!tracking){
+    tracking=true;
     try{
      phoneEvent45("presence_track_request",phone,{reconnection:done});
      const tracked=await channel.track({kind:"phone",slot:phone.slot,online_at:new Date().toISOString()});
+     if(phone.channel!==channel)throw new Error("Canale sostituito durante track");
+     assertPhone410(phone,restoreSuspended&&!done);
      phoneEvent45("presence_track_response",phone,{result:tracked});
      if(tracked!=="ok")throw new Error("Presence non registrata");
-     finish();
-    }catch(e){phoneEvent45("presence_track_error",phone,{error:e.message});finish(e);}
-   }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){
-    finish(new Error(`Realtime ${status} per Virtuale ${phone.slot}`));
-   }
+     phone.connected410=true;finish();
+    }catch(e){phoneEvent45("presence_track_error",phone,{error:e.message,cancelled:state.stop||phone.disposed});finish(e);}
+    finally{tracking=false;}
+   }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status))finish(new Error(`Realtime ${status} per Virtuale ${phone.slot}`));
   });
  });
 }
 function phoneEvent45(type,phone,extra={}){if(state.phoneEvents.length<10000)state.phoneEvents.push({type,slot:phone.slot,run_id:state.runId,at:new Date().toISOString(),server_estimate_ms:serverNow(),clock_offset_ms:state.serverOffset,suspended:!!phone.suspended,...extra});else state.phoneEventsDropped++;}
 async function loggedHeartbeat45(phone){
+ assertPhone410(phone);
+ if(phone.heartbeatPending410)return phone.heartbeatPending410;
  const id=crypto.randomUUID(),began=performance.now();phoneEvent45("heartbeat_request",phone,{attempt_id:id});
- try{const r=await phone.db.rpc("fa_heartbeat_fix3",{p_league_id:LEAGUE_ID,p_slot:phone.slot,p_device_token:phone.deviceId,p_allow_legacy:false});phoneEvent45("heartbeat_response",phone,{attempt_id:id,rpc_ms:performance.now()-began,ok:!r.error&&r.data?.ok!==false,error:r.error?.message||r.data?.error||null,resumed:r.data?.resumed??null,blocked:r.data?.blocked??null});return r;}catch(e){phoneEvent45("heartbeat_error",phone,{attempt_id:id,rpc_ms:performance.now()-began,error:e.message});throw e;}
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+ const work=(async()=>{try{
+  const r=await phone.db.rpc("fa_heartbeat_fix3",{p_league_id:LEAGUE_ID,p_slot:phone.slot,p_device_token:phone.deviceId,p_allow_legacy:false}).abortSignal(controller.signal);
+  phoneEvent45("heartbeat_response",phone,{attempt_id:id,rpc_ms:performance.now()-began,ok:!r.error&&r.data?.ok===true,error:r.error?.message||r.data?.error||null,resumed:r.data?.resumed??null,blocked:r.data?.blocked??null});return r;
+ }catch(e){phoneEvent45("heartbeat_error",phone,{attempt_id:id,rpc_ms:performance.now()-began,error:e.message});throw e;}
+ finally{clearTimeout(timer);}})();
+ phone.heartbeatPending410=work;
+ try{return await work;}finally{if(phone.heartbeatPending410===work)phone.heartbeatPending410=null;}
 }
-async function heartbeatAll(){for(const p of state.phones){if(p.suspended){phoneEvent45("heartbeat_skipped_suspended",p);continue;}try{await loggedHeartbeat45(p)}catch{}}}
+let heartbeatCycle410=null;
+async function heartbeatAll(){
+ if(state.stop)return;
+ if(heartbeatCycle410)return heartbeatCycle410;
+ const phones=[...state.phones];
+ const work=(async()=>{for(const p of phones){if(state.stop||p.disposed)break;if(p.suspended){phoneEvent45("heartbeat_skipped_suspended",p);continue;}try{await loggedHeartbeat45(p)}catch{}}})();
+ heartbeatCycle410=work;try{await work;}finally{if(heartbeatCycle410===work)heartbeatCycle410=null;}
+}
 let pending44=null;
 function receive44(p){if(!pending44)return;try{const result=pending44.collector.accept(p);if(result)pending44.finish(null,result);}catch(e){pending44.finish(e);}}
 async function fetchDetails44(){
+ if(pending44)throw new Error("Raccolta diagnostica già in corso");
  const requestId=crypto.randomUUID();state.details44=null;
  return new Promise((resolve,reject)=>{
-  const timer=setTimeout(()=>pending44?.finish(Error("Rapporto Regia incompleto: manca diagnostica 4.4")),15000);
-  pending44={collector:new PacketCollector(state.runId,requestId),finish:(err,result)=>{clearTimeout(timer);pending44=null;if(err)reject(err);else{state.details44=result;resolve(result);}}};
-  state.monitor.send({type:"broadcast",event:"DIAG44_REQUEST",payload:{run_id:state.runId,request_id:requestId}}).then(status=>{if(status!=="ok")pending44?.finish(Error("Richiesta rapporto non inviata"));}).catch(e=>pending44?.finish(e));
+  let settled=false;
+  const request={collector:new PacketCollector(state.runId,requestId),finish:(err,result)=>{
+   if(settled)return;settled=true;clearTimeout(timer);if(pending44===request)pending44=null;
+   if(err)reject(err);else{state.details44=result;resolve(result);}
+  }};
+  const timer=setTimeout(()=>request.finish(Error("Rapporto Regia incompleto: manca diagnostica 4.4")),15000);pending44=request;
+  state.monitor.send({type:"broadcast",event:"DIAG44_REQUEST",payload:{run_id:state.runId,request_id:requestId}}).then(status=>{if(status!=="ok")request.finish(Error("Richiesta rapporto non inviata"));}).catch(e=>request.finish(e));
  });
 }
 async function connectMonitor(){
- state.monitor=state.org.channel("fantastica:"+LEAGUE_ID)
-  .on("broadcast",{event:"FIX4_STALL_DONE"},p=>{const d=p?.payload||p;if(d.run_id===state.runId)state.stall=d;})
-  .on("broadcast",{event:"DIAG44_PACKET"},p=>receive44(p?.payload||p))
-  .on("broadcast",{event:"DIAG_STATS"},payload=>{state.diag=payload?.payload||payload||null;paint()})
-  .subscribe(status=>{if(status==="SUBSCRIBED")addLog("Collegamento con la Regia diagnostica in ascolto.","ok")});
+ return new Promise((resolve,reject)=>{
+  let done=false;const finish=e=>{if(done)return;done=true;clearTimeout(timer);e?reject(e):resolve();};
+  const timer=setTimeout(()=>finish(Error("Monitor Regia non connesso")),12000);
+  const ch=state.org.channel("fantastica:"+LEAGUE_ID);state.monitor=ch;
+  ch.on("broadcast",{event:"FIX4_STALL_DONE"},p=>{const d=p?.payload||p;if(state.monitor===ch&&d.run_id===state.runId)state.stall=d;})
+   .on("broadcast",{event:"DIAG44_PACKET"},p=>{if(state.monitor===ch)receive44(p?.payload||p);})
+   .on("broadcast",{event:"DIAG_STATS"},p=>{if(state.monitor===ch){state.diag=p?.payload||p;paint();}})
+   .subscribe(status=>{if(state.monitor!==ch)return;if(status==="SUBSCRIBED"){finish();addLog("Collegamento con la Regia diagnostica in ascolto.","ok");}else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(status)){finish(Error("Monitor Regia: "+status));if(state.running)state.errors.push({phase:"MONITOR",error:status});}});
+ });
 }
 async function prepare(){
- if(state.running)return;const password=$("password").value;if(!password){setStatus("Inserisci la password della lega tecnica.","bad");return}
+ if(state.running||state.preparing)return;const password=$("password").value;if(!password){setStatus("Inserisci la password della lega tecnica.","bad");return}
+ if(state.startedAt||state.preparationErrors.length)state.archivedReports.push(JSON.parse(JSON.stringify(report())));
+ state.frozenReport411=null;state.waitDiagnostics411=[];state.startedAt=null;state.endedAt=null;state.completed=false;state.preparationErrors=[];state.phoneEvents=[];state.phoneEventsDropped=0;state.errors=[];state.preparing=true;
  $("prepare").disabled=true;$("start").disabled=true;state.prepared=false;state.stop=false;setStatus("Preparazione in corso: accesso e creazione degli 8 telefoni virtuali...");
  try{
-  await removePhoneChannels();state.org=makeClient("fantastica-sim-organizer-v1");await ensureAuth(state.org);
+  await removePhoneChannels();state.org=state.org||makeClient("fantastica-sim-organizer-v1");await ensureAuth(state.org);
   const login=await state.org.rpc("fa_login_organizer",{p_name:LEAGUE_NAME,p_password:password});if(login.error||!login.data?.ok)throw new Error("Password non corretta o lega tecnica non disponibile");
   await syncClock();addLog("Accesso organizzatore riuscito.","ok");
   const reset=await state.org.rpc("fa_fix3_reset_test_league");if(reset.error||!reset.data?.ok)throw new Error(`Reset lega tecnica: ${reset.error?.message||reset.data?.error}`);
@@ -161,7 +240,9 @@ async function prepare(){
   for(let slot=1;slot<=8;slot++){
    const db=makeClient(`fantastica-sim-phone-v1-${slot}`),deviceId=`fantastica-sim-560-slot-${slot}`;await ensureAuth(db);
    const j=await db.rpc("fa_join_participant_device_v511",{p_name:LEAGUE_NAME,p_password:password,p_device_id:deviceId,p_claim_slot:slot});if(j.error||!j.data?.ok)throw new Error(`Accesso Virtuale ${slot}: ${j.error?.message||j.data?.error}`);
-   const phone={slot,db,deviceId,channel:null,suspended:false};await db.rpc("fa_set_my_auction_visibility_fix3",{p_league_id:LEAGUE_ID,p_slot:slot,p_visible:true});await connectPhone(phone);state.phones.push(phone);addLog(`Virtuale ${slot} online.`);
+   const phone={slot,db,deviceId,channel:null,suspended:false};state.phones.push(phone);
+   const visible=await db.rpc("fa_set_my_auction_visibility_fix3",{p_league_id:LEAGUE_ID,p_slot:slot,p_visible:true});if(visible.error||visible.data?.ok!==true)throw new Error("Visibilità Virtuale "+slot+": "+(visible.error?.message||visible.data?.error||"risposta non valida"));
+   await connectPhone(phone);addLog(`Virtuale ${slot} online.`);
   }
   await connectMonitor();await heartbeatAll();state.heartbeat=setInterval(heartbeatAll,20000);await sleep(1500);
   let online=0,consecutive=0;
@@ -177,7 +258,7 @@ async function prepare(){
   }
   if(consecutive<2)throw new Error(`Online ${online}/8 dopo 15 secondi: controlla che la Regia sia aperta e collegata.`);
   state.prepared=true;$("start").disabled=false;setStatus("✓ Pronto: 8 telefoni virtuali online. Ora premi AVVIA TEST.","ok");addLog("Preparazione completata: 8/8 online.","ok");
- }catch(e){setStatus("Preparazione interrotta: "+e.message,"bad");addLog(e.message,"bad")}finally{$("prepare").disabled=false}
+ }catch(e){state.preparationErrors.push({at:new Date().toISOString(),phase:"PREPARE",error:e.message});await removePhoneChannels();setStatus("Preparazione interrotta: "+e.message,"bad");addLog(e.message,"bad");$("download").disabled=false;}finally{state.preparing=false;$("prepare").disabled=false}
 }
 async function probeAuction(){
  state.simulatorReads++;
@@ -186,16 +267,22 @@ async function probeAuction(){
  return r.data;
 }
 async function dropPresence(phone){
- phone.suspended=true;clearTimeout(phone.reconnectTimer49);phoneEvent45("disconnect_request",phone);
- if(phone.channel){try{await phone.db.removeChannel(phone.channel)}catch{}}
- phone.channel=null;phoneEvent45("channel_removed",phone);
+ assertPhone410(phone);
+ phone.suspended=true;clearTimeout(phone.reconnectTimer49);phone.reconnectTimer49=null;phone.cancelConnect410?.();
+ // Let a pre-existing heartbeat settle BEFORE measuring the intentional absence.
+ if(phone.heartbeatPending410)await phone.heartbeatPending410;
+ if(state.stop||phone.disposed)throw new Error("Disconnessione annullata");
+ phoneEvent45("disconnect_request",phone);
+ const channel=phone.channel;phone.channel=null;phone.connected410=false;
+ if(channel){const result=await phone.db.removeChannel(channel);if(result!=="ok")throw new Error("Disconnessione non confermata: "+result);}
+ phoneEvent45("channel_removed",phone);
 }
 async function restorePresence(phone){
- phoneEvent45("reconnect_request",phone);
- await connectPhone(phone,true);phoneEvent45("presence_track_confirmed",phone);
+ assertPhone410(phone,true);phoneEvent45("reconnect_request",phone);
+ await connectPhone(phone,true);assertPhone410(phone,true);phoneEvent45("presence_track_confirmed",phone);
  phone.suspended=false;
- const h=await loggedHeartbeat45(phone);
- if(h.error||h.data?.ok===false)throw new Error(`Heartbeat di rientro Virtuale ${phone.slot}: ${h.error?.message||h.data?.error}`);
+ const h=await loggedHeartbeat45(phone);assertPhone410(phone);
+ if(h.error||h.data?.ok!==true)throw new Error(`Heartbeat di rientro Virtuale ${phone.slot}: ${h.error?.message||h.data?.error}`);
 }
 function evaluateFaultFix4(kind,durationMs,waitMs,observedMs,before,after,trace){
  const rows=trace.filter(x=>x.after_state?.player_id===before?.current_player_id);
@@ -221,6 +308,11 @@ function nextFault48(s){
 }
 function failureReasons48(s){
  const reasons=[];
+ const phoneErrors=(s.phoneEvents||[]).filter(e=>!e.cancelled&&(e.type.endsWith("_error")||e.type==="reconnect_limit"||(e.type==="heartbeat_response"&&e.ok!==true)));
+ const appErrors=(s.details44?.records||[]).filter(e=>e.kind?.endsWith("_error")||(e.kind==="presence_event"&&e.presence_type==="SNAPSHOT_ERROR")||(["close_response","presence_response"].includes(e.kind)&&e.ok!==true));
+ if(phoneErrors.length)reasons.push(`${phoneErrors.length} errori diagnostici dei telefoni`);
+ if(appErrors.length)reasons.push(`${appErrors.length} errori diagnostici Regia/worker`);
+ if(s.preparationErrors?.length)reasons.push("errori di preparazione");
  if(!s.completed||s.stop)reasons.push("prova incompleta");
  if(s.errors.length)reasons.push(`${s.errors.length} errori del test`);
  for(const kind of ["TRANSIENT_1S","OFFLINE_5S"]){if(!s.faults.some(x=>x.kind===kind&&x.pass))reasons.push(`${kind}: manca una prova valida superata`);}
@@ -232,13 +324,21 @@ function failureReasons48(s){
  return reasons;
 }
 async function controlledFault(kind,durationMs){
+ const count=state.faults.length;
+ try{return await controlledFaultBody410(kind,durationMs);}catch(e){
+  if(state.faults.length===count)state.faults.push({at:new Date().toISOString(),kind,requested_duration_ms:durationMs,outcome:state.stop?"INTERROTTA":"ERRORE",pass:false,timing_valid:false,trace_valid:false,retryable:false,error:e.message});
+  throw e;
+ }
+}
+async function controlledFaultBody410(kind,durationMs){
  await collectTrace();const traceStart=state.traceCursor;
  const before=await probeAuction(),phone=state.phones.find(p=>p.slot!==Number(before?.highest_slot))||state.phones[0],began=performance.now();
  addLog(`${kind==="TRANSIENT_1S"?"Micro-disconnessione":"Disconnessione reale"} controllata: Virtuale ${phone.slot} per ${(durationMs/1000).toFixed(0)} s.`);
  await dropPresence(phone);
  const droppedAt=performance.now();
  const during=null; // Server trace is authoritative; no REST read in the offline wait.
- await sleep(durationMs);
+ const waitDiagnostic=await measuredOfflineWait411(durationMs);
+ if(state.stop)throw new Error("Prova offline interrotta");
  const reconnectRequestedAt=performance.now();
  await restorePresence(phone);
  const reconnectedAt=performance.now();
@@ -247,7 +347,7 @@ async function controlledFault(kind,durationMs){
  await collectTrace();const faultTrace=state.trace.filter(x=>x.id>traceStart);
  const verdict=evaluateFaultFix4(kind,durationMs,reconnectRequestedAt-droppedAt,reconnectedAt-droppedAt,before,after,faultTrace);
  const {timingValid,traceValid,pass}=verdict;
- const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.1",outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
+ const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.10.1",wait_diagnostic:waitDiagnostic,outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
  state.faults.push(sample);paint();
  addLog(`${kind==="TRANSIENT_1S"?"Micro-offline ignorato":"Pausa e ripartenza automatica"}: ${verdict.outcome}.`,pass?"ok":"bad");
  if(!pass){
@@ -297,6 +397,7 @@ async function waitUntilFinalFive(deadline){
  return null;
 }
 async function placeBid(phone,phase,deadlineBefore=null){
+ assertPhone410(phone);
  const sentLeft=deadlineBefore?Date.parse(deadlineBefore)-serverNow():null;
  const r=await timedRpc(phone.db,"fa_place_bid_v521",{p_league_id:LEAGUE_ID,p_slot:phone.slot,p_device_token:phone.deviceId,p_allow_legacy:false,p_kind:"PLUS1",p_exact:null});
  if(r.error||!r.data?.ok){const error=r.error?.message||r.data?.error||"errore sconosciuto";state.errors.push({at:new Date().toISOString(),phase,slot:phone.slot,error,rpc_ms:r.elapsed,timer_left_ms:sentLeft});paint();addLog(`Offerta Virtuale ${phone.slot} respinta: ${error}`,"bad");return null}
@@ -323,13 +424,13 @@ async function waitForSale(deadline){
  if(a?.status!=="SOLD")throw new Error("Asta non chiusa entro 60 secondi: nessun recupero del simulatore");
  const observedAt=serverNow();await collectTrace();
  const row=state.trace.find(x=>x.before_state?.status==="OPEN"&&x.after_state?.status==="SOLD"&&x.after_state?.player_id===state.currentPlayer);
- if(!row||!Number.isFinite(Date.parse(row.before_state.deadline)))throw new Error("Chiusura senza misura server: prova non valida");
+ if(!row||row.after_state?.assigned!==true||!Number.isFinite(Date.parse(row.before_state.deadline)))throw new Error("Chiusura senza misura server: prova non valida");
  const delay=Date.parse(row.at)-Date.parse(row.before_state.deadline),observed=observedAt-Date.parse(row.before_state.deadline);
  const sample={player_id:state.currentPlayer,at:row.at,deadline:row.before_state.deadline,delay_ms:delay,server_delay_ms:delay,observed_delay_ms:observed,observed_at_server_estimate:new Date(observedAt).toISOString(),fallback:false,wait_ms:performance.now()-began};
  state.finalize.push(sample);return {delay,observed,fallback:false};
 }
 async function run(){
- if(!state.prepared||state.running)return;state.phoneEvents=[];state.phoneEventsDropped=0;state.details44=null;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
+ if(!state.prepared||state.running||state.preparing)return;state.prepared=false;state.frozenReport411=null;state.waitDiagnostics411=[];state.details44=null;state.completed=false;state.trace=[];state.stall=null;state.runId=crypto.randomUUID();state.running=true;state.stop=false;state.startedAt=new Date().toISOString();state.endedAt=null;state.auctions=0;state.bids=[];state.errors=[...state.preparationErrors];state.finalize=[];state.faults=[];state.timerWaitRecoveries=0;state.simulatorReads=0;state.diag=null;state.log=[];$("log").textContent="";paint();
  $("prepare").disabled=true;$("start").disabled=true;$("stop").disabled=false;$("download").disabled=true;const duration=Number($("minutes").value)*60000,endAt=Date.now()+duration;setStatus("Test in corso. Lascia aperte entrambe le pagine...");addLog(`Avvio test realistico di ${$("minutes").value} minuti.`,"ok");
  try{
   try{await state.monitor?.send({type:"broadcast",event:"DIAG_RESET",payload:{sent_at:new Date().toISOString(),run_id:state.runId}});await sleep(200)}catch{}
@@ -339,6 +440,7 @@ async function run(){
   let bidderIndex=0;
   while(!state.stop&&Date.now()<endAt){
    const player=await nextPlayer();if(!player){addLog("Listone tecnico terminato.","bad");break}
+   if(state.stop)break;
    const start=await state.org.rpc("fa_select_and_start_v519",{p_league_id:LEAGUE_ID,p_player_id:player.id});if(start.error||!start.data?.ok)throw new Error(`Avvio asta ${player.name}: ${start.error?.message||start.data?.error}`);
    state.currentPlayer=player.id;
    addLog(`Asta ${state.auctions+1}: ${player.name}.`);await sleep(180);
@@ -364,15 +466,18 @@ async function run(){
   const passed=report().success;
   setStatus(state.stop?"Test fermato: INCOMPLETO.":passed?"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.":"FIX4 NON SUPERATA: "+failureReasons48(state).join("; "),passed?"ok":"bad");
  }catch(e){state.errors.push({at:new Date().toISOString(),phase:"RUN",error:e.message});state.endedAt=new Date().toISOString();setStatus("Test interrotto: "+e.message,"bad");addLog(e.message,"bad")}
- finally{try{await collectTrace();}catch(e){state.errors.push({at:new Date().toISOString(),phase:"TRACE",error:e.message});addLog("Registro finale non recuperato: "+e.message,"bad");}if(!state.details44&&state.monitor){try{await fetchDetails44();}catch(e){addLog(e.message,"bad");}}if(state.completed){const reasons=failureReasons48(state);setStatus(reasons.length?"FIX4 NON SUPERATA: "+reasons.join("; "):"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.",reasons.length?"bad":"ok");}state.running=false;$("prepare").disabled=false;$("start").disabled=false;$("stop").disabled=true;$("download").disabled=false;paint()}
+ finally{try{await collectTrace();}catch(e){state.errors.push({at:new Date().toISOString(),phase:"TRACE",error:e.message});addLog("Registro finale non recuperato: "+e.message,"bad");}if(!state.details44&&state.monitor){try{await fetchDetails44();}catch(e){addLog(e.message,"bad");}}if(state.completed){const reasons=failureReasons48(state);setStatus(reasons.length?"FIX4 NON SUPERATA: "+reasons.join("; "):"✓ FIX4 SUPERATA: chiusure server, offline e blocco UI verificati.",reasons.length?"bad":"ok");}await removePhoneChannels();
+ const finalReasons=failureReasons48(state);if(state.completed)setStatus(finalReasons.length?"FIX4 NON SUPERATA: "+finalReasons.join("; "):"✓ FIX4 SUPERATA: criteri verificati.",finalReasons.length?"bad":"ok");
+ state.running=false;state.prepared=false;freezeReport411();$("prepare").disabled=false;$("start").disabled=true;$("stop").disabled=true;$("download").disabled=false;paint()}
 }
 function fix4Pass(s,faultPass){
  const stall=s.stall,closure=s.finalize.find(x=>x.player_id===stall?.player_id);
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
-function report(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.9",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
-function download(){const blob=new Blob([JSON.stringify(report(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-$("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;setStatus("Arresto in corso: attendo la chiamata attuale...")};$("download").onclick=download;paint();
+function report(){return state.frozenReport411||buildReport411();}
+function buildReport411(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.10.1",league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,offline_wait_diagnostics:state.waitDiagnostics411,report_frozen_at:new Date().toISOString(),clock_measurement:state.clockMeasurement||null,preparation_errors:state.preparationErrors,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function download(){const blob=new Blob([JSON.stringify({...report(),previous_reports:state.archivedReports},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$("prepare").onclick=prepare;$("start").onclick=run;$("stop").onclick=()=>{state.stop=true;clearInterval(state.heartbeat);for(const p of state.phones)cancelPhone410(p);setStatus("Arresto in corso: attendo le chiamate già inviate e raccolgo il rapporto...")};$("download").onclick=download;paint();
 </script>
 </body></html>
 
