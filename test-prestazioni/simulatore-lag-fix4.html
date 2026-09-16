@@ -2,16 +2,16 @@
 <html lang="it">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fantastica · Simulatore lag Fix 4.12</title>
+<title>Fantastica · Simulatore lag Fix 4.13</title>
 <style>
 :root{color-scheme:dark;--bg:#071426;--card:#10243a;--gold:#f4bd2d;--green:#27d684;--red:#ff5c6c;--muted:#aebfd0}*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#061120,#10294a);color:#fff;font:16px/1.42 system-ui,sans-serif;min-height:100vh}.wrap{max-width:1050px;margin:auto;padding:22px}.hero{background:#08182bd9;border:1px solid #2e557c;border-radius:18px;padding:20px;box-shadow:0 18px 50px #0006}h1{margin:0 0 8px;color:var(--gold);font-size:clamp(25px,4vw,40px)}h2{margin:0 0 12px;font-size:20px}.note{color:var(--muted);margin:5px 0}.warning{background:#3b2d08;border:1px solid #b89022;padding:10px 12px;border-radius:10px;margin:14px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{background:var(--card);border:1px solid #294b6b;border-radius:15px;padding:16px}.form{display:grid;grid-template-columns:1fr 160px;gap:10px}label{display:block;color:var(--muted);font-size:13px;font-weight:800;margin-bottom:5px}input,select{width:100%;border:1px solid #477296;border-radius:9px;background:#071626;color:#fff;padding:11px;font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:900;font-size:15px;cursor:pointer;background:var(--gold);color:#151006}button.secondary{background:#2d638e;color:#fff}button.stop{background:#a92d3b;color:#fff}button:disabled{opacity:.4;cursor:not-allowed}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.status{margin-top:12px;border-radius:10px;padding:11px;background:#091a2d;color:var(--muted);font-weight:800}.status.ok{color:#74f6b5;border:1px solid #247a55}.status.bad{color:#ff8995;border:1px solid #80313b}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#08182a;border-radius:10px;padding:10px}.metric small{display:block;color:var(--muted);font-weight:700}.metric b{display:block;color:var(--gold);font-size:20px;margin-top:3px}.log{height:260px;overflow:auto;background:#06111f;border-radius:10px;padding:10px;font:12px/1.45 ui-monospace,monospace;white-space:pre-wrap}.steps{margin:6px 0 0;padding-left:22px}.steps li{margin:6px 0}.ready{color:var(--green)}.badText{color:var(--red)}@media(max-width:760px){.grid,.form{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body><main class="wrap">
  <section class="hero">
-  <h1>SIMULATORE LAG FANTASTICA · FIX 4.12</h1>
+  <h1>SIMULATORE LAG FANTASTICA · FIX 4.13</h1>
   <p class="note">Collaudo isolato: genera otto telefoni virtuali, rilanci realistici negli ultimi cinque secondi e due disconnessioni controllate e un blocco dell’interfaccia di 6 secondi. Misura chiusura server e recupero del timer. Usa esclusivamente Supabase TEST PRESTAZIONI.</p>
-  <div class="warning"><b>Collaudo 4.12:</b> con la Regia pronta, premi <b>COLLAUDO COMPLETO · 10 MIN + CONTROLLI</b>. Non premere PREPARA o AVVIA separatamente per questa prova. <br><b>Configurazione:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina, premi <b>PREPARA</b> e poi <b>AVVIA</b>. PREPARA azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
+  <div class="warning"><b>Collaudo 4.13:</b> con la Regia pronta, premi <b>COLLAUDO COMPLETO · 10 MIN + CONTROLLI</b>. Non premere PREPARA o AVVIA separatamente per questa prova. <br><b>Configurazione:</b> sul portatile apri prima <b>pc-diagnostica-fix4.html</b> ed entra con lega <b>test</b> e password <b>12345</b>. Sul PC fisso apri questa pagina e premi <b>COLLAUDO COMPLETO · 10 MIN + CONTROLLI</b>. La preparazione automatica azzera soltanto la lega tecnica. Nella Regia spunta <b>Abilita prova blocco interfaccia 6 secondi</b>. Non aprire lo Spettatore.</div>
  </section>
 
  <section class="grid">
@@ -146,8 +146,20 @@ function scheduleReconnect49(phone,channel){
   })();
  },500);
 }
+async function waitRealtimeDisconnect413(phone,restoreSuspended=false){
+ const start=performance.now();
+ phoneEvent45("socket_disconnect_wait_start",phone);
+ while(phone.db.realtime.isDisconnecting()){
+  assertPhone410(phone,restoreSuspended);
+  if(performance.now()-start>=2000)throw new Error("Socket ancora in disconnessione dopo 2000 ms");
+  await new Promise(resolve=>setTimeout(resolve,20));
+ }
+ assertPhone410(phone,restoreSuspended);
+ phoneEvent45("socket_disconnect_wait_end",phone,{elapsed_ms:performance.now()-start});
+}
 async function connectPhone(phone,restoreSuspended=false){
  assertPhone410(phone,restoreSuspended);
+ if(phone.db.realtime?.isDisconnecting?.())await waitRealtimeDisconnect413(phone,restoreSuspended);
  return new Promise((resolve,reject)=>{
   let done=false,tracking=false;
   const finish=(error)=>{if(done)return;done=true;clearTimeout(timeout);if(phone.cancelConnect410===cancel)phone.cancelConnect410=null;error?reject(error):resolve();};
@@ -352,7 +364,7 @@ async function controlledFaultBody410(kind,durationMs){
  await collectTrace();const faultTrace=state.trace.filter(x=>x.id>traceStart);
  const verdict=evaluateFaultFix4(kind,durationMs,reconnectRequestedAt-droppedAt,reconnectedAt-droppedAt,before,after,faultTrace);
  const {timingValid,traceValid,pass}=verdict;
- const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.12",wait_diagnostic:waitDiagnostic,outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
+ const sample={at:new Date().toISOString(),kind,slot:phone.slot,requested_duration_ms:durationMs,observed_duration_ms:reconnectedAt-droppedAt,total_test_ms:elapsed,disconnected_wait_ms:reconnectRequestedAt-droppedAt,test_revision:"4.13",wait_diagnostic:waitDiagnostic,outcome:verdict.outcome,timing_valid:timingValid,trace_valid:traceValid,trace_ids:faultTrace.map(x=>x.id),pass,before,during,after};
  state.faults.push(sample);paint();
  addLog(`${kind==="TRANSIENT_1S"?"Micro-offline ignorato":"Pausa e ripartenza automatica"}: ${verdict.outcome}.`,pass?"ok":"bad");
  if(!pass){
@@ -481,7 +493,7 @@ function fix4Pass(s,faultPass){
  return !!(s.completed&&!s.stop&&s.endedAt&&s.errors.length===0&&faultPass&&s.auctions>=4&&s.finalize.length===s.auctions&&s.finalize.every(x=>Number.isFinite(x.server_delay_ms)&&x.server_delay_ms>=0&&x.server_delay_ms<=1000&&!x.fallback)&&stall?.run_id===s.runId&&stall.duration_ms>=5900&&closure&&Date.parse(closure.at)>=stall.start_server_ms&&Date.parse(closure.at)<=stall.end_server_ms);
 }
 function report(){return state.frozenReport411||buildReport411();}
-function buildReport411(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.12",closed_probe:state.closedProbe412,extended_test:state.extended412,requested_duration_ms:state.requestedDuration412,league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,offline_wait_diagnostics:state.waitDiagnostics411,report_frozen_at:new Date().toISOString(),clock_measurement:state.clockMeasurement||null,preparation_errors:state.preparationErrors,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
+function buildReport411(){const rpc=state.bids.map(x=>x.rpc_ms),final5=state.bids.filter(x=>x.phase==="FINAL5").map(x=>x.rpc_ms),faultPass=state.faults.some(x=>x.kind==="TRANSIENT_1S"&&x.pass)&&state.faults.some(x=>x.kind==="OFFLINE_5S"&&x.pass);return {version:"FANTASTICA SIMULATORE LAG FIX 4.13",closed_probe:state.closedProbe412,extended_test:state.extended412,requested_duration_ms:state.requestedDuration412,league:{id:LEAGUE_ID,name:LEAGUE_NAME},started_at:state.startedAt,ended_at:state.endedAt,auctions:state.auctions,bids:state.bids.length,errors:state.errors.length,success:fix4Pass(state,faultPass)&&failureReasons48(state).length===0,failure_reasons:failureReasons48(state),invalid_timing_attempts:state.faults.filter(x=>!x.timing_valid).length,offline_wait_diagnostics:state.waitDiagnostics411,report_frozen_at:new Date().toISOString(),clock_measurement:state.clockMeasurement||null,preparation_errors:state.preparationErrors,phone_events:state.phoneEvents,phone_events_dropped:state.phoneEventsDropped,diagnostics_44:state.details44,completed:state.completed,aborted:state.stop,run_id:state.runId,server_trace:state.trace,ui_stall:state.stall,acceptance:{max_server_delay_ms:1000,min_auctions:4,requires_ui_stall:true},summary:{rpc_p50_ms:percentile(rpc,50),rpc_p95_ms:percentile(rpc,95),rpc_max_ms:rpc.length?Math.max(...rpc):null,final5_rpc_p50_ms:percentile(final5,50),final5_rpc_p95_ms:percentile(final5,95),final5_rpc_max_ms:final5.length?Math.max(...final5):null,finalize_p95_ms:percentile(state.finalize.map(x=>x.delay_ms),95),timer_wait_recoveries:state.timerWaitRecoveries,simulator_rest_reads:state.simulatorReads},controlled_offline_tests:state.faults,regia_diagnostics:state.diag,bid_samples:state.bids,finalize_samples:state.finalize,errors_detail:state.errors,log:state.log}}
 function download(){const blob=new Blob([JSON.stringify({...report(),run_success:report().success,success:suiteResult412?suiteResult412.success:report().success,complete_suite:suiteResult412,previous_reports:state.archivedReports},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-test-lag-fix4-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function requestStop412(){state.stop=true;clearInterval(state.heartbeat);for(const p of state.phones)cancelPhone410(p);setStatus("Arresto in corso: attendo le chiamate già inviate e raccolgo il rapporto...");}
 function viewEvidence412(){return JSON.parse(JSON.stringify({phone_events:state.phoneEvents,errors:state.errors,preparation_errors:state.preparationErrors,log:state.log}));}
@@ -516,7 +528,7 @@ async function closedProbe412(){
 async function completeSuite412(){
  if(suiteBusy412||state.running||state.preparing)return;
  suiteBusy412=true;suiteCancelled412=false;$("download").disabled=true;$("suite412").disabled=true;$("stop").disabled=false;
- const suite={version:"4.12",started_at:new Date().toISOString(),success:false,stages:[]};suiteResult412=suite;
+ const suite={version:"4.13",started_at:new Date().toISOString(),success:false,stages:[]};suiteResult412=suite;
  try{
   if(document.visibilityState!=="visible")throw Error("Lascia il simulatore visibile per avviare il collaudo");
   const first={name:"prepare_initial",pass:false};suite.stages.push(first);
