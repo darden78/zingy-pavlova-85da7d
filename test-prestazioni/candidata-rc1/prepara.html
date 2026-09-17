@@ -1,0 +1,35 @@
+<!doctype html><html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prepara FANTASTICA TEST RC1</title>
+<style>body{max-width:750px;margin:35px auto;padding:20px;background:#071426;color:white;font:17px system-ui}input,select,button{padding:10px;font:inherit;margin:5px}button{background:#f4bd2d;border:0;border-radius:8px}label{display:block}pre{white-space:pre-wrap}a{color:#f4bd2d}</style>
+<h1>FANTASTICA TEST RC1</h1><p>Preparazione iniziale per la prova con telefoni veri. Chiudi il simulatore e tutte le Regie prima di procedere.</p>
+<p>Questa operazione azzera le assegnazioni della sola lega tecnica e scollega gli otto dispositivi virtuali. I posti non usati verranno messi in gestione manuale. Non eseguirla durante una prova da conservare.</p>
+<label>Telefoni reali <select id="count"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option></select></label>
+<div id="names"></div><label>Password lega test <input id="password" type="password" value="12345"></label>
+<label><input type="checkbox" id="ack">Ho chiuso simulatore e Regie e voglio azzerare la lega TEST.</label><button id="prepare">PREPARA PER I TELEFONI</button><pre id="log"></pre><p><a href="telefono.html">Apri telefono TEST</a> · <a href="pc.html">Apri Regia web TEST</a></p>
+<script type="module">
+import {createClient} from './supabase.bundle.js';import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from './config.js';
+const league='13622072-cec9-4932-8181-5f2cfd07876a';
+if(new URL(SUPABASE_URL).hostname!=='nbsxpjwivhnyiqtaxehk.supabase.co')throw Error('Configurazione fuori TEST');
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:'fantastica-test-rc1-prepara'}});
+const $=id=>document.getElementById(id);for(let i=1;i<=8;i++){const l=document.createElement('label');l.textContent='Posto '+i+' ';const input=document.createElement('input');input.id='name'+i;input.value='Giocatore '+i;input.maxLength=40;l.appendChild(input);$('names').appendChild(l);}
+const log=t=>$('log').textContent+=t+'\n';
+async function rpc(name,args={}){const r=await db.rpc(name,args).abortSignal(AbortSignal.timeout(15000));if(r.error||r.data?.ok!==true)throw Error(name+': '+(r.error?.message||r.data?.error||'risposta non valida'));return r.data;}
+$('prepare').onclick=async()=>{
+ if(!$('ack').checked){log('Conferma prima la preparazione della lega TEST.');return}
+ const n=Number($('count').value),names=Array.from({length:8},(_,i)=>i<n?$('name'+(i+1)).value.trim():'Riserva manuale '+(i+1));
+ if(names.some(x=>!x)||new Set(names.map(x=>x.toLowerCase())).size!==8){log('Inserisci nomi diversi e non vuoti.');return}
+ $('prepare').disabled=true;$('log').textContent='';
+ try{
+  let a=await db.auth.getSession();if(!a.data.session){a=await db.auth.signInAnonymously();if(a.error)throw a.error;}
+  const login=await rpc('fa_login_organizer',{p_name:'test',p_password:$('password').value});if(login.league_id!==league)throw Error('Lega diversa da TEST');
+  const r=await rpc('fa_fix3_reset_test_league');log('Assegnazioni di prova azzerate: '+r.assigned_players_cleared);
+  for(let i=1;i<=8;i++){
+   await rpc('fa_detach_participant_device_v511',{p_league_id:league,p_slot:i});
+   await rpc('fa_rename_slot',{p_league_id:league,p_slot:i,p_name:names[i-1]});
+   if(i>n)await rpc('fa_set_participant_manual_v511',{p_league_id:league,p_slot:i,p_manual:true});
+   log(names[i-1]+(i<=n?' — pronto per il telefono':' — gestione manuale'));
+  }
+  log('PRONTO. Apri la Regia TEST e poi le app TEST: lega test, password 12345. Ogni telefono deve scegliere il proprio nome.');
+ }catch(e){log('PREPARAZIONE NON COMPLETATA: '+e.message+'\nConserva questo messaggio. Non avviare l’asta.');}
+ finally{$('prepare').disabled=false;}
+};
+</script></html>

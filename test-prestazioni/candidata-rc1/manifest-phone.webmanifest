@@ -1,0 +1,22 @@
+{
+  "id": "./telefono.html",
+  "name": "FANTASTICA TEST RC1",
+  "short_name": "FANTA TEST",
+  "start_url": "./telefono.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020b18",
+  "theme_color": "#02152a",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

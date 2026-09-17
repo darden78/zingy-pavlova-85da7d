@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FANTASTICA — Comandi manuali</title>
+<style>
+:root{
+  --bg:#041a31;
+  --panel1:#052848;
+  --panel2:#011a38;
+  --line:#1d76aa;
+  --line2:#15527f;
+  --text:#f7fbff;
+  --muted:#a9c1d6;
+  --blue1:#00418f;
+  --blue2:#002e69;
+  --red1:#c91b22;
+  --red2:#920d14;
+  --green1:#238e58;
+  --green2:#176d43;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;font-family:Arial,sans-serif;color:var(--text)}
+body{padding:0}
+.manualWindow{
+  width:100%;
+  height:100%;
+  border:1px solid #1d76aa;
+  border-radius:12px;
+  background:linear-gradient(180deg,#021d3d 0%,#01162f 100%);
+  position:relative;
+  box-shadow:0 18px 50px rgba(0,0,0,.58),0 0 18px rgba(30,111,168,.22);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding:10px 16px 12px;
+}
+.manualHead{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  -webkit-app-region:drag;
+}
+.manualTitle{
+  flex:1;
+  min-width:0;
+  font-size:18px;
+  line-height:1.1;
+  font-weight:900;
+  letter-spacing:.15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.closeBtn{
+  -webkit-app-region:no-drag;
+  width:32px;height:32px;flex:0 0 32px;
+  border:0;background:transparent;color:#fff;
+  font-size:29px;line-height:28px;font-weight:300;
+  cursor:pointer;padding:0;
+}
+.statusGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:1px;
+}
+.stat{
+  min-width:0;
+  height:78px;
+  border:1px solid #0b4f82;
+  border-radius:8px;
+  background:linear-gradient(180deg,#052848,#011a38);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:6px 7px;
+}
+.stat small{
+  display:block;
+  color:#fff;
+  font-size:12px;
+  line-height:1.05;
+  font-weight:900;
+  text-transform:uppercase;
+  margin-bottom:7px;
+  white-space:nowrap;
+}
+.statValue{
+  min-width:0;
+  max-width:100%;
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.statValue .unit{font-size:12px;font-weight:800;margin-left:4px}
+.actions{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-top:15px;
+}
+.action{
+  width:100%;
+  border-radius:7px;
+  border:1px solid #0f639f;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+  letter-spacing:.1px;
+}
+.action:disabled{opacity:.34;cursor:default;filter:grayscale(.25)}
+.plus1{height:54px;background:linear-gradient(180deg,var(--red1),var(--red2));border-color:#d72b31;font-size:31px}
+.plus1 small,.plus10 small{font-size:14px;font-weight:900;margin-left:6px;vertical-align:middle}
+.plus10{height:54px;background:linear-gradient(180deg,var(--blue1),var(--blue2));border-color:#0e65ad;font-size:31px}
+.exact{height:48px;background:linear-gradient(180deg,var(--blue1),var(--blue2));border-color:#0e65ad;font-size:19px}
+.leave{height:48px;background:linear-gradient(180deg,var(--red1),var(--red2));border-color:#d72b31;font-size:18px}
+#leaveWrap{margin-top:3px}
+.resume{height:48px;background:linear-gradient(180deg,var(--green1),var(--green2));font-size:18px}
+.leaderInfo{
+  height:48px;border:1px solid #8b6919;border-radius:7px;
+  background:#49370b;color:#ffda6b;font-size:13px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:5px 10px;
+}
+.message{
+  position:absolute;
+  left:16px;
+  right:16px;
+  bottom:1px;
+  height:13px;
+  margin:0;
+  text-align:center;
+  font-size:10px;
+  line-height:13px;
+  font-weight:900;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  pointer-events:none;
+}
+.message.ok{color:#48e28a}.message.bad{color:#ff7474}.message.warn{color:#ffd36a}
+
+/* OFFERTA LIBERA: stesso ingombro, nessuno scroll. */
+.exactView{display:none;flex:1;min-height:0}
+.manualWindow.exactMode .mainView{display:none}
+.manualWindow.exactMode .exactView{display:flex;flex-direction:column}
+.exactTop{
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+  margin-top:4px;
+}
+.exactDisplay{
+  min-height:58px;border:1px solid #1c71a9;border-radius:8px;
+  background:#020d19;color:#fff;font-size:34px;font-weight:900;
+  text-align:right;padding:10px 12px;letter-spacing:1px;
+}
+.exactHint{color:var(--muted);font-size:10px;line-height:1.25;text-align:right}
+.keypad{
+  flex:1;min-height:0;
+  display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+  gap:6px;margin-top:8px;
+}
+.keypad button{
+  border:1px solid #236a9f;border-radius:7px;background:#0d4e7e;color:#fff;
+  font-size:18px;font-weight:900;cursor:pointer;min-height:0
+}
+.keypad .cancel{grid-column:1/3;background:#5e3b71;border-color:#79558d;font-size:13px}
+.keypad .send{grid-column:3/5;background:#218b52;border-color:#38ad70;font-size:15px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="manualWindow" class="manualWindow">
+  <div class="manualHead">
+    <div id="manualTitle" class="manualTitle">COMANDI MANUALI — ALESSANDRO</div>
+    <button id="closeBtn" class="closeBtn" title="Chiudi">×</button>
+  </div>
+
+  <div class="mainView">
+    <div class="statusGrid">
+      <div class="stat"><small>OFFERTA ATTUALE</small><div id="currentAmount" class="statValue">562<span class="unit">crediti</span></div></div>
+      <div class="stat"><small>LEADER ATTUALE</small><div id="currentLeader" class="statValue">Tablet</div></div>
+      <div class="stat"><small>CREDITI RIMASTI</small><div id="creditsRemain" class="statValue">498<span class="unit">crediti</span></div></div>
+    </div>
+
+    <div class="actions">
+      <button id="plus1" class="action plus1">+1<small>CREDITO</small></button>
+      <button id="plus10" class="action plus10">+10<small>CREDITI</small></button>
+      <button id="exactBtn" class="action exact">OFFERTA LIBERA</button>
+      <div id="leaveWrap"><button id="leaveBtn" class="action leave">ABBANDONA ASTA</button></div>
+    </div>
+    <div id="msg" class="message"></div>
+  </div>
+
+  <div class="exactView">
+    <div class="exactTop">
+      <div id="exactDisplay" class="exactDisplay">&nbsp;</div>
+      <div class="exactHint">Offerta attuale: <b id="exactCurrent">—</b><br>Massimo spendibile: <b id="exactMax">—</b></div>
+    </div>
+    <div class="keypad">
+      <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="C">C</button>
+      <button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="B">⌫</button>
+      <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button data-key="0">0</button>
+      <button id="exactCancel" class="cancel">ANNULLA</button><button id="exactSend" class="send">INVIA</button>
+    </div>
+    <div id="exactMsg" class="message"></div>
+  </div>
+</div>
+<script type="module" src="./manuale.js"></script>
+</body>
+</html>
