@@ -1,0 +1,14 @@
+FANTASTICA 5.0.8f - FIX UNIVERSALE PERSISTENZA + SWIPE
+
+Sostituire su GitHub Pages:
+- telefono.html
+- installa.html
+- sw.js
+
+Correzioni:
+1) Device ID creato/persistito gia dalla pagina installazione e passato a telefono.html nell URL.
+2) Su iOS il manifest non viene forzato, cosi Aggiungi a Home conserva l URL corrente con Device ID.
+3) Swipe orizzontale intercettato e bloccato a livello touchmove; cambio pagina discreto.
+4) Scroll verticale delle rose lasciato nativo e indipendente.
+
+Per iOS/iPad gia installato con la vecchia versione: eliminare UNA VOLTA la vecchia icona e reinstallare dal QR dopo l aggiornamento GitHub, per catturare il nuovo URL persistente.

@@ -1,0 +1,12 @@
+FANTASTICA 5.0.8j – RIPRISTINO DISPOSITIVO CORRENTE + PALLINO ONLINE
+
+Modifiche:
+- Supabase ricorda l’associazione CORRENTE del Device ID.
+- QR/reinstallazione prova il ripristino automatico senza chiedere lega/password.
+- Se la Regia libera il partecipante, l’associazione corrente viene revocata e compare il login.
+- Nessun fallback verso vecchie leghe precedenti dello stesso dispositivo.
+- ESCI disattiva il ripristino automatico corrente, permettendo di entrare in un’altra lega.
+- ONLINE usa un pallino CSS reale, compatibile anche con iOS 12, non l’emoji verde.
+
+Per GitHub basta sostituire telefono.html, installa.html e sw.js.
+La migrazione Supabase è già stata applicata direttamente.

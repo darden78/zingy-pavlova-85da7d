@@ -1,0 +1,15 @@
+FANTASTICA 5.0.8l — KEEP AWAKE / SCREEN WAKE LOCK
+
+Modifica solo il client telefono/tablet.
+- Wake Lock nativo automatico quando supportato.
+- Riacquisizione automatica tornando nell'app.
+- Fallback legacy best-effort per iOS/iPadOS vecchi tramite micro-video invisibile.
+- Indicatore compatto SCHERMO: ATTIVO / ATTIVO (COMPAT.) / TOCCA PER ATTIVARE.
+- Nessuna modifica alla logica d'asta, Supabase, EXE o APK.
+
+Per il fix rapido caricare su GitHub solo:
+telefono.html
+installa.html
+sw.js
+
+Nota: sui sistemi molto vecchi il fallback legacy non può avere la stessa garanzia dell'API Wake Lock ufficiale e va testato sul dispositivo reale.

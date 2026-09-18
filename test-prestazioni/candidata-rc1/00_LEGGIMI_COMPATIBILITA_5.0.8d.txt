@@ -1,0 +1,11 @@
+FANTASTICA WEB 5.0.8d - COMPATIBILITA UNIVERSALE
+
+Correzioni telefono/tablet senza modificare la logica d asta:
+- layout a piena finestra anche su Safari/iOS datati (niente dipendenza da inset/dvh/min/clamp)
+- altezza viewport sincronizzata con window.innerHeight
+- swipe rose con fallback touchstart/touchend per browser senza Pointer Events/touch-action completi
+- persistenza Device ID rafforzata con localStorage + cookie legacy + IndexedDB + bridge nell URL
+  per trasferire l identita anche tra Safari e Web App Home Screen sui vecchi iOS
+- nessuna modifica a EXE, APK o Supabase richiesta da questo fix.
+
+DA TESTARE su iPhone/iPad vecchi e nuovi e Android smartphone/tablet.

@@ -1,0 +1,7 @@
+FANTASTICA 5.0.8k - fallback rientro iPad/iOS 12 + pallino online
+
+- Rientro automatico: Device ID -> associazione corrente -> fallback sessione Supabase univoca.
+- IndexedDB non può più bloccare indefinitamente l’avvio sui vecchi Safari.
+- Stato ONLINE usa il carattere ● colorato dal testo, senza emoji/CSS grafico.
+- Nessuna modifica alla logica d’asta.
+- Supabase: funzione fa_restore_participant_by_session già applicata.

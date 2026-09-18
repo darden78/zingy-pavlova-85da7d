@@ -1,0 +1,11 @@
+FANTASTICA 5.0.8e - Swipe a pagine discrete
+
+Fix web universale:
+- nessuna mezza pagina durante lo swipe;
+- una schermata alla volta;
+- swipe orizzontale cambia pagina;
+- scorrimento verticale indipendente dentro ogni rosa;
+- compatibilita con browser Apple datati mantenuta.
+
+Per aggiornare GitHub Pages: sostituire telefono.html, installa.html e sw.js.
+Non modificare FANTASTICA.apk.

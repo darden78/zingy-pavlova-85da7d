@@ -1,0 +1,11 @@
+FANTASTICA GITHUB PAGES 5.0.8m
+
+Novità:
+- telefoni segnalano visibile/nascosto al database;
+- la Regia pubblica lo snapshot Presence realtime;
+- asta apribile anche con partecipanti offline;
+- chiusure automatiche bloccate se un partecipante ancora eleggibile è offline;
+- timer eventualmente interrotto riparte dalla durata completa al rientro;
+- ASSEGNA ASTA manuale non viene mai bloccato.
+
+IMPORTANTE: conserva nella root GitHub il tuo FANTASTICA.apk firmato. Questo archivio non contiene la tua chiave di firma.

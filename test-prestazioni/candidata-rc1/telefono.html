@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head><script src="./phone-recovery.js?v=rc3-1"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA 5.4 · TEST RC3.1</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
+<title>FANTASTICA 5.4 · TEST BASE54-P1</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA TEST">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260918-rc3-1-compat54";
+ var FANTASTICA_PHONE_BUILD="20260918-base54-p1";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -1070,7 +1070,7 @@ const phoneRecovery=new FantasticaPhoneRecovery({
 });
 async function connect(force=false){return phoneRecovery.connect(force)}
 window.addEventListener("online",()=>connect(true));
-window.fantasticaPhoneReport=()=>({version:"RC3.1",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
+window.fantasticaPhoneReport=()=>({version:"BASE54-P1",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
 
 document.addEventListener("pointerdown",()=>{
  try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
