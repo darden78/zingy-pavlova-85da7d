@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="it"><head><style> #diagPanel:not([open]){width:auto!important} summary{cursor:pointer}</style>
+<html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.13</title>
+<title>FANTASTICA 5.4 · TEST RC3</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
-
+<link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
 (function(){
  try{
@@ -186,7 +186,7 @@ table{width:100%;border-collapse:collapse;background:#202020;border-radius:10px;
 
 /* ===== INTERFACCIA PC SECONDARIA - STILE BLU COERENTE ===== */
 #leagueHome{max-width:900px;padding-top:3vh}
-/* FIX 4.50-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
+/* FIX 20-08-2026: la home/creazione lega deve poter scorrere anche se il layout Regia mantiene body e wrap bloccati. */
 #leagueHome{max-height:calc(100vh - 28px);overflow-y:auto;overflow-x:hidden;padding-bottom:28px;scrollbar-gutter:stable}
 #leagueHome .brand{margin:2vh 0 22px;font-size:46px;font-weight:950;letter-spacing:.8px;color:#fff;text-shadow:0 0 22px rgba(35,134,220,.18)}
 #leagueHome .authTabs{background:#061b31;border:1px solid #123f67;border-radius:13px;padding:5px;box-shadow:0 16px 44px rgba(0,0,0,.28)}
@@ -621,7 +621,7 @@ body{overflow:hidden!important}
  </header>
  <div id="offlineGuard" class="offlineGuard"></div>
  <div class="workspace">
-  <aside class="side leftSide"><h2>🏆 MIGLIOR OFFERTA ATTUALE</h2><div id="leaderRoster"></div></details>
+  <aside class="side leftSide"><h2>🏆 MIGLIOR OFFERTA ATTUALE</h2><div id="leaderRoster"></div></aside>
   <main class="center">
    <div class="hero">
     <div class="heroMain">
@@ -673,7 +673,7 @@ body{overflow:hidden!important}
     <div id="playerList" class="playerList"></div>
    </div>
    <div id="selectedRosterView" class="hidden"></div>
-  </details>
+  </aside>
  </div>
 </section>
 </div>
@@ -703,7 +703,7 @@ body{overflow:hidden!important}
  <div id="settingsMsg"></div>
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
 
- <div class="installInvite"><h3>Installa FANTASTICA TEST · RC2</h3><img src="./qr-installa.png" alt="QR per installare FANTASTICA TEST"><p>Inquadra il QR dal dispositivo del partecipante: Android, iPhone/iPad o PC.</p><a href="https://darden78.github.io/zingy-pavlova-85da7d/test-prestazioni/candidata-rc1/installa.html" target="_blank" rel="noopener">APRI PAGINA INSTALLAZIONE TEST</a></div>
+ <div class="installInvite"><h3>Installa FANTASTICA sui telefoni</h3><p>Fai inquadrare questo QR ai partecipanti oppure apri il collegamento.</p><img src="./qr-installa.png" alt="QR installazione FANTASTICA"><br><a href="https://darden78.github.io/zingy-pavlova-85da7d/test-prestazioni/candidata-rc1/installa.html" target="_blank" rel="noopener">LINK INSTALLAZIONE</a></div>
  <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare FANTASTICA in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
  <div class="installInvite"><h3>Esporta files</h3><p>Crea in qualsiasi momento Excel, PDF e un backup completo ripristinabile della lega.</p><button id="exportAll" type="button">ESPORTA FILES</button></div>
  <div class="restoreInvite"><h3>Carica backup</h3><p>Riporta integralmente questa lega al punto esatto salvato nel file FANTASTICA. La situazione attuale verrà sostituita, non unita.</p><button id="restoreBackupBtn" type="button">CARICA BACKUP</button></div>
@@ -720,33 +720,17 @@ body{overflow:hidden!important}
  <div class="celebrateBox"><h1 id="celebrateTitle"></h1><p id="celebrateSub"></p></div>
 </div>
 
-<style>
-#diagPanel{position:fixed;right:12px;bottom:12px;z-index:100000;width:min(440px,calc(100vw - 24px));background:#071729f2;color:#fff;border:2px solid #26d07c;border-radius:14px;padding:11px 13px;box-shadow:0 12px 35px #0008;font:700 13px/1.35 system-ui,sans-serif}
-#diagPanel .diagTitle{color:#42f5a4;font-size:15px;margin-bottom:6px}#diagPanel .diagGrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}#diagPanel b{color:#ffe169}#diagPanel .diagHint{font-size:11px;color:#b9c9d8;margin-top:7px;font-weight:600}#diagPanel button{margin-top:8px;background:#f5bf26;color:#111;border:0;border-radius:8px;padding:7px 10px;font-weight:900;cursor:pointer}
-</style>
-<details id="diagPanel"><summary>FANTASTICA TEST · RC2 — Rapporto prova</summary>
- <div class="diagTitle">CANDIDATA RC2 · BASE 5.4 SENZA JINGLE</div>
- <div class="diagGrid">
-  <span>Segnali STATE: <b id="diagStates">0</b></span><span>Aggiornamenti: <b id="diagLoads">0</b></span>
-  <span>Immediato mediana: <b id="diagFastP50">—</b></span><span>Immediato p95: <b id="diagFastP95">—</b></span>
-  <span>Immediato massimo: <b id="diagFastMax">—</b></span><span>Immediato oltre 1 s: <b id="diagFastOver1s">0</b></span>
-  <span>REST mediana: <b id="diagRestP50">—</b></span><span>REST p95: <b id="diagRestP95">—</b></span>
-  <span>Video mediana: <b id="diagVideoP50">—</b></span><span>Video p95: <b id="diagVideoP95">—</b></span>
-  <span>Video massimo: <b id="diagVideoMax">—</b></span><span>Oltre 1 s: <b id="diagOver1s">0</b></span>
-  <span>STATE asta: <b id="diagAuctionStates">0</b></span><span>STATE eventi: <b id="diagEventStates">0</b></span>
-  <span>Dati REST stimati: <b id="diagRestBytes">0 KB</b></span><span>Richieste telefoni: <b id="diagRequests">0</b></span>
-  <span>PHONE_STATE inviati: <b id="diagPhoneStates">0</b></span><span>Accorpamento REST: <b>500 ms</b></span>
-  <span>Blocchi UI lunghi: <b id="diagLongTasks">0</b></span><span>Ultimo: <b id="diagLast">—</b></span>
- </div>
- <label hidden><input type="checkbox" id="fix4AllowStall"> Abilita prova blocco interfaccia 6 secondi</label><span id="fix4WorkerStatus">Controllo separato: in attesa</span>
- <button id="diagDownload" type="button">SCARICA RAPPORTO</button>
- <div class="diagHint">Al termine scarica il rapporto prima di uscire dalla Regia. Questa è una candidata da verificare sui dispositivi reali.</div>
-</details>
-
 <script type="module">
 import {DiagnosticRecorder,makePackets} from "./diagnostics-fix44.js";
 import {createClient} from "./supabase.bundle.js";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config-fix4.js?v=fantastica-test-lag-fix4";
+// TEST diagnostics: no visible panel and no changes to the official layout.
+const diagnosticPanel=document.createElement("div");
+diagnosticPanel.innerHTML="<section id=\"diagPanel\" hidden><h3>FANTASTICA TEST · RC3 — Rapporto prova</h3>\n <div class=\"diagTitle\">CANDIDATA RC3 · BASE 5.4 SENZA JINGLE</div>\n <div class=\"diagGrid\">\n  <span>Segnali STATE: <b id=\"diagStates\">0</b></span><span>Aggiornamenti: <b id=\"diagLoads\">0</b></span>\n  <span>Immediato mediana: <b id=\"diagFastP50\">—</b></span><span>Immediato p95: <b id=\"diagFastP95\">—</b></span>\n  <span>Immediato massimo: <b id=\"diagFastMax\">—</b></span><span>Immediato oltre 1 s: <b id=\"diagFastOver1s\">0</b></span>\n  <span>REST mediana: <b id=\"diagRestP50\">—</b></span><span>REST p95: <b id=\"diagRestP95\">—</b></span>\n  <span>Video mediana: <b id=\"diagVideoP50\">—</b></span><span>Video p95: <b id=\"diagVideoP95\">—</b></span>\n  <span>Video massimo: <b id=\"diagVideoMax\">—</b></span><span>Oltre 1 s: <b id=\"diagOver1s\">0</b></span>\n  <span>STATE asta: <b id=\"diagAuctionStates\">0</b></span><span>STATE eventi: <b id=\"diagEventStates\">0</b></span>\n  <span>Dati REST stimati: <b id=\"diagRestBytes\">0 KB</b></span><span>Richieste telefoni: <b id=\"diagRequests\">0</b></span>\n  <span>PHONE_STATE inviati: <b id=\"diagPhoneStates\">0</b></span><span>Accorpamento REST: <b>500 ms</b></span>\n  <span>Blocchi UI lunghi: <b id=\"diagLongTasks\">0</b></span><span>Ultimo: <b id=\"diagLast\">—</b></span>\n </div>\n <label hidden><input type=\"checkbox\" id=\"fix4AllowStall\"> Abilita prova blocco interfaccia 6 secondi</label><span id=\"fix4WorkerStatus\">Controllo separato: in attesa</span>\n <button id=\"diagDownload\" type=\"button\">SCARICA RAPPORTO</button>\n <div class=\"diagHint\">Al termine scarica il rapporto prima di uscire dalla Regia. Questa è una candidata da verificare sui dispositivi reali.</div>\n</section>";
+document.body.appendChild(diagnosticPanel);
+const diagnosticView=document.getElementById("diagPanel");
+diagnosticView.style.cssText="position:fixed;right:12px;bottom:12px;z-index:100000;max-height:85vh;overflow:auto;width:440px;background:#071729;color:white;border:2px solid #26d07c;border-radius:12px;padding:16px;font:13px Arial";
+window.addEventListener("keydown",e=>{if(e.ctrlKey&&e.shiftKey&&e.code==="KeyD"){e.preventDefault();diagnosticView.hidden=!diagnosticView.hidden;if(!diagnosticView.hidden)diagPaint();}if(e.code==="Escape")diagnosticView.hidden=true;});
 if(new URL(SUPABASE_URL).hostname!=="nbsxpjwivhnyiqtaxehk.supabase.co")throw new Error("FIX4: configurazione fuori ambiente TEST");
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:"fantastica-test-rc1-regia-auth"},realtime:{worker:true,heartbeatIntervalMs:25000}}),$=id=>document.getElementById(id);
 const diag44=new DiagnosticRecorder();let lastUiTick44=0;const flush44=new Map();
@@ -764,9 +748,9 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA TEST RC2 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA TEST RC3 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
-function diagPaint(){const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
+function diagPaint(){if(diagnosticView.hidden)return;const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
  const player_id=auction?.current_player_id;
  const restMs=performance.now()-started,bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
@@ -810,8 +794,8 @@ diagEl("diagDownload").onclick=async()=>{
    if(trace.length>=20000)throw Error("Registro server troppo lungo: report parziale");
   }
  }catch(e){errors.push(e.message)}
- const report={version:"FANTASTICA TEST RC2 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
- const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-rc2-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
+ const report={version:"FANTASTICA TEST RC3 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-rc3-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
 };
 
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -859,7 +843,7 @@ function fireworksSound(){[0,.16,.34,.55].forEach((d,i)=>{tone(160+80*i,.22,.12,
 
 /* V529 — segnale acustico indipendente dal MUTE voce.
    Parte una sola volta quando il timer SEMIAUTOMATICO entra nella fase visibile. */
-const SEMI_VISIBLE_CUE_SRC="./timer_visible_double_ping.wav";
+const SEMI_VISIBLE_CUE_SRC="./audio/timer_visible_double_ping.wav";
 let semiVisibleCueAudio=null;
 function playSemiVisibleCue(){
  try{
@@ -1181,14 +1165,13 @@ $("loginLeagueBtn").onclick=async()=>{
  }catch(e){msg($("loginMsg"),"Errore: "+e.message,"bad")}
 };
 
-let verificationPoll=null,verificationEpoch=0;
+let verificationPoll=null;
 
 async function pollPendingLeague(){
  const raw=localStorage.getItem("fantastica-test-rc1-pending-league");
  if(!raw)return;
  const pending=JSON.parse(raw);
- const pendingEpoch=++verificationEpoch;let stopped=false;
- clearTimeout(verificationPoll);
+ clearInterval(verificationPoll);
  const check=async()=>{
    try{
      await ensureAuth();
@@ -1196,14 +1179,13 @@ async function pollPendingLeague(){
        p_pending_id:pending.pending_id,
        p_client_secret:pending.client_secret
      });
-     if(pendingEpoch!==verificationEpoch)return;
      if(error){msg($("homeMsg"),"Errore verifica: "+error.message,"bad");return}
      if(!data?.ok){
        const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":data?.error;
-       msg($("homeMsg"),"Errore: "+em,"bad");stopped=true;clearTimeout(verificationPoll);return
+       msg($("homeMsg"),"Errore: "+em,"bad");clearInterval(verificationPoll);return
      }
      if(data.complete){
-       clearTimeout(verificationPoll);
+       clearInterval(verificationPoll);
        localStorage.removeItem("fantastica-test-rc1-pending-league");
        msg($("homeMsg"),"✓ Email verificata. Apertura lega...","ok");
        await openLeague(data.league_id);
@@ -1212,12 +1194,11 @@ async function pollPendingLeague(){
      }
    }catch(e){msg($("homeMsg"),"Errore verifica: "+e.message,"bad")}
  };
- const repeat=async()=>{ await check(); if(!stopped&&pendingEpoch===verificationEpoch&&localStorage.getItem("fantastica-test-rc1-pending-league"))verificationPoll=setTimeout(repeat,2000); };
- await repeat();
+ await check();
+ verificationPoll=setInterval(check,2000);
 }
 
 $("createLeague").onclick=async()=>{
- if($("createLeague").disabled)return;
  const pwd=$("newPassword").value,pwd2=$("newPassword2").value,email=$("newEmail").value.trim(),name=$("newName").value.trim();
  if(name.length<2){msg($("homeMsg"),"Inserisci il nome della lega.","bad");return}
  if(pwd.length<5){msg($("homeMsg"),"La password deve avere almeno 5 caratteri.","bad");return}
@@ -1225,7 +1206,6 @@ $("createLeague").onclick=async()=>{
  if(!email.includes("@")){msg($("homeMsg"),"Inserisci un'email valida.","bad");return}
  if(+$("newMembers").value<2||+$("newMembers").value>12){msg($("homeMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const newOrd=roleOrderValues(".newRoleOrd");if($("newAuctionMode").value==="ROLE"&&!validRoleOrder(newOrd)){msg($("homeMsg"),"L'ordine ruoli deve contenere P, D, C e A una sola volta.","bad");return}
- $("createLeague").disabled=true;
  try{
    await ensureAuth();
    const clientSecret=crypto.randomUUID()+"-"+crypto.randomUUID();
@@ -1256,7 +1236,7 @@ $("createLeague").onclick=async()=>{
    if(mail.error){msg($("homeMsg"),"Errore email: "+mail.error.message,"bad");return}
    msg($("homeMsg"),"✓ Email inviata. Aprila su qualunque dispositivo: questa schermata entrerà automaticamente nella lega appena verificata.","ok");
    pollPendingLeague();
- }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}finally{$("createLeague").disabled=false}
+ }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}
 };
 
 $("changeLeague").onclick=async()=>{
@@ -2127,9 +2107,6 @@ async function connect(){
         scheduleLoad(8,false);
       }else pushPhoneState();
    })
-   .on("broadcast",{event:"FIX4_STALL"},p=>fix4HandleStall(p?.payload||p))
- .on("broadcast",{event:"DIAG_RESET"},p=>{resetDiagnostics((p?.payload||p)?.run_id||null)})
- .on("broadcast",{event:"DIAG44_REQUEST"},p=>sendDetails44(p?.payload||p))
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
       if(epoch!==connectionEpoch410)return;
@@ -2137,7 +2114,7 @@ async function connect(){
         clearTimeout(retry);rtConnected=true;
         presenceWarmupUntil=performance.now()+PRESENCE_OFFLINE_GRACE_MS;
         syncPhonePresence();
-        msg($("status"),"🟢 CONNESSO · TEST RC1","ok");
+        msg($("status"),"🟢 CONNESSO","ok");
       }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
         rtConnected=false;
         
@@ -2147,7 +2124,6 @@ async function connect(){
  connectMirror();
 }
 
-setInterval(()=>{if(!league||!channel||!rtConnected)return;const s=diagSummary();const compact={...s,samples:undefined,fast_samples:undefined,worker:fix4Status,stall:fix4Stall};try{channel.send({type:"broadcast",event:"DIAG_STATS",payload:compact})}catch{}},5000);
 
 
 function repairParticipants(){return slots.filter(s=>s.member_enabled!==false&&s.display_name)}
@@ -2389,7 +2365,8 @@ async function exportAllFiles(){
  const btn=$("exportAll");if(btn.disabled)return;
  const now=new Date(),pad=n=>String(n).padStart(2,"0"),leagueSafe=(league.name||"lega").replace(/[^\w-]+/g,"_");
  const suggested=`FANTASTICA_${leagueSafe}_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
- const requested=await askExportName(suggested);
+ const nativeSaveAs=window.fantasticaDesktop?.exportFilesSaveAs;
+ const requested=nativeSaveAs?suggested:await askExportName(suggested);
  if(requested===null)return;
  const exportName=String(requested||"").trim();
  if(!exportName)return;
@@ -2399,6 +2376,15 @@ async function exportAllFiles(){
   const xlsxBase64=makeXlsxBase64();
   const jsonText=JSON.stringify(await exportFantasticaBackup(),null,2);
   const pdfHtml=exportPdfHtml();
+
+  if(nativeSaveAs){
+   const r=await nativeSaveAs({leagueName:league.name,suggestedName:safe,xlsxBase64,jsonText,pdfHtml});
+   if(r?.canceled)return;
+   if(!r?.ok)throw new Error(r?.error||"Esportazione non riuscita");
+   alert(`File esportati correttamente in:\n${r.folder}`);
+   $("celebrate").classList.remove("show");
+   return;
+  }
 
   if(window.fantasticaDesktop?.exportFiles){
    const r=await window.fantasticaDesktop.exportFiles({leagueName:league.name,exportName:safe,xlsxBase64,jsonText,pdfHtml});
@@ -2489,6 +2475,5 @@ setInterval(()=>{if(league)load(false)},60000);
  }
 })();
 </script>
-
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));</script>
 </body></html>
-

@@ -1,6 +1,6 @@
 <!doctype html><html lang="it"><head><script src="./phone-recovery.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA TEST RC2</title><meta name="theme-color" content="#02152a"><meta name="fantastica-test-rc1-build" content="514-ipad-legacy-viewport4-20260817">
+<title>FANTASTICA 5.4 · TEST RC3</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA TEST">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -229,18 +229,18 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 </head><body>
 
 <div id="startupScreen" class="entry"><div class="entryBox" style="text-align:center">
- <h1>⚽ FANTASTICA <small style="font-size:10px;display:block">TEST · RC2</small></h1><p>Connessione...</p>
+ <h1>⚽ FANTASTICA</h1><p>Connessione...</p>
 </div></div>
 
 <div id="loginScreen" class="entry hidden"><div class="entryBox">
- <h1>⚽ FANTASTICA <small style="font-size:10px;display:block">TEST · RC2</small></h1><p>Entra nella tua lega</p>
+ <h1>⚽ FANTASTICA</h1><p>Entra nella tua lega</p>
  <label>Nome lega</label><input id="loginLeague" autocomplete="off">
  <label>Password</label><input id="loginPassword" type="password">
  <button id="loginBtn">ENTRA</button><div id="loginMsg"></div>
 </div></div>
 
 <div id="nameScreen" class="entry hidden"><div class="entryBox">
- <h1>⚽ FANTASTICA <small style="font-size:10px;display:block">TEST · RC2</small></h1><h2 id="nameLeague"></h2>
+ <h1>⚽ FANTASTICA</h1><h2 id="nameLeague"></h2>
  <div id="reclaimBox" class="hidden"><p><b>Recupero partecipante</b></p><p>La Regia ha autorizzato uno o più partecipanti a usare un nuovo dispositivo. Seleziona chi sei.</p><div id="reclaimChoices"></div><button id="backToLoginBtn" style="background:#555">TORNA INDIETRO</button></div>
  <div id="newNameBox"><p>Questo dispositivo è stato associato alla lega. Scegli il tuo nome.</p><input id="participantName" maxlength="30" placeholder="Il tuo nome"><button id="nameBtn">CONFERMA</button></div>
  <div id="nameMsg"></div>
@@ -256,7 +256,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
   <div id="playerPoolList" class="playerPoolList"></div>
  </div></section>
  <section class="page auctionPage faActive"><div class="app">
-  <div class="topline"><h1>⚽ FANTASTICA <small style="font-size:10px;display:block">TEST · RC2</small></h1><button id="exitBtn" class="exitBtn">ESCI</button></div>
+  <div class="topline"><h1>⚽ FANTASTICA</h1><button id="exitBtn" class="exitBtn">ESCI</button></div>
   <div id="leagueDisplay" class="league"></div><div id="playerName" class="name"></div><div id="status">Avvio...</div><div id="wakeStatus"></div>
   <div id="current" class="current">Nessun giocatore selezionato</div><div id="info">MIGLIOR OFFERENTE: 0 · Nessun offerente</div><div id="phoneTimer">—</div><div id="finance"></div>
   <div class="main"><button id="plus1" class="big">+1</button></div>
@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260917-rc2-new-league";
+ var FANTASTICA_PHONE_BUILD="20260918-rc3-base54";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -731,10 +731,11 @@ setInterval(()=>{if(!document.hidden)heartbeat(false)},20000);
 
 async function reportAuctionVisibility(visible){
  if(!leagueId||!slot||!db)return false;
+ const visibilityController=new AbortController(),visibilityTimeout=setTimeout(()=>visibilityController.abort(),8000);
  try{
-  const {data,error}=await db.rpc("fa_set_my_auction_visibility_fix3",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible}).abortSignal(AbortSignal.timeout(8000));
+  const {data,error}=await db.rpc("fa_set_my_auction_visibility_fix3",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible}).abortSignal(visibilityController.signal);
   return !error&&(!data||data.ok!==false);
- }catch(e){return false}
+ }catch(e){return false}finally{clearTimeout(visibilityTimeout)}
 }
 
 async function load(){
@@ -830,8 +831,7 @@ async function loadPlayerPool(force=false){
  if(playerPoolLoading)return;
  playerPoolLoading=true;
  try{
-  const {data,error}=await db.rpc("fa_phone_player_pool_v520",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false}).abortSignal(controller.signal);
-  if(leagueId!==heartbeatLeague||slot!==heartbeatSlot)return false;
+  const {data,error}=await db.rpc("fa_phone_player_pool_v520",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
   if(error){$("playerPoolStatus").textContent=error.message;return}
   if(!data||data.ok===false){if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return}$("playerPoolStatus").textContent=(data&&data.error)||"Elenco non disponibile";return}
   playerPool=(data.players||[]).map(p=>({...p,assigned_slot:null,in_current_list:true}));sortPlayerPool();playerPoolLoaded=true;playerPoolKey=key;renderPlayerPool();
@@ -1066,7 +1066,7 @@ const phoneRecovery=new FantasticaPhoneRecovery({
 });
 async function connect(force=false){return phoneRecovery.connect(force)}
 window.addEventListener("online",()=>connect(true));
-window.fantasticaPhoneReport=()=>({version:"RC2",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
+window.fantasticaPhoneReport=()=>({version:"RC3",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
 
 document.addEventListener("pointerdown",()=>{
  try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
@@ -1328,5 +1328,14 @@ function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>
 })();
 })();
 </script>
-<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));</script>
-<div style="position:fixed;right:4px;bottom:2px;z-index:99999;font:10px sans-serif;color:#ffd45b;pointer-events:none">TEST RC2</div><button id="rcPhoneDownload" style="position:fixed;right:5px;bottom:18px;z-index:99999;font:10px sans-serif">Rapporto TEST</button><script>document.getElementById("rcPhoneDownload").onclick=()=>{if(!window.fantasticaPhoneReport)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(window.fantasticaPhoneReport(),null,2)],{type:"application/json"}));a.download="fantastica-telefono-rc2-"+Date.now()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};</script></body></html>
+<script>
+/* V528.1: fix PWA applicato SOLO a iPad.
+   iPhone, Android e gli altri browser mantengono esattamente la registrazione V526. */
+(function(){
+ var ua=navigator.userAgent||"";
+ var isIPad=/iPad/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+ if(isIPad)return;
+ if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=514-audited-golden1"));
+})();
+</script>
+</body></html>
