@@ -4,7 +4,7 @@ class FantasticaPhoneRecovery {
  record(type,extra={}){const e={type,at:new Date().toISOString(),...extra};if(this.records.length<2000)this.records.push(e);else this.dropped++;}
  guard(current,callback){return (...args)=>{if(current())return callback(...args)}}
  detach(){const ch=this.channel;this.channel=null;if(ch)this.removal=this.removal.catch(()=>{}).then(async()=>{const r=await this.o.db.removeChannel(ch);if(r!=='ok')throw Error('Rimozione canale: '+r)}).catch(e=>{if(!this.channel)this.channel=ch;this.record('remove_error',{error:e.message});throw e});return this.removal;}
- stop(){this.epoch++;clearTimeout(this.timer);this.timer=null;this.cancel?.();this.cancel=null;this.task=null;this.connected=false;this.attempts=0;this.record('stop');this.detach().catch(()=>{});}
+ stop(){this.epoch++;clearTimeout(this.timer);this.timer=null;if(this.cancel)this.cancel();this.cancel=null;this.task=null;this.connected=false;this.attempts=0;this.record('stop');this.detach().catch(()=>{});}
  async connect(force=false){
   if(!this.o.ready())return;
   if(this.task)return this.task;
@@ -19,7 +19,10 @@ class FantasticaPhoneRecovery {
    try{
     await this.detach();if(!current())return;
     const began=performance.now();let waited=false;
-    while(this.o.db.realtime.isDisconnecting()){
+    // 5.4 usa anche Realtime precedente a isDisconnecting().
+    const realtime=this.o.db.realtime;
+    const disconnecting=()=>typeof realtime.isDisconnecting==='function'?realtime.isDisconnecting():realtime.connectionState()==='closing';
+    while(disconnecting()){
      if(!current())return;
      waited=true;if(performance.now()-began>=2000)throw Error('Socket in chiusura oltre 2000 ms');
      await new Promise(r=>setTimeout(r,20));
@@ -52,7 +55,7 @@ class FantasticaPhoneRecovery {
  }
  retry(epoch,e){
   if(epoch!==this.epoch)return;
-  this.epoch++;this.cancel?.();this.cancel=null;this.connected=false;this.record('connection_error',{error:e.message});
+  this.epoch++;if(this.cancel)this.cancel();this.cancel=null;this.connected=false;this.record('connection_error',{error:e.message});
   this.o.onStatus(this.attempts>=3?'Connessione non riuscita: esci e rientra':'Riconnessione...',false);
   clearTimeout(this.timer);
   if(this.o.ready()&&this.attempts<3)this.timer=setTimeout(()=>this.connect(),700);

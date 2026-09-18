@@ -18,7 +18,7 @@
 <body>
 <div class="box">
 <img class="logo" src="./apple-touch-icon.png" alt="">
-<h1>FANTASTICA TEST · RC2</h1>
+<h1>FANTASTICA TEST</h1>
 <div id="installView">
 <p class="muted">Questa è la pagina stabile da aggiungere alla schermata Home di iPhone/iPad.</p>
 <ol class="steps">
@@ -54,8 +54,24 @@
  document.getElementById("installView").className="hidden";
  document.getElementById("bootView").className="";
  function go(){location.replace(target)}
- /* Nessuna rimozione di cache o service worker della versione ufficiale. */
- go();
+ /* Ripristino pulizia iPad 5.4, limitata ESCLUSIVAMENTE al percorso TEST. */
+ var launched=false;
+ function goOnce(){if(launched)return;launched=true;go()}
+ var testScope=new URL("./",location.href).href;
+ try{
+  if("serviceWorker" in navigator&&navigator.serviceWorker.getRegistrations){
+   navigator.serviceWorker.getRegistrations().then(function(regs){
+    var ps=[],i;for(i=0;i<regs.length;i++)if(regs[i].scope===testScope)try{ps.push(regs[i].unregister())}catch(e){}
+    return Promise.all(ps);
+   }).then(function(){
+    if(window.caches&&caches.keys)return caches.keys().then(function(keys){
+     var ps=[],i;for(i=0;i<keys.length;i++)if(String(keys[i]).indexOf("fantastica-test-rc1-")===0)ps.push(caches.delete(keys[i]));return Promise.all(ps);
+    });
+   }).then(goOnce,goOnce);
+   setTimeout(goOnce,1500);return;
+  }
+ }catch(e){}
+ goOnce();
 })();
 </script>
 </body>

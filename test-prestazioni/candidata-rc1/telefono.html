@@ -1,6 +1,6 @@
-<!doctype html><html lang="it"><head><script src="./phone-recovery.js"></script>
+<!doctype html><html lang="it"><head><script src="./phone-recovery.js?v=rc3-1"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA 5.4 · TEST RC3</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
+<title>FANTASTICA 5.4 · TEST RC3.1</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA TEST">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260918-rc3-base54";
+ var FANTASTICA_PHONE_BUILD="20260918-rc3-1-compat54";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -328,7 +328,11 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
   setStartup("Connessione...");
   var legacy=!supportsModernSyntax();
   var ver=legacy?"2.44.4":"2.45.3";
-  var cdns=["./supabase.umd.js"];
+  // Ripristino del ramo compatibile 5.4; SDK moderno conservato per i client già collaudati.
+  var cdns=[legacy?"./supabase-2.44.4.umd.js":"./supabase.umd.js",
+   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js",
+   "https://unpkg.com/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js"
+  ];
   var last=null;
   for(var i=0;i<cdns.length;i++){
    try{await loadScript(cdns[i],5500);if(window.supabase&&window.supabase.createClient)return}catch(e){last=e}
@@ -716,9 +720,9 @@ async function heartbeat(force=false){
  const task=(async()=>{try{
   const {data,error}=await db.rpc("fa_heartbeat_fix3",{p_league_id:id,p_slot:sl,p_device_token:await getDeviceId(),p_allow_legacy:false}).abortSignal(controller.signal);
   if(leagueId!==id||slot!==sl)return false;
-  if(error||data?.ok!==true){
-   phoneRecovery.record('heartbeat_error',{error:error?.message||data?.error||'risposta non valida'});
-   if(data?.error==="NON_AUTORIZZATO")await invalidateParticipant();
+  if(error||(!data||data.ok!==true)){
+   phoneRecovery.record('heartbeat_error',{error:(error&&error.message)||(data&&data.error)||'risposta non valida'});
+   if(data&&data.error==="NON_AUTORIZZATO")await invalidateParticipant();
    return false;
   }
   phoneRecovery.record('heartbeat_ok');return true;
@@ -1066,7 +1070,7 @@ const phoneRecovery=new FantasticaPhoneRecovery({
 });
 async function connect(force=false){return phoneRecovery.connect(force)}
 window.addEventListener("online",()=>connect(true));
-window.fantasticaPhoneReport=()=>({version:"RC3",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
+window.fantasticaPhoneReport=()=>({version:"RC3.1",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
 
 document.addEventListener("pointerdown",()=>{
  try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
