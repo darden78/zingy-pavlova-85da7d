@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it"><head><style>#tabCreate{display:none!important} #diagPanel:not([open]){width:auto!important} summary{cursor:pointer}</style>
+<html lang="it"><head><style> #diagPanel:not([open]){width:auto!important} summary{cursor:pointer}</style>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FANTASTICA · REGIA DIAGNOSTICA FIX 4.13</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
@@ -703,7 +703,7 @@ body{overflow:hidden!important}
  <div id="settingsMsg"></div>
  <h3>Gestione partecipanti</h3><div id="managePlayers"></div>
 
- <div class="installInvite"><h3>Apri FANTASTICA TEST sui telefoni</h3><p>Durante le prove usa esclusivamente il collegamento della versione di test.</p><a href="https://darden78.github.io/zingy-pavlova-85da7d/test-prestazioni/candidata-rc1/telefono.html" target="_blank" rel="noopener">APRI VERSIONE TELEFONO TEST</a></div>
+ <div class="installInvite"><h3>Installa FANTASTICA TEST · RC2</h3><img src="./qr-installa.png" alt="QR per installare FANTASTICA TEST"><p>Inquadra il QR dal dispositivo del partecipante: Android, iPhone/iPad o PC.</p><a href="https://darden78.github.io/zingy-pavlova-85da7d/test-prestazioni/candidata-rc1/installa.html" target="_blank" rel="noopener">APRI PAGINA INSTALLAZIONE TEST</a></div>
  <div class="installInvite"><h3>Schermata spettatore</h3><p>Condividi questo collegamento per mostrare FANTASTICA in tempo reale e in sola visione.</p><a id="mirrorLink" href="#" target="_blank" rel="noopener">LINK SPETTATORE</a><button id="copyMirrorLink" type="button">COPIA LINK</button></div>
  <div class="installInvite"><h3>Esporta files</h3><p>Crea in qualsiasi momento Excel, PDF e un backup completo ripristinabile della lega.</p><button id="exportAll" type="button">ESPORTA FILES</button></div>
  <div class="restoreInvite"><h3>Carica backup</h3><p>Riporta integralmente questa lega al punto esatto salvato nel file FANTASTICA. La situazione attuale verrà sostituita, non unita.</p><button id="restoreBackupBtn" type="button">CARICA BACKUP</button></div>
@@ -724,8 +724,8 @@ body{overflow:hidden!important}
 #diagPanel{position:fixed;right:12px;bottom:12px;z-index:100000;width:min(440px,calc(100vw - 24px));background:#071729f2;color:#fff;border:2px solid #26d07c;border-radius:14px;padding:11px 13px;box-shadow:0 12px 35px #0008;font:700 13px/1.35 system-ui,sans-serif}
 #diagPanel .diagTitle{color:#42f5a4;font-size:15px;margin-bottom:6px}#diagPanel .diagGrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}#diagPanel b{color:#ffe169}#diagPanel .diagHint{font-size:11px;color:#b9c9d8;margin-top:7px;font-weight:600}#diagPanel button{margin-top:8px;background:#f5bf26;color:#111;border:0;border-radius:8px;padding:7px 10px;font-weight:900;cursor:pointer}
 </style>
-<details id="diagPanel"><summary>FANTASTICA TEST · RC1 — Rapporto prova</summary>
- <div class="diagTitle">CANDIDATA RC1 · BASE 5.4 SENZA JINGLE</div>
+<details id="diagPanel"><summary>FANTASTICA TEST · RC2 — Rapporto prova</summary>
+ <div class="diagTitle">CANDIDATA RC2 · BASE 5.4 SENZA JINGLE</div>
  <div class="diagGrid">
   <span>Segnali STATE: <b id="diagStates">0</b></span><span>Aggiornamenti: <b id="diagLoads">0</b></span>
   <span>Immediato mediana: <b id="diagFastP50">—</b></span><span>Immediato p95: <b id="diagFastP95">—</b></span>
@@ -764,7 +764,7 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA TEST RC1 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA TEST RC2 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
 function diagPaint(){const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
@@ -788,8 +788,8 @@ function resetDiagnostics(runId=null){
 }
 try{new PerformanceObserver(list=>{for(const e of list.getEntries())if(e.duration>=50)diag.longTasks++;diagPaint()}).observe({type:"longtask",buffered:true})}catch{}
 let rcTraceStart=null;
-async function rcStartTrace(){
- const r=await db.from("fa_fix4_trace").select("id").eq("league_id","13622072-cec9-4932-8181-5f2cfd07876a").order("id",{ascending:false}).limit(1);
+async function rcStartTrace(id){
+ const r=await db.from("fa_fix4_trace").select("id").eq("league_id",id).order("id",{ascending:false}).limit(1);
  if(r.error){rcTraceStart=null;record44("trace_start_error",{error:r.error.message});return;}
  rcTraceStart=r.data?.[0]?.id||0;
 }
@@ -810,8 +810,8 @@ diagEl("diagDownload").onclick=async()=>{
    if(trace.length>=20000)throw Error("Registro server troppo lungo: report parziale");
   }
  }catch(e){errors.push(e.message)}
- const report={version:"FANTASTICA TEST RC1 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),automatic_pass_not_assessed:true};
- const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-rc1-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
+ const report={version:"FANTASTICA TEST RC2 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-rc2-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
 };
 
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -1181,13 +1181,14 @@ $("loginLeagueBtn").onclick=async()=>{
  }catch(e){msg($("loginMsg"),"Errore: "+e.message,"bad")}
 };
 
-let verificationPoll=null;
+let verificationPoll=null,verificationEpoch=0;
 
 async function pollPendingLeague(){
- const raw=localStorage.getItem("fantastica-pending-league-v31");
+ const raw=localStorage.getItem("fantastica-test-rc1-pending-league");
  if(!raw)return;
  const pending=JSON.parse(raw);
- clearInterval(verificationPoll);
+ const pendingEpoch=++verificationEpoch;let stopped=false;
+ clearTimeout(verificationPoll);
  const check=async()=>{
    try{
      await ensureAuth();
@@ -1195,14 +1196,15 @@ async function pollPendingLeague(){
        p_pending_id:pending.pending_id,
        p_client_secret:pending.client_secret
      });
+     if(pendingEpoch!==verificationEpoch)return;
      if(error){msg($("homeMsg"),"Errore verifica: "+error.message,"bad");return}
      if(!data?.ok){
        const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":data?.error;
-       msg($("homeMsg"),"Errore: "+em,"bad");clearInterval(verificationPoll);return
+       msg($("homeMsg"),"Errore: "+em,"bad");stopped=true;clearTimeout(verificationPoll);return
      }
      if(data.complete){
-       clearInterval(verificationPoll);
-       localStorage.removeItem("fantastica-pending-league-v31");
+       clearTimeout(verificationPoll);
+       localStorage.removeItem("fantastica-test-rc1-pending-league");
        msg($("homeMsg"),"✓ Email verificata. Apertura lega...","ok");
        await openLeague(data.league_id);
      }else{
@@ -1210,11 +1212,12 @@ async function pollPendingLeague(){
      }
    }catch(e){msg($("homeMsg"),"Errore verifica: "+e.message,"bad")}
  };
- await check();
- verificationPoll=setInterval(check,2000);
+ const repeat=async()=>{ await check(); if(!stopped&&pendingEpoch===verificationEpoch&&localStorage.getItem("fantastica-test-rc1-pending-league"))verificationPoll=setTimeout(repeat,2000); };
+ await repeat();
 }
 
 $("createLeague").onclick=async()=>{
+ if($("createLeague").disabled)return;
  const pwd=$("newPassword").value,pwd2=$("newPassword2").value,email=$("newEmail").value.trim(),name=$("newName").value.trim();
  if(name.length<2){msg($("homeMsg"),"Inserisci il nome della lega.","bad");return}
  if(pwd.length<5){msg($("homeMsg"),"La password deve avere almeno 5 caratteri.","bad");return}
@@ -1222,6 +1225,7 @@ $("createLeague").onclick=async()=>{
  if(!email.includes("@")){msg($("homeMsg"),"Inserisci un'email valida.","bad");return}
  if(+$("newMembers").value<2||+$("newMembers").value>12){msg($("homeMsg"),"I partecipanti devono essere da 2 a 12.","bad");return}
  const newOrd=roleOrderValues(".newRoleOrd");if($("newAuctionMode").value==="ROLE"&&!validRoleOrder(newOrd)){msg($("homeMsg"),"L'ordine ruoli deve contenere P, D, C e A una sola volta.","bad");return}
+ $("createLeague").disabled=true;
  try{
    await ensureAuth();
    const clientSecret=crypto.randomUUID()+"-"+crypto.randomUUID();
@@ -1240,7 +1244,7 @@ $("createLeague").onclick=async()=>{
      const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":(error?.message||data?.error);
      msg($("homeMsg"),"Errore: "+em,"bad");return
    }
-   localStorage.setItem("fantastica-pending-league-v31",JSON.stringify({
+   localStorage.setItem("fantastica-test-rc1-pending-league",JSON.stringify({
      pending_id:data.pending_id,client_secret:clientSecret
    }));
    const mirrorLeagueId=String(data.reserved_league_id||"");
@@ -1252,20 +1256,19 @@ $("createLeague").onclick=async()=>{
    if(mail.error){msg($("homeMsg"),"Errore email: "+mail.error.message,"bad");return}
    msg($("homeMsg"),"✓ Email inviata. Aprila su qualunque dispositivo: questa schermata entrerà automaticamente nella lega appena verificata.","ok");
    pollPendingLeague();
- }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}
+ }catch(e){msg($("homeMsg"),"Errore: "+e.message,"bad")}finally{$("createLeague").disabled=false}
 };
 
 $("changeLeague").onclick=async()=>{
  localStorage.removeItem("fantastica-test-rc1-organizer-last-league");
  try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
  try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
- disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+ disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;fix4Send();slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
 };
 
 async function openLeague(id){
- if(id!=="13622072-cec9-4932-8181-5f2cfd07876a")throw Error("Questa candidata usa soltanto la lega TEST");
  resetDiagnostics(crypto.randomUUID());
- await rcStartTrace();
+ await rcStartTrace(id);
  latestFastAuction=null;latestFastAuctionRevision=0;
  resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
@@ -1276,7 +1279,7 @@ async function openLeague(id){
   return
  }
  league=data;
- $("setName").readOnly=true;
+
  localStorage.setItem("fantastica-test-rc1-organizer-last-league",league.id);
  try{await window.fantasticaDesktop?.setLastLeague?.(league.id)}catch{}
  $("leagueName").textContent=league.name;
@@ -1392,7 +1395,7 @@ async function sendPresenceSnapshot(){
  presenceSnapshotBusy=true;const presenceAttempt=crypto.randomUUID(),presenceStarted=performance.now();
  record44("presence_request",{attempt_id:presenceAttempt,online_slots:arr,previous_signature:lastPresenceSnapshot});
  try{
-  const {data,error}=await db.rpc("fa_regia_presence_snapshot_fix4",{p_league_id:league.id,p_online_slots:arr});
+  const {data,error}=await db.rpc("fa_regia_presence_snapshot_rc2",{p_league_id:league.id,p_online_slots:arr});
   if(epoch!==connectionEpoch410)return;
   record44("presence_response",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,ok:!error&&data?.ok!==false,error:error?.message||data?.error||null,effective_online_slots:data?.effective_online_slots||null,deferred_offline_slots:data?.deferred_offline_slots||null,blocked:data?.blocked??null,resumed:data?.resumed??null,timer_deadline:data?.timer_deadline||null});
   if(!error&&data?.ok!==false){
@@ -1824,7 +1827,7 @@ async function sendDetails44(p){
 function fix4Send(){
  const now=performance.now();if(lastUiTick44&&now-lastUiTick44>750)record44("ui_tick_gap",{gap_ms:now-lastUiTick44});lastUiTick44=now;
  if(!fix4Worker)return;
- const active=league?.id==="13622072-cec9-4932-8181-5f2cfd07876a"&&auction?.status==="OPEN"&&!auction.paused&&!!auction.timer_deadline;
+ const active=!!league?.id&&auction?.status==="OPEN"&&!auction.paused&&!!auction.timer_deadline;
  fix4Worker.postMessage({type:"state",url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY,token:fix4Session?.access_token||null,leagueId:league?.id,active,deadline:auction?.timer_deadline,offset:serverOffset,player_id:auction?.current_player_id,run_id:diag44.runId});
 }
 try{
@@ -1834,16 +1837,7 @@ try{
  setInterval(fix4Send,250);
 }catch(e){fix4Status={ready:false,error:e.message};}
 window.addEventListener("pagehide",()=>fix4Worker?.terminate());
-function fix4HandleStall(payload){
- if(!document.getElementById("fix4AllowStall").checked||league?.id!=="13622072-cec9-4932-8181-5f2cfd07876a"||!payload?.run_id||fix4Run===payload.run_id||auction?.current_player_id!==payload.player_id)return;
- const left=Date.parse(auction.timer_deadline)-serverNow();
- if(auction.paused||auction.status!=="OPEN"||left<1000||left>5000)return;
- fix4Run=payload.run_id;fix4Send();
- fix4Stall={run_id:payload.run_id,player_id:payload.player_id,start_server_ms:serverNow(),deadline:auction.timer_deadline};
- const began=performance.now();while(performance.now()-began<6000){}
- fix4Stall.end_server_ms=serverNow();fix4Stall.duration_ms=performance.now()-began;
- channel?.send({type:"broadcast",event:"FIX4_STALL_DONE",payload:fix4Stall});
-}
+function fix4HandleStall(payload){ /* Iniezione blocco esclusa dalla candidata pubblica. */ }
 
 async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
@@ -2339,7 +2333,7 @@ $("saveSettings").onclick=async()=>{
    const excluded=disabled.filter(s=>s.display_name);
    if(excluded.length){const picked=await chooseMemberSlots(disabled,diff,"AUMENTA PARTECIPANTI",`Scegli quali posti riattivare. Le voci con una rosa conservata possono tornare in lega; i posti liberi accetteranno un nuovo partecipante.`,true);if(!picked)return;enableSlots=picked}
  }
- const args={p_league_id:league.id,p_name:"TEST LAG AUTOMATICO",p_member_limit:target,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord,p_timer_mode:timerModeValue,p_disable_slots:disableSlots,p_enable_slots:enableSlots,p_semi_hidden:semiHidden||20,p_semi_visible:semiVisible||10};
+ const args={p_league_id:league.id,p_name:$("setName").value.trim(),p_member_limit:target,p_duration:+$("setDuration").value,p_credits:+$("setCredits").value,p_roster_p:+$("setP").value,p_roster_d:+$("setD").value,p_roster_c:+$("setC").value,p_roster_a:+$("setA").value,p_auction_mode:$("setAuctionMode").value,p_role_order:ord,p_timer_mode:timerModeValue,p_disable_slots:disableSlots,p_enable_slots:enableSlots,p_semi_hidden:semiHidden||20,p_semi_visible:semiVisible||10};
  const {data,error}=await db.rpc("fa_set_full_settings_v527",args);
  if(error||!data?.ok){const er=error?.message||data?.error;msg($("settingsMsg"),"Errore: "+(er==="ASTA_IN_CORSO"?"concludi l'asta del giocatore corrente prima di modificare le impostazioni.":er),"bad");return}
  msg($("settingsMsg"),"✓ Salvato — funzioni nuove DA TESTARE","ok");await load();renderManage();
@@ -2460,7 +2454,7 @@ setInterval(()=>{if(league)load(false)},60000);
   await ensureAuth();
   await syncServerClock();
   showAuth("login");
-  if(localStorage.getItem("fantastica-pending-league-v31")){
+  if(localStorage.getItem("fantastica-test-rc1-pending-league")){
    showAuth("create");
    pollPendingLeague();
    return;

@@ -14,7 +14,7 @@ onmessage=({data})=>{
 };
 async function tick(){
  const s=state,now=Date.now();if(lastTick&&now-lastTick>750)event44("worker_tick_gap",s,{gap_ms:now-lastTick});lastTick=now;
- if(busy||!s?.active||!s.token||s.leagueId!=='13622072-cec9-4932-8181-5f2cfd07876a'||s.url!=='https://nbsxpjwivhnyiqtaxehk.supabase.co'||now-s.received>60000)return;
+ if(busy||!s?.active||!s.token||!(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.leagueId||''))||s.url!=='https://nbsxpjwivhnyiqtaxehk.supabase.co'||now-s.received>60000)return;
  const deadline=Date.parse(s.deadline);
  if(!Number.isFinite(deadline)||now+Number(s.offset||0)<deadline||now-lastAttempt<250)return;
  busy=true;lastAttempt=now;const attemptId="worker-"+(++diagSeq),started=performance.now();event44("close_request",s,{attempt_id:attemptId,deadline_lateness_ms:now+Number(s.offset||0)-deadline});
