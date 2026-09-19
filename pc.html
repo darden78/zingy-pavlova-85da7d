@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA 5.4 · 5.4.19</title>
+<title>FANTASTICA 5.4 · 5.4.20</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
@@ -561,7 +561,18 @@ body{overflow:hidden!important}
 #regia .repairStartAuctions:disabled{opacity:.55;cursor:default}
 .swapEquation{display:flex;flex-direction:column;gap:10px;margin:15px 0}.swapEquationRow{display:grid;grid-template-columns:minmax(0,1fr) auto 92px auto;gap:8px;align-items:center;background:#071e36;border:1px solid #164b75;border-radius:11px;padding:11px}.swapEquationPlayer{min-width:0}.swapEquationPlayer b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.swapEquationPlayer small{display:block;color:#9fb7ca;margin-top:3px}.swapEquationPlus{font-size:23px;font-weight:900}.swapCreditInput{width:92px;padding:9px 8px;border-radius:8px;border:1px solid #2478b8;background:#03182b;color:#fff;font-size:19px;font-weight:900;text-align:center}.swapMax{font-size:11px;color:#9fc9e8;font-weight:900;white-space:nowrap}.swapEquals{text-align:center;font-size:26px;font-weight:900}.swapEquationHelp{color:#aec2d4;font-size:12px;line-height:1.45}.restoreInvite{margin-top:18px;background:#071e36!important;border:1px solid #164b75!important;border-radius:12px!important;padding:14px;text-align:center}.restoreInvite p{color:#aec2d4!important;font-size:12px;margin:8px 0}.restoreInvite button{border:0;border-radius:10px;padding:11px 15px;background:#1266a6;color:#fff;font-weight:900;cursor:pointer}
 
-</style></head><body>
+</style><style>
+/* Tutte le informazioni partecipante restano nel riquadro anche al resize. */
+#regia .p .faCardContent{display:flex;flex-direction:column;flex:0 0 auto;min-width:0;transform-origin:top left}
+#regia .p .faCardContent .pName{white-space:normal!important;overflow:visible!important;overflow-wrap:anywhere!important;text-overflow:clip!important}
+#regia .p .faCardContent .pMoney{flex-wrap:wrap!important}
+#regia .p .faCardContent .pMoney>span{overflow-wrap:anywhere}
+#regia .p .faCardContent .pBottom{flex-wrap:wrap!important}
+#regia .p .faCardContent .pBottom>span{white-space:nowrap}
+#regia .p .faCardContent .manualCtl{flex:0 0 auto;white-space:normal;overflow-wrap:anywhere}
+
+</style>
+</head><body>
 <div class="wrap">
 <section id="leagueHome">
  <div class="brand">⚽ FANTASTICA</div>
@@ -726,7 +737,7 @@ import {createClient} from "./supabase.bundle.js";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config-fix4.js?v=fantastica-test-lag-fix4";
 // TEST diagnostics: no visible panel and no changes to the official layout.
 const diagnosticPanel=document.createElement("div");
-diagnosticPanel.innerHTML="<section id=\"diagPanel\" hidden><h3>FANTASTICA · 5.4.19 — Rapporto prova</h3>\n <div class=\"diagTitle\">COPIA 5.4.19 · BASE 5.4 SENZA JINGLE</div>\n <div class=\"diagGrid\">\n  <span>Segnali STATE: <b id=\"diagStates\">0</b></span><span>Aggiornamenti: <b id=\"diagLoads\">0</b></span>\n  <span>Immediato mediana: <b id=\"diagFastP50\">—</b></span><span>Immediato p95: <b id=\"diagFastP95\">—</b></span>\n  <span>Immediato massimo: <b id=\"diagFastMax\">—</b></span><span>Immediato oltre 1 s: <b id=\"diagFastOver1s\">0</b></span>\n  <span>REST mediana: <b id=\"diagRestP50\">—</b></span><span>REST p95: <b id=\"diagRestP95\">—</b></span>\n  <span>Video mediana: <b id=\"diagVideoP50\">—</b></span><span>Video p95: <b id=\"diagVideoP95\">—</b></span>\n  <span>Video massimo: <b id=\"diagVideoMax\">—</b></span><span>Oltre 1 s: <b id=\"diagOver1s\">0</b></span>\n  <span>STATE asta: <b id=\"diagAuctionStates\">0</b></span><span>STATE eventi: <b id=\"diagEventStates\">0</b></span>\n  <span>Dati REST stimati: <b id=\"diagRestBytes\">0 KB</b></span><span>Richieste telefoni: <b id=\"diagRequests\">0</b></span>\n  <span>PHONE_STATE inviati: <b id=\"diagPhoneStates\">0</b></span><span>Accorpamento REST: <b>500 ms</b></span>\n  <span>Blocchi UI lunghi: <b id=\"diagLongTasks\">0</b></span><span>Ultimo: <b id=\"diagLast\">—</b></span>\n </div>\n <label hidden><input type=\"checkbox\" id=\"fix4AllowStall\"> Abilita prova blocco interfaccia 6 secondi</label><span id=\"fix4WorkerStatus\">Controllo separato: in attesa</span>\n <button id=\"diagDownload\" type=\"button\">SCARICA RAPPORTO</button>\n <div class=\"diagHint\">Al termine scarica il rapporto prima di uscire dalla Regia. Questa è una candidata da verificare sui dispositivi reali.</div>\n</section>";
+diagnosticPanel.innerHTML="<section id=\"diagPanel\" hidden><h3>FANTASTICA · 5.4.20 — Rapporto prova</h3>\n <div class=\"diagTitle\">COPIA 5.4.20 · BASE 5.4 SENZA JINGLE</div>\n <div class=\"diagGrid\">\n  <span>Segnali STATE: <b id=\"diagStates\">0</b></span><span>Aggiornamenti: <b id=\"diagLoads\">0</b></span>\n  <span>Immediato mediana: <b id=\"diagFastP50\">—</b></span><span>Immediato p95: <b id=\"diagFastP95\">—</b></span>\n  <span>Immediato massimo: <b id=\"diagFastMax\">—</b></span><span>Immediato oltre 1 s: <b id=\"diagFastOver1s\">0</b></span>\n  <span>REST mediana: <b id=\"diagRestP50\">—</b></span><span>REST p95: <b id=\"diagRestP95\">—</b></span>\n  <span>Video mediana: <b id=\"diagVideoP50\">—</b></span><span>Video p95: <b id=\"diagVideoP95\">—</b></span>\n  <span>Video massimo: <b id=\"diagVideoMax\">—</b></span><span>Oltre 1 s: <b id=\"diagOver1s\">0</b></span>\n  <span>STATE asta: <b id=\"diagAuctionStates\">0</b></span><span>STATE eventi: <b id=\"diagEventStates\">0</b></span>\n  <span>Dati REST stimati: <b id=\"diagRestBytes\">0 KB</b></span><span>Richieste telefoni: <b id=\"diagRequests\">0</b></span>\n  <span>PHONE_STATE inviati: <b id=\"diagPhoneStates\">0</b></span><span>Accorpamento REST: <b>500 ms</b></span>\n  <span>Blocchi UI lunghi: <b id=\"diagLongTasks\">0</b></span><span>Ultimo: <b id=\"diagLast\">—</b></span>\n </div>\n <label hidden><input type=\"checkbox\" id=\"fix4AllowStall\"> Abilita prova blocco interfaccia 6 secondi</label><span id=\"fix4WorkerStatus\">Controllo separato: in attesa</span>\n <button id=\"diagDownload\" type=\"button\">SCARICA RAPPORTO</button>\n <div class=\"diagHint\">Al termine scarica il rapporto prima di uscire dalla Regia. Questa è una candidata da verificare sui dispositivi reali.</div>\n</section>";
 document.body.appendChild(diagnosticPanel);
 const diagnosticView=document.getElementById("diagPanel");
 diagnosticView.style.cssText="position:fixed;right:12px;bottom:12px;z-index:100000;max-height:85vh;overflow:auto;width:440px;background:#071729;color:white;border:2px solid #26d07c;border-radius:12px;padding:16px;font:13px Arial";
@@ -748,7 +759,7 @@ function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(
 function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
 function diagSummary(){
  const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
- return {version:"FANTASTICA 5.4.19 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+ return {version:"FANTASTICA 5.4.20 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
 }
 function diagPaint(){if(diagnosticView.hidden)return;const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
 function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
@@ -794,7 +805,7 @@ diagEl("diagDownload").onclick=async()=>{
    if(trace.length>=20000)throw Error("Registro server troppo lungo: report parziale");
   }
  }catch(e){errors.push(e.message)}
- const report={version:"FANTASTICA 5.4.19 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
+ const report={version:"FANTASTICA 5.4.20 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
  const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-base54-p1-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
 };
 
@@ -1703,26 +1714,59 @@ function updateParticipantLayout(visibleCount){
  reg.dataset.playerBand=n<=4?"1-4":n<=8?"5-8":"9-12";
 }
 
+/* FANTASTICA 5.4.20: fit del contenuto, senza cambiare le regole dell'asta. */
+const participantFitCache = new Map();
+let participantFitObserver = null, participantFitFrame = 0;
+function scheduleParticipantFit(){
+ if(participantFitFrame)return;
+ participantFitFrame=requestAnimationFrame(()=>{participantFitFrame=0;fitParticipantNames();});
+}
 function fitParticipantNames(){
- const names=document.querySelectorAll("#regia:not(.hasManualPlayers) .pName");
- names.forEach(el=>{
-  el.style.removeProperty("font-size");
-  el.style.textOverflow="clip";
-  const base=parseFloat(getComputedStyle(el).fontSize)||15,minSize=10;
-  const available=el.clientWidth;
-  if(!(available>0))return;
-  if(el.scrollWidth<=available+1)return;
-
-  let low=minSize,high=base,best=minSize;
-  for(let i=0;i<12;i++){
-   const mid=(low+high)/2;
-   el.style.setProperty("font-size",mid+"px","important");
-   if(el.scrollWidth<=available+1){best=mid;low=mid}else high=mid;
+ const grid=document.getElementById("players");
+ if(!grid||!grid.clientWidth||!grid.clientHeight)return;
+ if(!participantFitObserver&&typeof ResizeObserver!=="undefined"){
+  participantFitObserver=new ResizeObserver(scheduleParticipantFit);
+  participantFitObserver.observe(grid);
+ }
+ grid.querySelectorAll(".p[data-slot]").forEach(card=>{
+  const style=getComputedStyle(card);
+  const width=card.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+  const height=card.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+  if(width<=1||height<=1)return;
+  let content=card.querySelector(":scope > .faCardContent");
+  if(!content){
+   content=document.createElement("div");content.className="faCardContent";
+   while(card.firstChild)content.appendChild(card.firstChild);
+   card.appendChild(content);
   }
-  el.style.setProperty("font-size",best.toFixed(1)+"px","important");
-  if(el.scrollWidth>available+1)el.style.textOverflow="ellipsis";
+  const name=content.querySelector(".pName");
+  const key=[width,height,document.getElementById("regia").className,
+   name?getComputedStyle(name).fontSize:"",content.textContent].join("|");
+  function apply(scale){
+   content.style.width=(width/scale)+"px";
+   content.style.transform="scale("+scale+")";
+  }
+  let scale=participantFitCache.get(key);
+  if(scale!==undefined){apply(scale);return;}
+  function fits(s){
+   apply(s);
+   return content.scrollHeight*s<=height-.5&&content.scrollWidth*s<=width+.5;
+  }
+  scale=1;
+  if(!fits(1)){
+   let low=.01,high=1;
+   for(let i=0;i<10;i++){
+    const mid=(low+high)/2;
+    if(fits(mid))low=mid;else high=mid;
+   }
+   scale=low;
+  }
+  apply(scale);
+  if(participantFitCache.size>=128)participantFitCache.clear();
+  participantFitCache.set(key,scale);
  });
 }
+
 
 function render(){
  $("leagueName").textContent=league.name;
@@ -1753,7 +1797,7 @@ function render(){
  $("players").innerHTML=visible.map(s=>{const r=rosterInfo(s.slot),hi=auction.highest_slot===s.slot,manual=!!s.manual_control,roleComplete=participantCompletedActiveRole(s),inactive=!!s.display_name&&(!s.active||roleComplete);const dotClass=inactive?"inactive":manual?"manual":online(s)?"on":"";const dotTitle=inactive?"Ruolo completato / non in gara per il ruolo":manual?"Gestione manuale":online(s)?"Online":"Offline";return `<div class="p${hi?" highest":""}" data-slot="${s.slot}"><div class="pHead"><span class="dot ${dotClass}" title="${dotTitle}"></span><b class="pName">${s.display_name||`Posto ${s.slot} libero`}</b></div>${s.display_name?`<div class="pMoney"><strong>${r.remain}</strong><span>crediti${r.hold>0?` <span class="repairHoldInline">· ${r.hold} stand-by</span>`:""}</span></div><div class="pCardRule"></div><div class="pBottom"><span>Rosa <b>${r.ps.length}/${r.total}</b></span><span class="pSpent">MAX: <b>${r.max}</b></span></div>${s.abandoned?`<div class="pState ab">ABBANDONATO</div>`:""}${manual?`<button class="manualCtl" data-manual-ctl="${s.slot}">COMANDI MANUALI</button>`:""}`:""}</div>`}).join("");
  document.querySelectorAll(".p[data-slot]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-manual-ctl]"))return;selectedRosterSlot=+el.dataset.slot;showSelectedRoster()});
  document.querySelectorAll("[data-manual-ctl]").forEach(b=>b.onclick=e=>{e.stopPropagation();showManualAuction(+b.dataset.manualCtl)});
- fitParticipantNames();
+ scheduleParticipantFit();
  $("log").innerHTML=bids.map(r=>`<tr><td>${new Date(r.created_at).toLocaleTimeString("it-IT")}</td><td>${slotName(r.slot)}</td><td>${r.amount}</td><td>${r.kind}</td></tr>`).join("");
  const hist=syncHistoryOffset(),histTotal=hist.length;
  $("eventPos").textContent=histTotal?`Offerta ${Math.max(1,histTotal-historyOffset)} di ${histTotal}`:"Nessuna offerta";
