@@ -1,5 +1,5 @@
-const CACHE="fantastica-v514-audited-golden-20260818-1";
-const ASSETS=["./","./index.html","./telefono.html","./gioca.html","./gioca-pc.html","./verify.html","./installa.html","./qr-installa.png","./pc.html","./spettatore.html","./config.js","./manifest.webmanifest","./manifest-phone.webmanifest","./manifest-pc.webmanifest","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./installa.html"];
-self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)))});
+// Isolated scope; never delete caches belonging to the official app.
+const CACHE='fantastica-base54-p2';
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./telefono.html','./supabase.umd.js','./phone-recovery.js?v=rc3-1','./supabase-2.44.4.umd.js','./icon-192.png','./icon-512.png'])).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||!u.href.startsWith(self.registration.scope)||u.pathname.endsWith('/verify.html')||u.pathname.endsWith('.apk')||u.pathname.endsWith('/telefono-version.txt'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();e.waitUntil(caches.open(CACHE).then(c=>c.put(e.request,copy)))}return r}).catch(()=>caches.match(e.request)));});

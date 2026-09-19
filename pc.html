@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANTASTICA</title>
+<title>FANTASTICA 5.4 · 5.4.19</title>
 <meta name="theme-color" content="#031a33"><link rel="icon" href="./icon-192.png">
 <link rel="manifest" href="./manifest-pc.webmanifest">
 <script>
@@ -13,7 +13,7 @@
  }catch(e){}
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="./xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#0e0e0e;color:#fff;font-family:Arial,sans-serif}button,input,select{font:inherit}.hidden{display:none!important}.ok{color:#55e28b}.warn{color:#ffc857}.bad{color:#ff6767}
 .wrap{max-width:1900px;margin:auto;padding:14px}.brand{text-align:center;font-size:42px;margin:6vh 0 25px}
@@ -721,13 +721,83 @@ body{overflow:hidden!important}
 </div>
 
 <script type="module">
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config.js?v=fantastica-v491";
-const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
+import {DiagnosticRecorder,makePackets} from "./diagnostics-fix44.js";
+import {createClient} from "./supabase.bundle.js";
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,PUBLIC_BASE_URL} from "./config-fix4.js?v=fantastica-test-lag-fix4";
+// TEST diagnostics: no visible panel and no changes to the official layout.
+const diagnosticPanel=document.createElement("div");
+diagnosticPanel.innerHTML="<section id=\"diagPanel\" hidden><h3>FANTASTICA · 5.4.19 — Rapporto prova</h3>\n <div class=\"diagTitle\">COPIA 5.4.19 · BASE 5.4 SENZA JINGLE</div>\n <div class=\"diagGrid\">\n  <span>Segnali STATE: <b id=\"diagStates\">0</b></span><span>Aggiornamenti: <b id=\"diagLoads\">0</b></span>\n  <span>Immediato mediana: <b id=\"diagFastP50\">—</b></span><span>Immediato p95: <b id=\"diagFastP95\">—</b></span>\n  <span>Immediato massimo: <b id=\"diagFastMax\">—</b></span><span>Immediato oltre 1 s: <b id=\"diagFastOver1s\">0</b></span>\n  <span>REST mediana: <b id=\"diagRestP50\">—</b></span><span>REST p95: <b id=\"diagRestP95\">—</b></span>\n  <span>Video mediana: <b id=\"diagVideoP50\">—</b></span><span>Video p95: <b id=\"diagVideoP95\">—</b></span>\n  <span>Video massimo: <b id=\"diagVideoMax\">—</b></span><span>Oltre 1 s: <b id=\"diagOver1s\">0</b></span>\n  <span>STATE asta: <b id=\"diagAuctionStates\">0</b></span><span>STATE eventi: <b id=\"diagEventStates\">0</b></span>\n  <span>Dati REST stimati: <b id=\"diagRestBytes\">0 KB</b></span><span>Richieste telefoni: <b id=\"diagRequests\">0</b></span>\n  <span>PHONE_STATE inviati: <b id=\"diagPhoneStates\">0</b></span><span>Accorpamento REST: <b>500 ms</b></span>\n  <span>Blocchi UI lunghi: <b id=\"diagLongTasks\">0</b></span><span>Ultimo: <b id=\"diagLast\">—</b></span>\n </div>\n <label hidden><input type=\"checkbox\" id=\"fix4AllowStall\"> Abilita prova blocco interfaccia 6 secondi</label><span id=\"fix4WorkerStatus\">Controllo separato: in attesa</span>\n <button id=\"diagDownload\" type=\"button\">SCARICA RAPPORTO</button>\n <div class=\"diagHint\">Al termine scarica il rapporto prima di uscire dalla Regia. Questa è una candidata da verificare sui dispositivi reali.</div>\n</section>";
+document.body.appendChild(diagnosticPanel);
+const diagnosticView=document.getElementById("diagPanel");
+diagnosticView.style.cssText="position:fixed;right:12px;bottom:12px;z-index:100000;max-height:85vh;overflow:auto;width:440px;background:#071729;color:white;border:2px solid #26d07c;border-radius:12px;padding:16px;font:13px Arial";
+window.addEventListener("keydown",e=>{if(e.ctrlKey&&e.shiftKey&&e.code==="KeyD"){e.preventDefault();diagnosticView.hidden=!diagnosticView.hidden;if(!diagnosticView.hidden)diagPaint();}if(e.code==="Escape")diagnosticView.hidden=true;});
+if(new URL(SUPABASE_URL).hostname!=="evjwadffhsyzltnnzgqk.supabase.co")throw new Error("FIX4: configurazione fuori ambiente TEST");
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{realtime:{worker:true,heartbeatIntervalMs:25000}}),$=id=>document.getElementById(id);
+const diag44=new DiagnosticRecorder();let lastUiTick44=0;const flush44=new Map();
+let fix4Worker=null,fix4Session=null,fix4Stall=null,fix4Status={ready:false},fix4Run=null;
 let league=null,auction=null,slots=[],bids=[],events=[],catalog=[],channel=null,retry=null,finalizeBusy=false,selectedRosterSlot=null,roleFilter="",rosterSwapSourceId=null,rosterSwapMode="";
 let repairDraft={listPlayers:null,listFileName:"",listSource:"Fantapazz",bonus:0,auctionMode:"FREE",creditLimits:{}};
-let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={};
+let mirrorChannel=null,mirrorRetry=null,mirrorRtConnected=false,mirrorObserver=null,mirrorCelebrationObserver=null,mirrorSendQueued=false,mirrorForceQueued=false,mirrorTimerLast="",mirrorLastParts={},mirrorViewerActive=false,mirrorViewerExpiry=null;
+const MIRROR_VIEWER_TTL_MS=12000;
 let serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,progressBusy=false,semiVisibleCueArmedDeadline="";
+const diag={startedAt:new Date().toISOString(),states:0,stateByTable:{},stateByOperation:{},requestStateReceived:0,phoneStatesSent:0,restPayloadBytes:0,longTasks:0,presenceTransientDrops:0,presenceConfirmedOffline:0,presenceRecoveries:0,timerAutoResumes:0,presenceEvents:[],samples:[],fastSamples:[],last:null,lastFast:null};
+const diagEl=id=>document.getElementById(id);
+function diagPct(values,p){if(!values.length)return null;const a=[...values].sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.max(0,Math.ceil((p/100)*a.length)-1))]}
+function diagText(v){return Number.isFinite(v)?Math.round(v)+" ms":"—"}
+function diagBytes(v){return v>=1048576?(v/1048576).toFixed(2)+" MB":Math.round(v/1024)+" KB"}
+function jsonByteLength(value){try{return new TextEncoder().encode(JSON.stringify(value)).length}catch{return 0}}
+function diagSummary(){
+ const rest=diag.samples.map(x=>x.rest_ms).filter(Number.isFinite),video=diag.samples.map(x=>x.state_to_video_ms).filter(Number.isFinite),fast=diag.fastSamples.map(x=>x.signal_to_fast_video_ms).filter(Number.isFinite);
+ return {version:"FANTASTICA 5.4.19 · REGIA (base Fix4.13)",league_id:league?.id||null,started_at:diag.startedAt,generated_at:new Date().toISOString(),states:diag.states,state_by_table:{...diag.stateByTable},state_by_operation:{...diag.stateByOperation},loads:diag.samples.length,fast_updates:diag.fastSamples.length,request_state_received:diag.requestStateReceived,phone_states_sent:diag.phoneStatesSent,rest_payload_bytes:diag.restPayloadBytes,long_tasks:diag.longTasks,presence_transient_drops:diag.presenceTransientDrops,presence_confirmed_offline:diag.presenceConfirmedOffline,presence_recoveries:diag.presenceRecoveries,timer_auto_resumes:diag.timerAutoResumes,worker:fix4Status,stall:fix4Stall,presence_events:diag.presenceEvents.slice(-300),fast_p50_ms:diagPct(fast,50),fast_p95_ms:diagPct(fast,95),fast_max_ms:fast.length?Math.max(...fast):null,fast_over_1000_ms:fast.filter(x=>x>=1000).length,rest_p50_ms:diagPct(rest,50),rest_p95_ms:diagPct(rest,95),rest_max_ms:rest.length?Math.max(...rest):null,video_p50_ms:diagPct(video,50),video_p95_ms:diagPct(video,95),video_max_ms:video.length?Math.max(...video):null,video_over_1000_ms:video.filter(x=>x>=1000).length,last:diag.last,last_fast:diag.lastFast,samples:diag.samples.slice(-300),fast_samples:diag.fastSamples.slice(-300)};
+}
+function diagPaint(){if(diagnosticView.hidden)return;const s=diagSummary();diagEl("diagStates").textContent=s.states;diagEl("diagLoads").textContent=s.loads;diagEl("diagFastP50").textContent=diagText(s.fast_p50_ms);diagEl("diagFastP95").textContent=diagText(s.fast_p95_ms);diagEl("diagFastMax").textContent=diagText(s.fast_max_ms);diagEl("diagFastOver1s").textContent=s.fast_over_1000_ms;diagEl("diagRestP50").textContent=diagText(s.rest_p50_ms);diagEl("diagRestP95").textContent=diagText(s.rest_p95_ms);diagEl("diagVideoP50").textContent=diagText(s.video_p50_ms);diagEl("diagVideoP95").textContent=diagText(s.video_p95_ms);diagEl("diagVideoMax").textContent=diagText(s.video_max_ms);diagEl("diagOver1s").textContent=s.video_over_1000_ms;diagEl("diagAuctionStates").textContent=s.state_by_table.fa_auction||0;diagEl("diagEventStates").textContent=s.state_by_table.fa_events||0;diagEl("diagRestBytes").textContent=diagBytes(s.rest_payload_bytes);diagEl("diagRequests").textContent=s.request_state_received;diagEl("diagPhoneStates").textContent=s.phone_states_sent;diagEl("diagLongTasks").textContent=s.long_tasks;diagEl("diagLast").textContent=diagText(s.lastFast?.signal_to_fast_video_ms??s.last?.state_to_video_ms)}
+function diagRecord(started,stateSignalMs,kind,payloadBytes=0){
+ const player_id=auction?.current_player_id;
+ const restMs=performance.now()-started,bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
+ diag.restPayloadBytes+=payloadBytes;
+ requestAnimationFrame(()=>{const sample={player_id,at:new Date().toISOString(),kind,rest_ms:restMs,rest_payload_bytes:payloadBytes,state_to_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};if(sample.state_to_video_ms>=1000)record44("slow_video",{...sample,view:"full"});diag.last=sample;diag.samples.push(sample);if(diag.samples.length>1000)diag.samples.splice(0,diag.samples.length-1000);diagPaint()});
+}
+function diagRecordFast(stateSignalMs){
+ const player_id=auction?.current_player_id;
+ const bid=Number(auction?.current_bid)||0,slot=Number(auction?.highest_slot)||null,status=auction?.status||null;
+ requestAnimationFrame(()=>{
+  const sample={player_id,at:new Date().toISOString(),signal_to_fast_video_ms:Number(stateSignalMs)>0?Math.max(0,serverNow()-Number(stateSignalMs)):null,bid,slot,status};
+  if(sample.signal_to_fast_video_ms>=1000)record44("slow_video",{...sample,view:"fast"});diag.lastFast=sample;diag.fastSamples.push(sample);if(diag.fastSamples.length>1000)diag.fastSamples.splice(0,diag.fastSamples.length-1000);diagPaint();
+  requestAnimationFrame(()=>syncRegiaVoice());
+ });
+}
+function resetDiagnostics(runId=null){
+ diag44.reset(runId);lastUiTick44=0;fix4Worker?.postMessage({type:"reset_diag",run_id:runId});
+ diag.startedAt=new Date().toISOString();diag.states=0;diag.stateByTable={};diag.stateByOperation={};diag.requestStateReceived=0;diag.phoneStatesSent=0;diag.restPayloadBytes=0;diag.longTasks=0;diag.presenceTransientDrops=0;diag.presenceConfirmedOffline=0;diag.presenceRecoveries=0;diag.timerAutoResumes=0;diag.presenceEvents=[];diag.samples=[];diag.fastSamples=[];diag.last=null;diag.lastFast=null;diagPaint();
+}
+try{new PerformanceObserver(list=>{for(const e of list.getEntries())if(e.duration>=50)diag.longTasks++;diagPaint()}).observe({type:"longtask",buffered:true})}catch{}
+let rcTraceStart=null;
+async function rcStartTrace(id){
+ const r=await db.from("fa_fix4_trace").select("id").eq("league_id",id).order("id",{ascending:false}).limit(1);
+ if(r.error){rcTraceStart=null;record44("trace_start_error",{error:r.error.message});return;}
+ rcTraceStart=r.data?.[0]?.id||0;
+}
+diagEl("diagDownload").onclick=async()=>{
+ const btn=diagEl("diagDownload");btn.disabled=true;
+ const errors=[];let trace=[],workerFlushed=false;
+ try{
+  const requestId=crypto.randomUUID();
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{flush44.delete(requestId);reject(Error("Worker senza risposta al report"))},6000);flush44.set(requestId,()=>{clearTimeout(timer);resolve()});fix4Worker?.postMessage({type:"flush_diag",request_id:requestId});});workerFlushed=true;
+ }catch(e){errors.push(e.message)}
+ try{
+  if(rcTraceStart===null)throw Error("Inizio registro server non disponibile");
+  let cursor=rcTraceStart;
+  for(;;){
+   const r=await db.from("fa_fix4_trace").select("*").eq("league_id",league.id).gt("id",cursor).order("id").limit(500);
+   if(r.error)throw r.error;
+   trace.push(...r.data);if(r.data.length<500)break;cursor=r.data[r.data.length-1].id;
+   if(trace.length>=20000)throw Error("Registro server troppo lungo: report parziale");
+  }
+ }catch(e){errors.push(e.message)}
+ const report={version:"FANTASTICA 5.4.19 — PROVA REALE",generated_at:new Date().toISOString(),run_id:diag44.runId,regia:diagSummary(),diagnostics_44:diag44.snapshot(),worker_flushed:workerFlushed,trace_start_id:rcTraceStart,server_trace:trace,report_errors:errors,auction:auction?{...auction}:null,participants:slots.map(s=>({slot:s.slot,name:s.display_name,manual_control:s.manual_control})),league_id:league?.id||null,automatic_pass_not_assessed:true};
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fantastica-prova-reale-base54-p1-${Date.now()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);btn.disabled=false;
+};
+
 const msg=(el,t,c="")=>{el.className=c;el.textContent=t};
 const slotName=n=>slots.find(s=>s.slot===n)?.display_name||`Posto ${n}`;
 const currentPlayer=()=>catalog.find(p=>p.id===auction?.current_player_id);
@@ -1098,7 +1168,7 @@ $("loginLeagueBtn").onclick=async()=>{
 let verificationPoll=null;
 
 async function pollPendingLeague(){
- const raw=localStorage.getItem("fantastica-pending-league-v31");
+ const raw=localStorage.getItem("fantastica-pending-league");
  if(!raw)return;
  const pending=JSON.parse(raw);
  clearInterval(verificationPoll);
@@ -1116,7 +1186,7 @@ async function pollPendingLeague(){
      }
      if(data.complete){
        clearInterval(verificationPoll);
-       localStorage.removeItem("fantastica-pending-league-v31");
+       localStorage.removeItem("fantastica-pending-league");
        msg($("homeMsg"),"✓ Email verificata. Apertura lega...","ok");
        await openLeague(data.league_id);
      }else{
@@ -1154,7 +1224,7 @@ $("createLeague").onclick=async()=>{
      const em=data?.error==="LEGA_GIA_ESISTENTE"?"Esiste già una lega con lo stesso nome e la stessa password.":(error?.message||data?.error);
      msg($("homeMsg"),"Errore: "+em,"bad");return
    }
-   localStorage.setItem("fantastica-pending-league-v31",JSON.stringify({
+   localStorage.setItem("fantastica-pending-league",JSON.stringify({
      pending_id:data.pending_id,client_secret:clientSecret
    }));
    const mirrorLeagueId=String(data.reserved_league_id||"");
@@ -1173,10 +1243,13 @@ $("changeLeague").onclick=async()=>{
  localStorage.removeItem("fantastica-organizer-last-league");
  try{await window.fantasticaDesktop?.clearSavedLeagueAccess?.()}catch{}
  try{await window.fantasticaDesktop?.clearLastLeague?.()}catch{}
- disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
+ disconnect();resetRegiaVoiceSnapshot();league=null;auction=null;fix4Send();slots=[];bids=[];events=[];catalog=[];$("regia").classList.add("hidden");$("leagueHome").classList.remove("hidden");showAuth("login")
 };
 
 async function openLeague(id){
+ resetDiagnostics(crypto.randomUUID());
+ await rcStartTrace(id);
+ latestFastAuction=null;latestFastAuctionRevision=0;
  resetRegiaVoiceSnapshot();updateRegiaVoiceButton();
  const {data,error}=await db.from("fa_leagues").select("*").eq("id",id).maybeSingle();
  if(error||!data){
@@ -1186,6 +1259,7 @@ async function openLeague(id){
   return
  }
  league=data;
+
  localStorage.setItem("fantastica-organizer-last-league",league.id);
  try{await window.fantasticaDesktop?.setLastLeague?.(league.id)}catch{}
  $("leagueName").textContent=league.name;
@@ -1195,9 +1269,29 @@ async function openLeague(id){
  $("regia").classList.remove("hidden");
  await load();connect();
 }
+const FAST_AUCTION_FIELDS=["current_bid","highest_slot","status","close_reason","last_bid_at","timer_deadline","paused","paused_remaining_ms","closed_at","current_player_id","assignment_confirmed","manual_timer_started","offline_hold","offline_resume_timer"];
+function applyFastAuction(raw,stateSignalMs){
+ if(!auction||!raw||typeof raw!=="object")return false;
+ const snapshot={};
+ for(const key of FAST_AUCTION_FIELDS)if(Object.prototype.hasOwnProperty.call(raw,key))snapshot[key]=raw[key];
+ if(!Object.keys(snapshot).length)return false;
+ latestFastAuction=snapshot;latestFastAuctionRevision++;
+ auction={...auction,...snapshot};
+
+ const cp=currentPlayer(),assignedDone=auction.status==="SOLD"||!!cp?.assigned_slot;
+ if($("amount"))$("amount").textContent=assignedDone?"—":auction.current_bid;
+ if($("who"))$("who").textContent=assignedDone?"—":auction.highest_slot?slotName(Number(auction.highest_slot)):"Nessun offerente";
+ if($("closed"))$("closed").textContent=auction.status==="SOLD"?"✓ AGGIUDICATO":"";
+ document.querySelectorAll("#players .p[data-slot]").forEach(el=>el.classList.toggle("highest",Number(el.dataset.slot)===Number(auction.highest_slot)));
+ updateTimerVisualState();
+ diagRecordFast(stateSignalMs);
+ return true;
+}
 async function load(runProgress=true,stateSignalMs=0){
  if(!league)return;
+ const diagStarted=performance.now();
  const loadRun=++loadRunSequence;
+ const fastRevisionAtStart=latestFastAuctionRevision;
  const [l,a,s,b,p]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
@@ -1209,15 +1303,19 @@ async function load(runProgress=true,stateSignalMs=0){
  if(loadRun<lastAppliedLoadRun)return;
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];catalog=p.data||[];
+ if(latestFastAuction&&latestFastAuctionRevision>fastRevisionAtStart)auction={...auction,...latestFastAuction};
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
  render();syncRegiaVoice();
+ diagRecord(diagStarted,stateSignalMs,"full",jsonByteLength([l.data,a.data,s.data,b.data,p.data]));
  lastRolePhase=league.role_phase;lastKnownRole=league.active_role;lastComplete=league.auction_complete;
  if(rtConnected)setTimeout(pushPhoneState,0);
  if(runProgress)setTimeout(checkProgress,50);
 }
 async function loadCore(stateSignalMs=0){
  if(!league)return;
+ const diagStarted=performance.now();
  const loadRun=++loadRunSequence;
+ const fastRevisionAtStart=latestFastAuctionRevision;
  const [l,a,s,b]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",league.id).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",league.id).maybeSingle(),
@@ -1228,38 +1326,27 @@ async function loadCore(stateSignalMs=0){
  if(loadRun<lastAppliedLoadRun)return;
  lastAppliedLoadRun=loadRun;
  league=l.data;auction=a.data;slots=s.data||[];bids=b.data||[];
+ if(latestFastAuction&&latestFastAuctionRevision>fastRevisionAtStart)auction={...auction,...latestFastAuction};
  if(Number(stateSignalMs)>0)lastLoadedStateSignalMs=Math.max(lastLoadedStateSignalMs,Number(stateSignalMs));
  render();syncRegiaVoice();
+ diagRecord(diagStarted,stateSignalMs,"core",jsonByteLength([l.data,a.data,s.data,b.data]));
  if(rtConnected)setTimeout(pushPhoneState,0);
 }
+const PRESENCE_OFFLINE_GRACE_MS=3000;
 const presenceSeen=new Set();
 const presenceCommitted=new Set();
+const presenceOfflineTimers=new Map();
 const online=s=>!!s&&presenceCommitted.has(Number(s.slot));
-let presenceSnapshotTimer=null,presenceSnapshotBusy=false,lastPresenceSnapshot="";
-function commitPresence(arr){
- presenceCommitted.clear();for(const n of arr)presenceCommitted.add(Number(n));
- render();
+let connectionEpoch410=0;
+let presenceSnapshotTimer=null,presenceSnapshotBusy=false,presenceSnapshotPending=false,lastPresenceSnapshot="",presenceWarmupUntil=0;
+function recordPresenceEvent(type,slot=null,extra={}){
+ const item={at:new Date().toISOString(),type,slot,...extra};
+ record44("presence_event",{presence_type:type,slot,...extra});
+ diag.presenceEvents.push(item);if(diag.presenceEvents.length>300)diag.presenceEvents.splice(0,diag.presenceEvents.length-300);
 }
-function schedulePresenceSnapshot(delay=25){
- clearTimeout(presenceSnapshotTimer);
- presenceSnapshotTimer=setTimeout(sendPresenceSnapshot,delay);
-}
-async function sendPresenceSnapshot(){
- if(!league||presenceSnapshotBusy)return;
- const arr=[...presenceSeen].sort((a,b)=>a-b),sig=arr.join(",");
- /* Verde solo dopo che lo stesso stato e' stato scritto nel backend.
-    Se la firma e' gia' quella confermata, riallinea comunque la UI locale. */
- if(sig===lastPresenceSnapshot){commitPresence(arr);return}
- presenceSnapshotBusy=true;
- try{
-  const {data,error}=await db.rpc("fa_regia_presence_snapshot",{p_league_id:league.id,p_online_slots:arr});
-  if(!error&&data?.ok!==false){lastPresenceSnapshot=sig;commitPresence(arr);scheduleLoad(8,false)}
- }finally{presenceSnapshotBusy=false}
-}
-function syncPhonePresence(){
- if(!channel)return;
- const state=channel.presenceState?.()||{},next=new Set();
- for(const [key,entries] of Object.entries(state)){
+function readPhonePresence(){
+ const raw=channel?.presenceState?.()||{},next=new Set();
+ for(const [key,entries] of Object.entries(raw)){
   const km=/^phone:(\d+)$/.exec(String(key));
   if(km&&Number(km[1]))next.add(Number(km[1]));
   for(const p of (Array.isArray(entries)?entries:[])){
@@ -1267,15 +1354,75 @@ function syncPhonePresence(){
    if(p?.kind==="phone"&&n)next.add(n);
   }
  }
- const changed=next.size!==presenceSeen.size||[...next].some(n=>!presenceSeen.has(n));
- if(changed){
-   /* Un'uscita diventa rossa subito; un rientro diventa verde solo dopo conferma DB. */
-   let removed=false;
-   for(const n of [...presenceCommitted])if(!next.has(n)){presenceCommitted.delete(n);removed=true}
-   presenceSeen.clear();for(const n of next)presenceSeen.add(n);
-   if(removed)render();
-   schedulePresenceSnapshot(25);
- }else if(!lastPresenceSnapshot)schedulePresenceSnapshot(25);
+ return next;
+}
+function commitPresence(arr){
+ presenceCommitted.clear();for(const n of arr)presenceCommitted.add(Number(n));
+ render();
+}
+function schedulePresenceSnapshot(delay=25){
+ record44("presence_schedule",{replaces_pending:presenceSnapshotTimer!==null,requested_delay_ms:delay});
+ clearTimeout(presenceSnapshotTimer);
+ const warmup=Math.max(0,presenceWarmupUntil-performance.now());
+ presenceSnapshotTimer=setTimeout(()=>{presenceSnapshotTimer=null;record44("presence_schedule_fired");sendPresenceSnapshot();},Math.max(delay,warmup));
+}
+async function sendPresenceSnapshot(){
+ if(!league||!channel||!rtConnected)return;
+ const epoch=connectionEpoch410;
+ if(presenceSnapshotBusy){record44("presence_queued_busy");presenceSnapshotPending=true;return}
+ const arr=[...presenceSeen].sort((a,b)=>a-b),sig=arr.join(",");
+ if(sig===lastPresenceSnapshot){record44("presence_skipped_unchanged",{online_slots:arr,signature:sig});commitPresence(arr);return}
+ presenceSnapshotBusy=true;const presenceAttempt=crypto.randomUUID(),presenceStarted=performance.now();
+ record44("presence_request",{attempt_id:presenceAttempt,online_slots:arr,previous_signature:lastPresenceSnapshot});
+ try{
+  const {data,error}=await db.rpc("fa_regia_presence_snapshot_rc2",{p_league_id:league.id,p_online_slots:arr});
+  if(epoch!==connectionEpoch410)return;
+  record44("presence_response",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,ok:!error&&data?.ok!==false,error:error?.message||data?.error||null,effective_online_slots:data?.effective_online_slots||null,deferred_offline_slots:data?.deferred_offline_slots||null,blocked:data?.blocked??null,resumed:data?.resumed??null,timer_deadline:data?.timer_deadline||null});
+  if(!error&&data?.ok!==false){
+   const effective=Array.isArray(data?.effective_online_slots)?data.effective_online_slots:arr;
+   const deferred=Array.isArray(data?.deferred_offline_slots)?data.deferred_offline_slots:[];
+   lastPresenceSnapshot=deferred.length?"":sig;commitPresence(effective);
+   if(deferred.length){
+    recordPresenceEvent("OFFLINE_DEFERRED_RECENT_HEARTBEAT",null,{slots:deferred});
+    schedulePresenceSnapshot(500);
+   }
+   if(data?.resumed){diag.timerAutoResumes++;recordPresenceEvent("TIMER_AUTO_RESUME",null,{timer_deadline:data.timer_deadline||null})}
+   scheduleLoad(8,false);
+  }else {recordPresenceEvent("SNAPSHOT_ERROR",null,{error:error?.message||data?.error||"SCONOSCIUTO"});schedulePresenceSnapshot(1000);}
+ }catch(e){record44("presence_error",{attempt_id:presenceAttempt,rpc_ms:performance.now()-presenceStarted,error:e.message});if(epoch===connectionEpoch410)schedulePresenceSnapshot(1000);}finally{
+  presenceSnapshotBusy=false;
+  if(presenceSnapshotPending){presenceSnapshotPending=false;schedulePresenceSnapshot(0)}
+ }
+}
+function syncPhonePresence(){
+ if(!channel)return;
+ const next=readPhonePresence();
+ let changed=false;
+ for(const n of next){
+  const timer=presenceOfflineTimers.get(n);
+  if(timer){
+   clearTimeout(timer);presenceOfflineTimers.delete(n);diag.presenceTransientDrops++;
+   recordPresenceEvent("TRANSIENT_RETURN",n,{within_ms:PRESENCE_OFFLINE_GRACE_MS});
+  }
+  if(!presenceSeen.has(n)){
+   presenceSeen.add(n);changed=true;diag.presenceRecoveries++;recordPresenceEvent("ONLINE",n);
+  }
+ }
+ for(const n of [...presenceSeen]){
+  if(next.has(n)||presenceOfflineTimers.has(n))continue;
+  recordPresenceEvent("MISSING_CANDIDATE",n,{grace_ms:PRESENCE_OFFLINE_GRACE_MS});
+  const timer=setTimeout(()=>{
+   presenceOfflineTimers.delete(n);
+   if(readPhonePresence().has(n)){
+    diag.presenceTransientDrops++;recordPresenceEvent("TRANSIENT_RETURN",n,{at_grace_boundary:true});return;
+   }
+   presenceSeen.delete(n);presenceCommitted.delete(n);diag.presenceConfirmedOffline++;
+   recordPresenceEvent("OFFLINE_CONFIRMED",n,{grace_ms:PRESENCE_OFFLINE_GRACE_MS});
+   render();schedulePresenceSnapshot(25);
+  },PRESENCE_OFFLINE_GRACE_MS);
+  presenceOfflineTimers.set(n,timer);
+ }
+ if(changed||!lastPresenceSnapshot)schedulePresenceSnapshot(25);
 }
 function rosterInfo(slot){
  const slotData=slots.find(s=>s.slot===slot),ps=catalog.filter(p=>p.assigned_slot===slot),playerSpent=ps.reduce((a,p)=>a+(p.assigned_price||0),0),adjustment=Number(slotData?.credit_adjustment||0),hold=Math.max(0,Number(slotData?.repair_credit_hold||0)),remain=league.credits_initial-playerSpent+adjustment,spent=league.credits_initial-remain,total=league.roster_p+league.roster_d+league.roster_c+league.roster_a;
@@ -1333,7 +1480,7 @@ function phoneStatePayload(){
 }
 async function pushPhoneState(){
  if(!channel||!rtConnected||!league||!auction)return;
- try{await channel.send({type:"broadcast",event:"PHONE_STATE",payload:phoneStatePayload()})}catch{}
+ try{const result=await channel.send({type:"broadcast",event:"PHONE_STATE",payload:phoneStatePayload()});if(result==="ok"){diag.phoneStatesSent++;diagPaint()}}catch{}
 }
 async function pushRosterState(){
  if(!channel||!rtConnected||!league)return;
@@ -1374,7 +1521,7 @@ function mirrorPartState(){
 }
 function mirrorSig(v){return typeof v==="string"?v:JSON.stringify(v)}
 async function sendMirrorView(force=false){
- if(!mirrorChannel||!mirrorRtConnected||!league||$("regia").classList.contains("hidden"))return;
+ if(!mirrorViewerActive||!mirrorChannel||!mirrorRtConnected||!league||$("regia").classList.contains("hidden"))return;
  const state=mirrorPartState(),parts={},large=[];
  for(const [k,v] of Object.entries(state)){
   const sig=mirrorSig(v);
@@ -1398,6 +1545,7 @@ async function sendMirrorView(force=false){
  }catch{}
 }
 function queueMirrorView(force=false){
+ if(!mirrorViewerActive)return;
  mirrorForceQueued=mirrorForceQueued||force;
  if(mirrorSendQueued)return;
  mirrorSendQueued=true;
@@ -1407,7 +1555,7 @@ function queueMirrorView(force=false){
  });
 }
 async function sendMirrorTimer(){
- if(!mirrorChannel||!mirrorRtConnected||!league)return;
+ if(!mirrorViewerActive||!mirrorChannel||!mirrorRtConnected||!league)return;
  const text=$("timer")?.textContent||"—",className=$("timer")?.className||"timer",sig=`${text}|${className}`;
  if(sig===mirrorTimerLast)return;
  mirrorTimerLast=sig;
@@ -1419,6 +1567,20 @@ function mirrorNodeIsTimer(node){
 }
 function stopMirrorObservers(){
  mirrorObserver?.disconnect();mirrorCelebrationObserver?.disconnect();mirrorObserver=null;mirrorCelebrationObserver=null;
+}
+function expireMirrorViewer(){
+ mirrorViewerActive=false;
+ clearTimeout(mirrorViewerExpiry);mirrorViewerExpiry=null;
+ stopMirrorObservers();
+ mirrorSendQueued=false;mirrorForceQueued=false;mirrorTimerLast="";mirrorLastParts={};
+}
+function markMirrorViewerActive(forceView=false){
+ const wasActive=mirrorViewerActive;
+ mirrorViewerActive=true;
+ clearTimeout(mirrorViewerExpiry);
+ mirrorViewerExpiry=setTimeout(expireMirrorViewer,MIRROR_VIEWER_TTL_MS);
+ if(!wasActive)startMirrorObservers();
+ if(forceView)queueMirrorView(true);
 }
 function startMirrorObservers(){
  stopMirrorObservers();
@@ -1437,6 +1599,7 @@ function startMirrorObservers(){
 }
 function disconnectMirror(){
  clearTimeout(mirrorRetry);mirrorRetry=null;
+ clearTimeout(mirrorViewerExpiry);mirrorViewerExpiry=null;mirrorViewerActive=false;
  stopMirrorObservers();
  if(mirrorChannel)db.removeChannel(mirrorChannel);
  mirrorChannel=null;mirrorRtConnected=false;mirrorSendQueued=false;mirrorForceQueued=false;mirrorTimerLast="";mirrorLastParts={};
@@ -1444,13 +1607,12 @@ function disconnectMirror(){
 function connectMirror(){
  if(!league)return;
  disconnectMirror();
- startMirrorObservers();
  mirrorChannel=db.channel("fantastica-mirror:"+league.id)
-  .on("broadcast",{event:"MIRROR_REQUEST"},()=>queueMirrorView(true))
+  .on("broadcast",{event:"MIRROR_REQUEST"},()=>markMirrorViewerActive(true))
+  .on("broadcast",{event:"MIRROR_ALIVE"},()=>markMirrorViewerActive(false))
   .subscribe(st=>{
    if(st==="SUBSCRIBED"){
     mirrorRtConnected=true;
-    queueMirrorView(true);
    }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
     mirrorRtConnected=false;
     clearTimeout(mirrorRetry);
@@ -1629,18 +1791,47 @@ function timer(){
 }
 window.addEventListener("resize",()=>requestAnimationFrame(()=>{fitParticipantNames();fitVisibleRosters()}));
 setInterval(timer,100);
+db.auth.onAuthStateChange((_event,session)=>{fix4Session=session;});
+db.auth.getSession().then(r=>{fix4Session=r.data?.session;});
+function record44(kind,extra={}){diag44.add({source:"ui",kind,at:new Date().toISOString(),server_estimate_ms:Date.now()+serverOffset,clock_offset_ms:serverOffset,player_id:auction?.current_player_id,deadline:auction?.timer_deadline,...extra,sample_kind:extra.kind||null,kind});}
+async function sendDetails44(p){
+ if(!p?.request_id||p.run_id!==diag44.runId||!channel)return;
+ try{
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{flush44.delete(p.request_id);reject(Error("Worker senza risposta"));},6000);flush44.set(p.request_id,()=>{clearTimeout(timer);resolve();});fix4Worker?.postMessage({type:"flush_diag",request_id:p.request_id});});
+  const waitUi=performance.now();while(finalizeBusy&&performance.now()-waitUi<6000)await new Promise(r=>setTimeout(r,25));
+  if(finalizeBusy)throw Error("Finalizzazione UI ancora in corso: diagnostica incompleta");
+  const snapshot=diag44.snapshot();
+  for(const packet of makePackets(snapshot,p.request_id)){const sent=await channel.send({type:"broadcast",event:"DIAG44_PACKET",payload:packet});if(sent!=="ok")break;}
+ }catch(e){record44("export_error",{error:e.message});}
+}
+function fix4Send(){
+ const now=performance.now();if(lastUiTick44&&now-lastUiTick44>750)record44("ui_tick_gap",{gap_ms:now-lastUiTick44});lastUiTick44=now;
+ if(!fix4Worker)return;
+ const active=!!league?.id&&auction?.status==="OPEN"&&!auction.paused&&!!auction.timer_deadline;
+ fix4Worker.postMessage({type:"state",url:SUPABASE_URL,key:SUPABASE_PUBLISHABLE_KEY,token:fix4Session?.access_token||null,leagueId:league?.id,active,deadline:auction?.timer_deadline,offset:serverOffset,player_id:auction?.current_player_id,run_id:diag44.runId});
+}
+try{
+ fix4Worker=new Worker("./finalize-worker-fix4.js?v=44");
+ fix4Worker.onmessage=({data})=>{if(data.diag_event){if(data.diag_event.run_id===diag44.runId)diag44.add(data.diag_event);return;}if(data.flush_ack){flush44.get(data.flush_ack)?.();flush44.delete(data.flush_ack);return;}fix4Status={...fix4Status,...data,received_at:new Date().toISOString()};document.getElementById("fix4WorkerStatus").textContent="Controllo separato: "+(data.error?data.error:data.ready?"attivo":"in attesa");};
+ fix4Worker.onerror=()=>{fix4Status={ready:false,error:"Worker non disponibile"};document.getElementById("fix4WorkerStatus").textContent=fix4Status.error;};
+ setInterval(fix4Send,250);
+}catch(e){fix4Status={ready:false,error:e.message};}
+window.addEventListener("pagehide",()=>fix4Worker?.terminate());
+function fix4HandleStall(payload){ /* Iniezione blocco esclusa dalla candidata pubblica. */ }
+
 async function finalize(){
  if(finalizeBusy||auction.paused||auction.status!=="OPEN")return;
- finalizeBusy=true;
+ finalizeBusy=true;const attemptId=crypto.randomUUID(),started=performance.now(),attemptContext={player_id:auction?.current_player_id,deadline:auction?.timer_deadline};record44("close_request",{...attemptContext,attempt_id:attemptId});
  try{
   const {data,error}=await db.rpc("fa_finalize_v475",{p_league_id:league.id});
+  record44("close_response",{...attemptContext,attempt_id:attemptId,rpc_ms:performance.now()-started,ok:!error&&data?.ok!==false,expired:data?.expired??null,error:error?.message||data?.error||null});
   if(error||data?.ok===false){
     msg($("status"),"Errore assegnazione: "+(error?.message||data?.error||"errore sconosciuto"),"bad");
     await load(false);
   }else if(data?.expired){
     await load(false);
   }
- }finally{finalizeBusy=false}
+ }catch(e){record44("close_error",{...attemptContext,attempt_id:attemptId,rpc_ms:performance.now()-started,error:e.message});throw e;}finally{finalizeBusy=false}
 }
 
 function renderList(){
@@ -1845,32 +2036,55 @@ $("nextEvent").onclick=async()=>{
 document.addEventListener("pointerdown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 document.addEventListener("keydown",()=>{try{const c=audioCtx();if(c?.state==="suspended")c.resume()}catch{}},{passive:true});
 let loadTimer=null,rtConnected=false,lastRtAt=0,latestStateSignalMs=0,lastLoadedStateSignalMs=0,loadRunSequence=0,lastAppliedLoadRun=0;
-let pendingFullLoad=false;
+let latestFastAuction=null,latestFastAuctionRevision=0;
+let pendingFullLoad=false,scheduledLoadInFlight=false,scheduledLoadQueued=false,lastScheduledLoadStarted=0;
+const CORE_RECONCILE_MIN_GAP_MS=500;
 function scheduleLoad(ms=12,full=false){
  pendingFullLoad=pendingFullLoad||full;
+ if(scheduledLoadInFlight){scheduledLoadQueued=true;return}
  clearTimeout(loadTimer);
- loadTimer=setTimeout(()=>{
+ const minGap=full?0:CORE_RECONCILE_MIN_GAP_MS;
+ const wait=Math.max(ms,minGap-(performance.now()-lastScheduledLoadStarted));
+ loadTimer=setTimeout(async()=>{
+   if(scheduledLoadInFlight){scheduledLoadQueued=true;return}
    const f=pendingFullLoad;pendingFullLoad=false;
    const stateSignalMs=latestStateSignalMs;
-   f?load(false,stateSignalMs):loadCore(stateSignalMs);
- },ms);
+   scheduledLoadInFlight=true;lastScheduledLoadStarted=performance.now();
+   try{f?await load(false,stateSignalMs):await loadCore(stateSignalMs)}
+   finally{
+    scheduledLoadInFlight=false;
+    if(scheduledLoadQueued||pendingFullLoad){scheduledLoadQueued=false;scheduleLoad(80,false)}
+   }
+ },Math.max(0,wait));
 }
 function disconnect(){
- if(channel)db.removeChannel(channel);
- channel=null;rtConnected=false;
- clearTimeout(retry);clearTimeout(loadTimer);
+ connectionEpoch410++;
+ const old=channel;channel=null;rtConnected=false;
+ if(old)db.removeChannel(old);
+ lastPresenceSnapshot="";presenceSeen.clear();presenceCommitted.clear();
+ clearTimeout(retry);clearTimeout(loadTimer);clearTimeout(presenceSnapshotTimer);
+ for(const timer of presenceOfflineTimers.values())clearTimeout(timer);
+ presenceOfflineTimers.clear();presenceSnapshotPending=false;
+ pendingFullLoad=false;scheduledLoadQueued=false;
  disconnectMirror();
 }
 function showRt(payload){lastRtAt=Date.now()}
 async function connect(){
  disconnect();
+ const epoch=connectionEpoch410;
  channel=db.channel("fantastica:"+league.id)
    .on("broadcast",{event:"STATE"},payload=>{
       showRt(payload);
       const d=payload?.payload||payload||{};
+      const table=d.table||"unknown",op=d.op||"unknown";
+      diag.states++;
+      diag.stateByTable[table]=(diag.stateByTable[table]||0)+1;
+      diag.stateByOperation[op]=(diag.stateByOperation[op]||0)+1;
+      diagPaint();
       const stateSignalMs=Number(d.sent_at_ms)||0;
       if(stateSignalMs>latestStateSignalMs)latestStateSignalMs=stateSignalMs;
-      scheduleLoad(18,d.table==="fa_players"||d.table==="fa_leagues");
+      if(d.table==="fa_auction"&&d.auction)applyFastAuction(d.auction,stateSignalMs);
+      scheduleLoad(d.table==="fa_auction"?350:30,d.table==="fa_players"||d.table==="fa_leagues");
    })
    .on("broadcast",{event:"CELEBRATE"},payload=>{
       const d=payload?.payload||payload||{};
@@ -1885,6 +2099,7 @@ async function connect(){
    .on("presence",{event:"join"},()=>{syncPhonePresence()})
    .on("presence",{event:"leave"},()=>{syncPhonePresence()})
    .on("broadcast",{event:"REQUEST_STATE"},payload=>{
+      diag.requestStateReceived++;diagPaint();
       const d=payload?.payload||payload||{};
       const afterStateMs=Number(d.after_state_ms)||0;
       if(afterStateMs&&lastLoadedStateSignalMs<afterStateMs){
@@ -1894,18 +2109,21 @@ async function connect(){
    })
    .on("broadcast",{event:"REQUEST_ROSTERS"},()=>{pushRosterState()})
    .subscribe(st=>{
+      if(epoch!==connectionEpoch410)return;
       if(st==="SUBSCRIBED"){
-        rtConnected=true;
+        clearTimeout(retry);rtConnected=true;
+        presenceWarmupUntil=performance.now()+PRESENCE_OFFLINE_GRACE_MS;
         syncPhonePresence();
         msg($("status"),"🟢 CONNESSO","ok");
       }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
         rtConnected=false;
         
-        retry=setTimeout(connect,700);
+        clearTimeout(retry);retry=setTimeout(()=>{if(epoch===connectionEpoch410)connect();},700);
       }
    });
  connectMirror();
 }
+
 
 
 function repairParticipants(){return slots.filter(s=>s.member_enabled!==false&&s.display_name)}
@@ -2147,7 +2365,8 @@ async function exportAllFiles(){
  const btn=$("exportAll");if(btn.disabled)return;
  const now=new Date(),pad=n=>String(n).padStart(2,"0"),leagueSafe=(league.name||"lega").replace(/[^\w-]+/g,"_");
  const suggested=`FANTASTICA_${leagueSafe}_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
- const requested=await askExportName(suggested);
+ const nativeSaveAs=window.fantasticaDesktop?.exportFilesSaveAs;
+ const requested=nativeSaveAs?suggested:await askExportName(suggested);
  if(requested===null)return;
  const exportName=String(requested||"").trim();
  if(!exportName)return;
@@ -2157,6 +2376,15 @@ async function exportAllFiles(){
   const xlsxBase64=makeXlsxBase64();
   const jsonText=JSON.stringify(await exportFantasticaBackup(),null,2);
   const pdfHtml=exportPdfHtml();
+
+  if(nativeSaveAs){
+   const r=await nativeSaveAs({leagueName:league.name,suggestedName:safe,xlsxBase64,jsonText,pdfHtml});
+   if(r?.canceled)return;
+   if(!r?.ok)throw new Error(r?.error||"Esportazione non riuscita");
+   alert(`File esportati correttamente in:\n${r.folder}`);
+   $("celebrate").classList.remove("show");
+   return;
+  }
 
   if(window.fantasticaDesktop?.exportFiles){
    const r=await window.fantasticaDesktop.exportFiles({leagueName:league.name,exportName:safe,xlsxBase64,jsonText,pdfHtml});
@@ -2212,7 +2440,7 @@ setInterval(()=>{if(league)load(false)},60000);
   await ensureAuth();
   await syncServerClock();
   showAuth("login");
-  if(localStorage.getItem("fantastica-pending-league-v31")){
+  if(localStorage.getItem("fantastica-pending-league")){
    showAuth("create");
    pollPendingLeague();
    return;

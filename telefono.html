@@ -1,6 +1,6 @@
-<!doctype html><html lang="it"><head>
+<!doctype html><html lang="it"><head><script src="./phone-recovery.js?v=rc3-1"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>FANTASTICA</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
+<title>FANTASTICA 5.4 · 5.4.19</title><meta name="theme-color" content="#02152a"><meta name="fantastica-build" content="514-ipad-legacy-viewport4-20260817">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="FANTASTICA">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=iphone1">
 <script>
@@ -274,7 +274,7 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
 
 <script>
 (function(){
- var FANTASTICA_PHONE_BUILD="20260827-v530-realtime-recovery";
+ var FANTASTICA_PHONE_BUILD="20260919-ufficiale-5419";
  window.FANTASTICA_PHONE_BUILD=FANTASTICA_PHONE_BUILD;
  var faFreshCheckAt=0;
  function faCheckPublishedPhoneVersion(force){
@@ -328,7 +328,8 @@ html.fa-ios.fa-ios-portrait .leave{flex-shrink:0!important}
   setStartup("Connessione...");
   var legacy=!supportsModernSyntax();
   var ver=legacy?"2.44.4":"2.45.3";
-  var cdns=[
+  // Ripristino del ramo compatibile 5.4; SDK moderno conservato per i client già collaudati.
+  var cdns=[legacy?"./supabase-2.44.4.umd.js":"./supabase.umd.js",
    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js",
    "https://unpkg.com/@supabase/supabase-js@"+ver+"/dist/umd/supabase.js"
   ];
@@ -348,7 +349,8 @@ const SUPABASE_URL="https://evjwadffhsyzltnnzgqk.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_5JZ7VvIiadcSkAvjpFZZxw_xgHC5ga5";
 const createClient=window.supabase&&window.supabase.createClient;
 if(!createClient){document.getElementById("startupScreen").querySelector("p").textContent="Errore caricamento connessione. Ricarica la pagina.";throw new Error("SUPABASE_CLIENT_NON_CARICATO");}
-const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=x=>document.getElementById(x);
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{}),$=x=>document.getElementById(x);
+let participantGameActive=false;
 let league=null,leagueId=null,slot=null,auction=null,slotData=null,slots=[],catalog=[],channel=null,retry=null,busy=false,serverOffset=0,lastDrumSecond=null,lastRolePhase=null,lastKnownRole=null,lastComplete=false,currentPlayerState=null,rosterCacheLoaded=false,lastRegiaStateAt=0,lastRegiaStateSyncMs=0,latestStateSignalSeenMs=0,lastHeartbeatAt=0,heartbeatInFlight=false,connectInFlight=false,resumeTimer=null,stateRecoveryTimer=null,stateFallbackTimer=null,lastFallbackLoadAt=0,lastResumeSyncAt=0,presenceTracked=false,rosterRequestPending=false;
 let playerPool=[],playerPoolLoaded=false,playerPoolLoading=false,playerPoolKey="",playerPoolBusy=false;
 const m=(el,t,c="")=>{el.className=c;el.textContent=t};
@@ -581,10 +583,12 @@ async function ensureAuth(){
  if(error)throw error;
  return data.session;
 }
-async function tryPendingNameRestore(){
+async function tryPendingNameRestore(expectedLeagueName){
  try{
   const {data,error}=await db.rpc("fa_restore_pending_name_v521",{p_device_id:await getDeviceId()});
   if(error||!data||!data.ok||!data.pending_name)return false;
+  if(expectedLeagueName&&String(data.league_name||"").trim().toLowerCase()!==expectedLeagueName.trim().toLowerCase())return false;
+  participantGameActive=false;
   leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
   $("startupScreen").classList.add("hidden");
   $("loginScreen").classList.add("hidden");
@@ -626,6 +630,8 @@ async function trySessionRestore(){
  }catch(e){return false}
 }
 function showLogin(){
+ participantGameActive=false;
+ phoneRecovery.stop();
  $("startupScreen").classList.add("hidden");
  league=null;leagueId=null;slot=null;auction=null;slotData=null;slots=[];catalog=[];
  if(channel)try{db.removeChannel(channel)}catch{};channel=null;
@@ -635,6 +641,7 @@ function showLogin(){
 $("exitBtn").onclick=async()=>{try{await db.rpc("fa_forget_current_device",{p_device_id:await getDeviceId()})}catch(e){}stopKeepAwake();clearParticipantState();showLogin()};
 
 async function finishDeviceJoin(data){
+ participantGameActive=false;
  leagueId=data.league_id;slot=data.slot;rememberParticipantContext(leagueId,slot);
  $("loginScreen").classList.add("hidden");$("loginPassword").value="";
  if(data.needs_name){$("nameLeague").textContent=data.league_name;$("reclaimBox").classList.add("hidden");$("newNameBox").classList.remove("hidden");$("nameScreen").classList.remove("hidden");return}
@@ -672,7 +679,9 @@ $("loginBtn").onclick=async()=>{
   await ensureAuth();m($("loginMsg"),"Accesso...");
   pendingLogin={name:$("loginLeague").value.trim(),password:$("loginPassword").value};
   const {data,error}=await db.rpc("fa_join_participant_device_v511",{p_name:pendingLogin.name,p_password:pendingLogin.password,p_device_id:await getDeviceId(),p_claim_slot:null});
-  if(error||!data||!data.ok){m($("loginMsg"),data&&data.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
+  if(error||!data||!data.ok){
+   if(!error&&data&&data.error==="LEGA_COMPLETA"&&await tryPendingNameRestore(pendingLogin.name))return;
+   m($("loginMsg"),data&&data.error==="LEGA_COMPLETA"?"La lega è completa.":"Nome lega o password non corretti.","bad");return}
   if(data.needs_reclaim){showReclaim(data);return}
   await finishDeviceJoin(data);
  }catch(e){m($("loginMsg"),"Errore: "+e.message,"bad")}
@@ -704,37 +713,45 @@ async function enterGame(){
  const lr=await db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle();
  if(lr.error||!lr.data){await invalidateParticipant();return}
  if(!(await validateParticipant())){await invalidateParticipant();return}
+ participantGameActive=true;
  league=lr.data;$("loginScreen").classList.add("hidden");$("nameScreen").classList.add("hidden");$("pages").classList.remove("hidden");
  await heartbeat(true);await load();connect();startKeepAwake();
 }
 const HEARTBEAT_MIN_MS=18000;
+let heartbeatTaskRC=null;
 async function heartbeat(force=false){
- if(!leagueId||!slot)return false;
- const now=Date.now();
- if(heartbeatInFlight||(!force&&now-lastHeartbeatAt<HEARTBEAT_MIN_MS))return true;
- heartbeatInFlight=true;lastHeartbeatAt=now;
- try{
-  const {data,error}=await db.rpc("fa_heartbeat",{p_league_id:leagueId,p_slot:slot,p_device_token:await getDeviceId(),p_allow_legacy:false});
-  if(error||!data||!data.ok){
-   if(data&&data.error==="NON_AUTORIZZATO"){await invalidateParticipant();return false}
-   m($("status"),"Riconnessione...","warn");return false
+ if(!participantGameActive||!leagueId||!slot)return false;
+ if(heartbeatTaskRC)return heartbeatTaskRC;
+ if(!force&&Date.now()-lastHeartbeatAt<HEARTBEAT_MIN_MS)return true;
+ const id=leagueId,sl=slot;lastHeartbeatAt=Date.now();heartbeatInFlight=true;
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
+ const task=(async()=>{try{
+  const {data,error}=await db.rpc("fa_heartbeat_fix3",{p_league_id:id,p_slot:sl,p_device_token:await getDeviceId(),p_allow_legacy:false}).abortSignal(controller.signal);
+  if(leagueId!==id||slot!==sl)return false;
+  if(error||(!data||data.ok!==true)){
+   phoneRecovery.record('heartbeat_error',{error:(error&&error.message)||(data&&data.error)||'risposta non valida'});
+   if(data&&data.error==="NON_AUTORIZZATO")await invalidateParticipant();
+   return false;
   }
-  return true;
- }catch{return false}
- finally{heartbeatInFlight=false}
+  phoneRecovery.record('heartbeat_ok');return true;
+ }catch(e){phoneRecovery.record('heartbeat_error',{error:e.message});return false;}
+ finally{clearTimeout(timeout);heartbeatInFlight=false;}})();
+ heartbeatTaskRC=task;try{return await task;}finally{if(heartbeatTaskRC===task)heartbeatTaskRC=null;}
 }
+
 setInterval(()=>{if(!document.hidden)heartbeat(false)},20000);
 
 async function reportAuctionVisibility(visible){
- if(!leagueId||!slot||!db)return false;
+ if(!participantGameActive||!leagueId||!slot||!db)return false;
+ const visibilityController=new AbortController(),visibilityTimeout=setTimeout(()=>visibilityController.abort(),8000);
  try{
-  const {data,error}=await db.rpc("fa_set_my_auction_visibility",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible});
+  const {data,error}=await db.rpc("fa_set_my_auction_visibility_fix3",{p_league_id:leagueId,p_slot:slot,p_visible:!!visible}).abortSignal(visibilityController.signal);
   return !error&&(!data||data.ok!==false);
- }catch(e){return false}
+ }catch(e){return false}finally{clearTimeout(visibilityTimeout)}
 }
 
 async function load(){
- if(!leagueId)return;
+ if(!participantGameActive||!leagueId)return;
  const [l,a,s]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
@@ -752,7 +769,7 @@ async function load(){
  render();
 }
 async function loadCore(){
- if(!leagueId)return;
+ if(!participantGameActive||!leagueId)return;
  const [l,a,s]=await Promise.all([
   db.from("fa_leagues").select("*").eq("id",leagueId).maybeSingle(),
   db.from("fa_auction").select("*").eq("league_id",leagueId).maybeSingle(),
@@ -965,7 +982,7 @@ function applyRegiaState(d){
 }
 
 function requestState(afterStateMs=0){
- if(!(channel&&rtConnected))return false;
+ if(!participantGameActive||!(channel&&rtConnected))return false;
  const payload={slot};
  if(Number(afterStateMs)>0)payload.after_state_ms=Number(afterStateMs);
  channel.send({type:"broadcast",event:"REQUEST_STATE",payload}).catch(()=>{});
@@ -974,8 +991,8 @@ function requestState(afterStateMs=0){
 async function trackPhonePresence(){
  if(!(channel&&rtConnected&&slot)||presenceTracked)return presenceTracked;
  try{
-  const status=await channel.track({kind:"phone",slot:Number(slot),online_at:new Date().toISOString()});
-  presenceTracked=status==="ok";
+  const trackedChannel=channel;const status=await trackedChannel.track({kind:"phone",slot:Number(slot),online_at:new Date().toISOString()});
+  if(channel!==trackedChannel)return false;presenceTracked=status==="ok";
  }catch{presenceTracked=false}
  return presenceTracked;
 }
@@ -1017,51 +1034,51 @@ function scheduleStateRecovery(payload){
  },recoveryDelay);
  scheduleStateFallback(2200,signalLocalAt,signalServerAt);
 }
-async function connect(force=false){
- if(!leagueId||document.hidden||(!force&&rtConnected)||connectInFlight)return;
- connectInFlight=true;
- clearTimeout(retry);retry=null;
- if(channel)try{await db.removeChannel(channel)}catch{}
- rtConnected=false;presenceTracked=false;
- channel=db.channel("fantastica:"+leagueId,{config:{presence:{key:`phone:${Number(slot)}`}}})
- .on("broadcast",{event:"STATE"},payload=>{
+const phoneRecovery=new FantasticaPhoneRecovery({
+ db, ready:()=>participantGameActive&&!!leagueId&&!!slot&&!document.hidden,
+ onStatus:(text,ok)=>{rtConnected=ok;connectInFlight=false;if(!ok)presenceTracked=false;m($("status"),text,ok?"ok":"warn");},
+ create:(current)=>db.channel("fantastica:"+leagueId,{config:{presence:{key:`phone:${Number(slot)}`}}})
+ .on("broadcast",{event:"STATE"},phoneRecovery.guard(current,payload=>{
    showRt(payload);
    scheduleStateRecovery(payload);
- })
- .on("broadcast",{event:"PHONE_STATE"},payload=>{
+ }))
+ .on("broadcast",{event:"PHONE_STATE"},phoneRecovery.guard(current,payload=>{
    const d=payload&&payload.payload||payload||{};
    const stateSyncMs=Number(d.state_sync_ms)||0;
    if(stateSyncMs>0&&latestStateSignalSeenMs>0&&stateSyncMs<latestStateSignalSeenMs)return;
    applyRegiaState(d);
- })
- .on("broadcast",{event:"ROSTER_STATE"},payload=>{
+ }))
+ .on("broadcast",{event:"ROSTER_STATE"},phoneRecovery.guard(current,payload=>{
    const d=payload&&payload.payload||payload||{};
    catalog=(d.players||[]).map(p=>({...p}));
    rosterCacheLoaded=true;rosterRequestPending=false;
    renderRosterPages();
- })
- .on("broadcast",{event:"PLAYER_POOL"},payload=>{
+ }))
+ .on("broadcast",{event:"PLAYER_POOL"},phoneRecovery.guard(current,payload=>{
    const d=payload&&payload.payload||payload||{};
    applyPlayerPoolEvent(d);
- })
- .on("broadcast",{event:"CELEBRATE"},payload=>{
+ }))
+ .on("broadcast",{event:"CELEBRATE"},phoneRecovery.guard(current,payload=>{
    const d=payload&&payload.payload||payload||{};
    if(d.message)showCelebration(d.message,d.kind==="ROSTER_COMPLETE"||d.kind==="GLOBAL_COMPLETE");
- })
- .subscribe(async st=>{
-   if(st==="SUBSCRIBED"){
-     rtConnected=true;connectInFlight=false;
-     $("status").className="ok";$("status").textContent="● ONLINE";
-     heartbeat(false);
-     await reportAuctionVisibility(true);
-     await trackPhonePresence();
-     requestState();
-   }else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){
-     rtConnected=false;connectInFlight=false;presenceTracked=false;
-     clearTimeout(retry);retry=setTimeout(connect,1200);
-   }
- })
-}
+ }))
+,
+ onConnected:async(current,ch)=>{
+  if(!current())return;
+  channel=ch;rtConnected=true;presenceTracked=false;
+  const tracked=await ch.track({kind:"phone",slot:Number(slot),online_at:new Date().toISOString()});
+  if(!current())return;
+  if(tracked!=="ok")throw Error("Presence non registrata");
+  presenceTracked=true;
+  if(!await heartbeat(true))throw Error("Heartbeat di rientro fallito");
+  if(!current())return;
+  if(!await reportAuctionVisibility(true))throw Error("Visibilità di rientro fallita");
+  if(current())requestState();
+ }
+});
+async function connect(force=false){return phoneRecovery.connect(force)}
+window.addEventListener("online",()=>connect(true));
+window.fantasticaPhoneReport=()=>({version:"5.4.19",league_id:leagueId,slot,records:phoneRecovery.records,dropped:phoneRecovery.dropped});
 
 document.addEventListener("pointerdown",()=>{
  try{const c=audioCtx();if(c&&c.state==="suspended")c.resume()}catch{}
@@ -1266,7 +1283,7 @@ setInterval(()=>{if(leagueId&&!document.hidden)requestState()},30000);
 function resumeLightSync(forceReconnect=false){
  clearTimeout(resumeTimer);
  resumeTimer=setTimeout(async()=>{
-  if(document.hidden||!leagueId)return;
+  if(document.hidden||!participantGameActive||!leagueId)return;
   const now=Date.now();
   if(now-lastResumeSyncAt<1200)return;
   lastResumeSyncAt=now;
@@ -1285,10 +1302,10 @@ function resumeLightSync(forceReconnect=false){
 }
 document.addEventListener("visibilitychange",()=>{
  if(!document.hidden)resumeLightSync(true);
- else{reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateRecoveryTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
+ else{phoneRecovery.stop();rtConnected=false;presenceTracked=false;reportAuctionVisibility(false);wakeLock=null;pauseLegacyWake();clearTimeout(resumeTimer);clearTimeout(stateRecoveryTimer);clearTimeout(stateFallbackTimer);untrackPhonePresence()}
 });
 window.addEventListener("pageshow",e=>{if(leagueId)resumeLightSync(!!e.persisted)});
-window.addEventListener("pagehide",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
+window.addEventListener("pagehide",()=>{phoneRecovery.stop();reportAuctionVisibility(false);untrackPhonePresence()});
 window.addEventListener("beforeunload",()=>{reportAuctionVisibility(false);untrackPhonePresence()});
 
 function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label||"TIMEOUT")),ms))])}

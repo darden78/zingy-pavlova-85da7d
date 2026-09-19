@@ -54,20 +54,24 @@
  document.getElementById("installView").className="hidden";
  document.getElementById("bootView").className="";
  function go(){location.replace(target)}
- /* Pulizia best-effort SOLO su iPad. Non tocca Supabase né l'identità del dispositivo. */
+ /* Ripristino pulizia iPad 5.4, limitata ESCLUSIVAMENTE al percorso TEST. */
+ var launched=false;
+ function goOnce(){if(launched)return;launched=true;go()}
+ var testScope=new URL("./",location.href).href;
  try{
   if("serviceWorker" in navigator&&navigator.serviceWorker.getRegistrations){
    navigator.serviceWorker.getRegistrations().then(function(regs){
-    var ps=[],i;for(i=0;i<regs.length;i++)try{ps.push(regs[i].unregister())}catch(e){}
-    if(window.Promise&&Promise.all)return Promise.all(ps);
+    var ps=[],i;for(i=0;i<regs.length;i++)if(regs[i].scope===testScope)try{ps.push(regs[i].unregister())}catch(e){}
+    return Promise.all(ps);
    }).then(function(){
-    try{if(window.caches&&caches.keys)caches.keys().then(function(keys){var ps=[],i;for(i=0;i<keys.length;i++)if(String(keys[i]).indexOf("fantastica-")===0)ps.push(caches.delete(keys[i]));if(window.Promise&&Promise.all)return Promise.all(ps)}).then(go,go);else go()}catch(e){go()}
-   },go);
-   setTimeout(go,1500);
-   return;
+    if(window.caches&&caches.keys)return caches.keys().then(function(keys){
+     var ps=[],i;for(i=0;i<keys.length;i++)if(String(keys[i]).indexOf("fantastica-")===0)ps.push(caches.delete(keys[i]));return Promise.all(ps);
+    });
+   }).then(goOnce,goOnce);
+   setTimeout(goOnce,1500);return;
   }
  }catch(e){}
- go();
+ goOnce();
 })();
 </script>
 </body>

@@ -32,7 +32,7 @@
     var left=Math.max(0,availW-width-8);
     var top=Math.max(0,Math.round((availH-height)/2));
     var features=['popup=yes','width='+width,'height='+height,'left='+left,'top='+top,'resizable=yes','scrollbars=no'].join(',');
-    var w=window.open(targetUrl(),'FANTASTICA_GIOCATORE',features);
+    var w=window.open(targetUrl(),'FANTASTICA_RELEASE_GIOCATORE',features);
     if(!w){var m=document.getElementById('msg');m.textContent='Consenti i popup per questo sito e premi di nuovo GIOCA.';m.style.display='block';return;}
     try{w.focus()}catch(e){}
   });

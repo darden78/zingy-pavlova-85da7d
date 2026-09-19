@@ -1,7 +1,7 @@
 {
   "name": "FANTASTICA",
   "short_name": "FANTASTICA",
-  "start_url": "/zingy-pavlova-85da7d/",
+  "start_url": "./pc.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
@@ -17,5 +17,6 @@
       "type": "image/png"
     }
   ],
-  "scope": "/zingy-pavlova-85da7d/"
+  "scope": "./",
+  "id": "./pc.html"
 }

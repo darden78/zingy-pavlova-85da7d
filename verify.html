@@ -4,9 +4,9 @@
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#000;color:#fff;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:22px}.box{width:min(520px,100%);background:#202020;border-radius:18px;padding:26px;text-align:center}h1{font-size:34px}.ok{color:#55e28b}.bad{color:#ff6767}.wait{color:#ffc857}</style>
 </head><body><div class="box"><h1>⚽ FANTASTICA</h1><h2 id="title">Verifica email...</h2><p id="message" class="wait">Attendi qualche secondo.</p></div>
 <script type="module">
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {createClient} from "./supabase.bundle.js";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v31";
-const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:"fantastica-email-verification",flowType:"implicit"}});
 const q=new URLSearchParams(location.search),pending=q.get("pending"),token=q.get("token");
 const title=document.getElementById("title"),message=document.getElementById("message");
 const show=(t,m,c)=>{title.textContent=t;message.textContent=m;message.className=c};

@@ -133,7 +133,7 @@ body{overscroll-behavior:none}
 </section></div></div>
 <div id="mirrorCelebrate" class="celebrate"></div>
 <script type="module">
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {createClient} from "./supabase.bundle.js";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js?v=fantastica-v513-mirror";
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),$=id=>document.getElementById(id);
 const ua=navigator.userAgent||"";
@@ -178,8 +178,16 @@ function applyChunk(d){
  }
 }
 async function requestView(){if(!channel)return;try{await channel.send({type:"broadcast",event:"MIRROR_REQUEST",payload:{league_id:leagueId,sent_at_ms:Date.now()}})}catch{}}
+// La Regia TEST scade gli spettatori dopo 12 s: rinnova finché questa pagina è visibile.
+let mirrorAliveTimer=null;
+function stopMirrorAlive(){clearInterval(mirrorAliveTimer);mirrorAliveTimer=null;}
+async function sendMirrorAlive(){if(!channel||document.hidden)return;try{await channel.send({type:"broadcast",event:"MIRROR_ALIVE",payload:{league_id:leagueId,sent_at_ms:Date.now()}})}catch{}}
+function startMirrorAlive(){stopMirrorAlive();sendMirrorAlive();mirrorAliveTimer=setInterval(sendMirrorAlive,4000);}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopMirrorAlive();else if(channel){startMirrorAlive();startRequests();}});
+window.addEventListener("pagehide",stopMirrorAlive);
+window.addEventListener("pageshow",()=>{if(channel&&!document.hidden){startMirrorAlive();startRequests();}});
 function startRequests(){clearInterval(requestTimer);waitingFresh=true;requestView();requestTimer=setInterval(()=>{if(waitingFresh)requestView();else{clearInterval(requestTimer);requestTimer=null}},800)}
-function disconnect(){clearTimeout(retry);clearInterval(requestTimer);retry=null;requestTimer=null;if(channel)db.removeChannel(channel);channel=null}
+function disconnect(){stopMirrorAlive();clearTimeout(retry);clearInterval(requestTimer);retry=null;requestTimer=null;if(channel)db.removeChannel(channel);channel=null}
 async function ensureAuth(){const {data:{session}}=await db.auth.getSession();if(session)return;await db.auth.signInAnonymously()}
 async function connect(){
  disconnect();
@@ -190,8 +198,8 @@ async function connect(){
   .on("broadcast",{event:"MIRROR_TIMER"},x=>applyTimer(x?.payload||x))
   .on("broadcast",{event:"MIRROR_PART_CHUNK"},x=>applyChunk(x?.payload||x))
   .subscribe(st=>{
-   if(st==="SUBSCRIBED"){setBadge("SOLA VISIONE · ATTESA FANTASTICA","wait");startRequests()}
-   else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){setBadge("SOLA VISIONE · RICONNESSIONE","bad");clearTimeout(retry);retry=setTimeout(connect,700)}
+   if(st==="SUBSCRIBED"){setBadge("SOLA VISIONE · ATTESA FANTASTICA","wait");startRequests();startMirrorAlive()}
+   else if(["CHANNEL_ERROR","TIMED_OUT","CLOSED"].includes(st)){stopMirrorAlive();setBadge("SOLA VISIONE · RICONNESSIONE","bad");clearTimeout(retry);retry=setTimeout(connect,700)}
   });
 }
 document.addEventListener("click",e=>e.preventDefault(),true);document.addEventListener("submit",e=>e.preventDefault(),true);document.addEventListener("keydown",e=>{if(["Enter"," "].includes(e.key))e.preventDefault()},true);

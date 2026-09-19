@@ -1,4 +1,4 @@
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
+import {createClient} from "./supabase.bundle.js";
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from "./config.js";
 
 const $=id=>document.getElementById(id);
@@ -6,7 +6,7 @@ const params=new URLSearchParams(location.search);
 const leagueId=params.get("league")||"";
 const slotNo=Number(params.get("slot")||0);
 const preview=params.get("preview")==="1";
-const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:"fantastica-regia-auth"}});
 
 let league=null,auction=null,slots=[],catalog=[];
 let exactValue="",exactMode=false,loading=false,reloadTimer=null,channel=null;
